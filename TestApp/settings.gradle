@@ -1,0 +1,2 @@
+include ':levelgenerator'
+include 'android', 'core'
