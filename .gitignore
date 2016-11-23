@@ -41,3 +41,4 @@ captures/
 
 #LibreOffice Lock files
 .~lock*
+*.pdn

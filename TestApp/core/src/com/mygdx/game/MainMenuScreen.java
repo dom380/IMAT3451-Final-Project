@@ -58,7 +58,7 @@ public class MainMenuScreen implements Screen {
         playButton.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                ((Game)Gdx.app.getApplicationListener()).setScreen(new LevelGenScreen(game, camera));
+                ((Game)Gdx.app.getApplicationListener()).setScreen(new LevelGenScreen(game));
 
             }
         });
