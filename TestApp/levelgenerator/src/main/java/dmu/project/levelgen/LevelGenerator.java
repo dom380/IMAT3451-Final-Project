@@ -6,7 +6,7 @@ package dmu.project.levelgen;
 
 public interface LevelGenerator {
 
-    double[][] generateLevel(int width, int height);
+    double[][] generateLevel(int noiseWidth, int noiseHeight, int width, int height);
 
 }
 

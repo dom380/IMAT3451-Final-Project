@@ -25,5 +25,6 @@ public class MyGdxGame extends Game {
 		batch.dispose();
 		font.dispose();
 		mainMenuScreen.dispose();
+		this.getScreen().dispose();
 	}
 }

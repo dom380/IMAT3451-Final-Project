@@ -40,7 +40,7 @@ public class LevelGenScreen implements Screen {
         camera = new OrthographicCamera();
         camera.viewportWidth = Gdx.graphics.getWidth();
         camera.viewportHeight = Gdx.graphics.getHeight();
-        camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
+        camera.position.set(camera.viewportWidth / 2.f, camera.viewportHeight / 2.f, 0);
         camera.update();
         init();
     }
@@ -52,50 +52,35 @@ public class LevelGenScreen implements Screen {
         init();
     }
 
-    private boolean init(){
+    private boolean init() {
         map = new TiledMap();
         levelGen = new PerlinLevelGen();
-//        tileTexture = new Texture(Gdx.files.internal("terrain.png"));
-        tileTexture = new Texture(Gdx.files.internal("gradient.png"));
-//        TextureRegion[][] splitTiles = TextureRegion.split(tileTexture, 32, 32);
-        TextureRegion[][] splitTiles = TextureRegion.split(tileTexture, 10, 10);
-        int width = (Gdx.graphics.getWidth() / 10);
+        tileTexture = new Texture(Gdx.files.internal("gradientFinal.png"));
+        tileTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        TextureRegion[][] splitTiles = TextureRegion.split(tileTexture, 8, 10);
+        int width = (Gdx.graphics.getWidth() / 8);
         int height = (Gdx.graphics.getHeight() / 10);
-        double[][] elevation = levelGen.generateLevel(512, 512);
-//        TiledMapTileLayer layer = new TiledMapTileLayer(width, height, 32, 32);
-        TiledMapTileLayer layer = new TiledMapTileLayer(width, height,10,10);
+        double[][] elevation = levelGen.generateLevel(512, 512, width, height);
+        TiledMapTileLayer layer = new TiledMapTileLayer(width, height, 8, 10);
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
-                int tx, ty, nx, ny;
-                nx = x * (512 / width);
-                ny = y * (512 / height);
-                ty = (int)(24*elevation[nx][ny]);
-                if (elevation[nx][ny] < 0.25) {
+                int tx, ty;
+                double scalar;
+                if (elevation[x][y] < 0.25) {
                     tx = 0;
-                } else if (elevation[nx][ny] < 0.35) {
+                    scalar = elevation[x][y] / 0.25;
+                } else if (elevation[x][y] < 0.35) {
                     tx = 1;
-                } else if (elevation[nx][ny] < 0.55){
+                    scalar = (elevation[x][y] - 0.24) / (0.35 - 0.25);
+                } else if (elevation[x][y] < 0.55) {
                     tx = 2;
-                } else{
+                    scalar = (elevation[x][y] - 0.34) / (0.55 - 0.35);
+                } else {
                     tx = 3;
+                    scalar = (elevation[x][y] - 0.54) / (1.0 - 0.55);
                 }
-//                if (elevation[nx][ny] < 0.25) {
-//                    tx = 3;
-//                    ty = 28;
-//                } else if (elevation[nx][ny] > 0.5) {
-//                    tx = 17;
-//                    ty = 19;
-//                } else if (elevation[nx][ny] > 0.4) {
-//                    tx = 3;
-//                    ty = 13;
-//                } else if (elevation[nx][ny] > 0.35) {
-//                    tx = 11;
-//                    ty = 1;
-//                } else {
-//                    tx = 9;
-//                    ty = 1;
-//                }
+                ty = (int) (32 * elevation[x][y] * scalar);
 
                 cell.setTile(new StaticTiledMapTile(splitTiles[tx][ty]));
                 layer.setCell(x, y, cell);
@@ -103,25 +88,9 @@ public class LevelGenScreen implements Screen {
         }
         map.getLayers().add(layer);
         renderer = new OrthogonalTiledMapRenderer(map);
+        renderer.setView((OrthographicCamera) camera);
         CameraController2D cameraInputController = new CameraController2D((OrthographicCamera) camera);
         Gdx.input.setInputProcessor(new GestureDetector(cameraInputController));
-//        Gdx.input.setInputProcessor(new InputAdapter() {
-//            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-//                lastTouch.set(screenX, screenY);
-//                return true;
-//            }
-//
-//            public boolean touchDragged(int screenX, int screenY, int pointer) {
-//                Vector2 newTouch = new Vector2(screenX, screenY);
-//                // delta will now hold the difference between the last and the current touch positions
-//                // delta.x > 0 means the touch moved to the right, delta.x < 0 means a move to the left
-//                Vector2 delta = newTouch.cpy().sub(lastTouch);
-//                camera.translate(-delta.x, delta.y, 0);
-//                lastTouch = newTouch;
-//                return true;
-//            }
-//
-//        });
         return true;
     }
 
