@@ -8,13 +8,18 @@ public class Constraints {
     int mapWidth;
     int mapHeight;
     float length;
+    int populationSize;
+    /**
+     * Value from 0.0 to 1.0 that represents the percentage of tiles that can be populated.
+     */
+    float tilePercentage;
 
     int maxGenerations;
 
-    //map change these to difficulty instead of constraints???
+    //maybe change these to difficulty instead of constraints?
     int numOfObjectives;
-    float enemyDensity;
-    float itemDensity;
+    int enemyLimit;
+    int itemLimit;
 
     public int getMapWidth() {
         return mapWidth;
@@ -48,20 +53,20 @@ public class Constraints {
         this.numOfObjectives = numOfObjectives;
     }
 
-    public float getEnemyDensity() {
-        return enemyDensity;
+    public int getEnemyLimit() {
+        return enemyLimit;
     }
 
-    public void setEnemyDensity(float enemyDensity) {
-        this.enemyDensity = enemyDensity;
+    public void setEnemyLimit(int enemyLimit) {
+        this.enemyLimit = enemyLimit;
     }
 
-    public float getItemDensity() {
-        return itemDensity;
+    public int getItemLimit() {
+        return itemLimit;
     }
 
-    public void setItemDensity(float itemDensity) {
-        this.itemDensity = itemDensity;
+    public void setItemLimit(int itemLimit) {
+        this.itemLimit = itemLimit;
     }
 
     public int getMaxGenerations() {
@@ -70,5 +75,21 @@ public class Constraints {
 
     public void setMaxGenerations(int maxGenerations) {
         this.maxGenerations = maxGenerations;
+    }
+
+    public int getPopulationSize() {
+        return populationSize;
+    }
+
+    public void setPopulationSize(int populationSize) {
+        this.populationSize = populationSize;
+    }
+
+    public float getTilePercentage() {
+        return tilePercentage;
+    }
+
+    public void setTilePercentage(float tilePercentage) {
+        this.tilePercentage = tilePercentage;
     }
 }

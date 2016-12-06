@@ -5,10 +5,25 @@ package dmu.project.levelgen;
  */
 
 public class Tile {
-    public Tile(TileState state, double elevation){
+
+    /**
+     * Copy constructor
+     * @param tile
+     */
+    public Tile(Tile tile){
+        this.position = tile.position;
+        this.tileState = tile.tileState;
+    }
+
+    public Tile(TileState state, int[] position){
         this.tileState = state;
-        this.elevation = elevation;
+        this.position = position;
+    }
+    public Tile(TileState state, int x, int y){
+        this.tileState = state;
+        this.position[0] = x;
+        this.position[1] = y;
     }
     public TileState tileState;
-    public double elevation;
+    public int[] position = new int[2];
 }

@@ -1,14 +1,16 @@
 package dmu.project.levelgen;
 
+import java.util.List;
+
 /**
  * Created by Dom on 30/11/2016.
  */
 
 public class MapCandidate {
-    public MapCandidate(Tile[][] tiles){
+    public MapCandidate(List<Tile> tiles){
         tileSet = tiles;
         fitness = 0.f;
     }
-    public Tile[][] tileSet;
+    public List<Tile> tileSet;
     public Float fitness;
 }

@@ -5,11 +5,10 @@ package dmu.project.levelgen;
  */
 
 public enum TileState {
-    EMPTY,
     START,
     END,
-    OBJECTIVE,
     ITEM,
     OBSTACLE,
-    ENEMY
+    ENEMY,
+    OBJECTIVE,
 }

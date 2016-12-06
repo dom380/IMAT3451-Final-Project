@@ -1,14 +1,12 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
@@ -16,10 +14,14 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import java.util.List;
+
+import dmu.project.levelgen.Constraints;
+import dmu.project.levelgen.GAPopulationGen;
 import dmu.project.levelgen.LevelGenerator;
-import dmu.project.levelgen.PerlinLevelGen;
+import dmu.project.levelgen.Progress;
+import dmu.project.levelgen.Tile;
 
 /**
  * Created by Dom on 18/11/2016.
@@ -30,6 +32,7 @@ public class LevelGenScreen implements Screen {
     private MyGdxGame game;
     private Camera camera;
     private Texture tileTexture;
+    private Texture spriteTexture;
     private TiledMap map;
     private TiledMapRenderer renderer;
     private Vector2 lastTouch = new Vector2();
@@ -54,14 +57,31 @@ public class LevelGenScreen implements Screen {
 
     private boolean init() {
         map = new TiledMap();
-        levelGen = new PerlinLevelGen();
-        tileTexture = new Texture(Gdx.files.internal("gradientFinal.png"));
-        tileTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-        TextureRegion[][] splitTiles = TextureRegion.split(tileTexture, 8, 10);
+//        levelGen = new PerlinLevelGen();
         int width = (Gdx.graphics.getWidth() / 8);
         int height = (Gdx.graphics.getHeight() / 10);
-        double[][] elevation = levelGen.generateLevel(512, 512, width, height);
+        Constraints constraints = new Constraints();
+        constraints.setEnemyLimit(500);
+        constraints.setLength(500);
+        constraints.setItemLimit(30);
+        constraints.setPopulationSize(200);
+        constraints.setMaxGenerations(1000);
+        constraints.setNumOfObjectives(5);
+        constraints.setMapHeight(height);
+        constraints.setMapWidth(width);
+        constraints.setTilePercentage(0.1f);
+        GAPopulationGen populationGen = new GAPopulationGen(constraints);
+        Progress progress = new Progress();
+        List<Tile> mapObjects = populationGen.populate(progress);
+        tileTexture = new Texture(Gdx.files.internal("gradientFinal.png"));
+        tileTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        spriteTexture = new Texture(Gdx.files.internal("sprites.png"));
+        spriteTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        TextureRegion[][] splitTiles = TextureRegion.split(tileTexture, 8, 10);
+        TextureRegion[][] splitSprites = TextureRegion.split(spriteTexture, 16, 16);
+        double[][] elevation = populationGen.getElevation(); //levelGen.generateLevel(512, 512, width, height);
         TiledMapTileLayer layer = new TiledMapTileLayer(width, height, 8, 10);
+        TiledMapTileLayer spriteLayer = new TiledMapTileLayer(width, height,  8, 10);
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
@@ -86,7 +106,28 @@ public class LevelGenScreen implements Screen {
                 layer.setCell(x, y, cell);
             }
         }
+        for(Tile tile:mapObjects){
+            int tx = 0, ty = 0;
+            switch (tile.tileState) {
+                case OBJECTIVE:
+                    tx = 1;
+                    break;
+                case ITEM:
+                    tx = 0;
+                    break;
+                case OBSTACLE:
+                    tx = 3;
+                    break;
+                case ENEMY:
+                    tx = 2;
+                    break;
+            }
+            TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
+            cell.setTile(new StaticTiledMapTile(splitSprites[ty][tx]));
+            spriteLayer.setCell(tile.position[0],tile.position[1],cell);
+        }
         map.getLayers().add(layer);
+        map.getLayers().add(spriteLayer);
         renderer = new OrthogonalTiledMapRenderer(map);
         renderer.setView((OrthographicCamera) camera);
         CameraController2D cameraInputController = new CameraController2D((OrthographicCamera) camera);

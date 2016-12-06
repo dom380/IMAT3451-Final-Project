@@ -2,6 +2,7 @@ package dmu.project.levelgen;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -14,6 +15,8 @@ public class GAPopulationGen implements PopulationGenerator {
     private Constraints constraints;
     private LevelGenerator levelGen;
     private final static Random rng = new Random();
+    private int numTiles;
+    private double[][] elevation;
 
     public GAPopulationGen() {
         levelGen = new PerlinLevelGen();
@@ -25,23 +28,44 @@ public class GAPopulationGen implements PopulationGenerator {
         this.constraints = constraints;
     }
 
+    public double[][] getElevation() {
+        return elevation;
+    }
+
     @Override
-    public Tile[][] populate() {
+    public List<Tile> populate(Progress progress) {
         int width = constraints.mapWidth;
         int height = constraints.mapHeight;
-        double[][] elevation = levelGen.generateLevel(512, 512, width, height);
-        List<MapCandidate> population = initPopulation(20, elevation);
+        int maxTiles = (int) (width * height * constraints.tilePercentage);
+        numTiles = rng.nextInt(maxTiles);
+//        numTiles = (int) (width*height*constraints.tilePercentage);
+        elevation = levelGen.generateLevel(512, 512, width, height);
+        List<MapCandidate> population = initPopulation(constraints.populationSize, elevation);
         int maxGen = constraints.getMaxGenerations();
-        float avgFittness = 0, initFittness = 0;
+        int sameFitnessCount = 0;
+        float highestFitness = 0, initFitness = 0, previousFitness = 0;
         for (int currentGen = 0; currentGen < maxGen; currentGen++) {
-            avgFittness = testFitness(population);
-            if(currentGen == 0) initFittness = avgFittness;
+            highestFitness = testFitness(population);
+            if (currentGen == 0) initFitness = highestFitness;
+            if (highestFitness > 0.9f) break;
+            if (highestFitness == previousFitness) {
+                sameFitnessCount++;
+            }
+            if (sameFitnessCount > 300)
+                break; //If no fitness improvement for the last 100 generations exit
+            previousFitness = highestFitness;
             population = getNewGen(population);
+            progress.progress = 100 * (currentGen/(float)maxGen);
         }
-        //get fittness of final gen
-        avgFittness = testFitness(population);
+        //get fitness of final gen
+        highestFitness = testFitness(population);
         //Sort population by fitness in descending order
-        Collections.sort(population, Collections.reverseOrder((p1, p2) -> p1.fitness.compareTo(p2.fitness)));
+        Collections.sort(population, Collections.reverseOrder(new Comparator<MapCandidate>() {
+            @Override
+            public int compare(MapCandidate map1, MapCandidate map2) {
+                return map1.fitness.compareTo(map2.fitness);
+            }
+        }));
         //Return fittest map
         return population.get(0).tileSet;
     }
@@ -57,56 +81,75 @@ public class GAPopulationGen implements PopulationGenerator {
     }
 
     private float testFitness(List<MapCandidate> population) {
-        int width = constraints.mapWidth, height = constraints.mapHeight;
-        float sumFittness = 0;
-        float mapSize = (width * height);
+        /*
+            DOING FITNESS ALL WRONG!!!
+            CHANGE TO USE CONSTRAINTS AS ACTUAL CONSTRAINTS!!
+            FITNESS BASED ON GROUPING OF ELEMENTS / GAMEPLAY
+            ALSO MAYBE CHANGE TO USE DIFFICULTY AS A TARGET AND WORKOUT FITNESS BASED ON THAT
+
+            for each enemy
+                for each item or objective
+                    if enemy within range of obj
+                        wellPlacedEnemies++
+                        break
+            enemy fitness  = wellPlacedEnemies/enemyCount (percentage of enemies near obj
+            do the same with OBSTACLE near OBSTACLE?
+            start/end fitness stay the same
+            average them all together at end. Should reward maps with enemies near items and objectives
+         */
+        int width = constraints.mapWidth, height = constraints.mapHeight, wellPlacedEnemies = 0;
+        float highestFitness = 0;
         int[] startPos = new int[2];
         int[] endPos = new int[2];
         for (MapCandidate map : population) {
-            int enemyCount = 0, objectiveCount = 0, itemCount = 0;
-            boolean hasStart = false, hasEnd = false;
-            for (int x = 0; x < width; ++x) {
-                for (int y = 0; y < height; ++y) {
-                    Tile currentTile = map.tileSet[x][y];
-                    switch (currentTile.tileState) {
-                        case START:
-                            startPos[0] = x;
-                            startPos[1] = y;
-                            hasStart = true;
-                            break;
-                        case END:
-                            endPos[0] = x;
-                            endPos[1] = y;
-                            hasEnd = true;
-                            break;
-                        case OBJECTIVE:
-                            objectiveCount++;
-                            break;
-                        case ITEM:
-                            itemCount++;
-                            break;
-                        case ENEMY:
-                            enemyCount++;
-                            break;
+            int enemyCount = 0, itemCount = 0, objectiveCount = 0;
+            wellPlacedEnemies = 0;
+            List<Tile> enemyBucket = new ArrayList<>();
+            List<Tile> objectiveBucket = new ArrayList<>();
+            for (Tile tile : map.tileSet) {
+                switch (tile.tileState) {
+                    case START:
+                        startPos = tile.position;
+                        break;
+                    case END:
+                        endPos = tile.position;
+                        break;
+                    case OBJECTIVE:
+                        objectiveBucket.add(tile);
+                        objectiveCount++;
+                        break;
+                    case ITEM:
+                        objectiveBucket.add(tile);
+                        itemCount++;
+                        break;
+                    case ENEMY:
+                        enemyBucket.add(tile);
+                        enemyCount++;
+                        break;
+                }
+            }
+            for (Tile enemy : enemyBucket) {
+                for (Tile objective : objectiveBucket) {
+                    if (manhattanDist(enemy.position, objective.position) < 3) {
+                        wellPlacedEnemies++;
+                        break;
                     }
                 }
-            }//end for
-            if (!hasEnd || !hasStart) { //should probably change the init code to ensure this constraint
-                map.fitness = 0.f;
-                break;
             }
             //todo get if there is a path to exit/objectives etc.
-            float enemyDensity = enemyCount / mapSize;
-            float itemDensity = itemCount / mapSize;
             float pathLength = (float) Math.sqrt(((endPos[0] - startPos[0]) * (endPos[0] - startPos[0])) + ((endPos[1] - startPos[1]) * (endPos[1] - startPos[1])));
-            float enemyFitness = Math.max(1 - Math.abs(constraints.enemyDensity - enemyDensity), 0.01f);
-            float itemFitness = Math.max(1 - Math.abs(constraints.itemDensity - itemDensity), 0.01f);
             float pathLengthFitness = Math.max(1 - Math.abs((pathLength - constraints.length) / constraints.length), 0.01f);
-            float ObjectiveFitness = Math.max(1 - Math.abs((constraints.numOfObjectives - objectiveCount) / constraints.numOfObjectives), 0.01f);
-            map.fitness = (enemyFitness + itemFitness + pathLengthFitness + ObjectiveFitness) / 4.0f;
-            sumFittness += map.fitness;
+            float enemyFitness = wellPlacedEnemies / (float) enemyCount;
+            float itemFitness = 1 - Math.abs((itemCount - constraints.itemLimit) / (float) constraints.itemLimit);
+            float objectiveFitness = 1 - Math.abs((objectiveCount - constraints.numOfObjectives) / (float) constraints.numOfObjectives); // objectiveCount / (float) constraints.numOfObjectives;
+            map.fitness = (enemyFitness + pathLengthFitness + objectiveFitness + itemFitness) / 4.0f;
+//            float enemyFitness = Math.max(1 - Math.abs((constraints.enemyLimit - enemyCount)/(float)constraints.enemyLimit), 0.01f);
+//            float itemFitness = Math.max(1 - Math.abs((constraints.itemLimit - itemCount)/(float)constraints.itemLimit), 0.01f);
+//            float ObjectiveFitness = Math.max(1 - Math.abs((constraints.numOfObjectives - objectiveCount) / constraints.numOfObjectives), 0.01f);
+//            map.fitness = (enemyFitness + itemFitness + pathLengthFitness + ObjectiveFitness) / 4.0f;
+            if (map.fitness > highestFitness) highestFitness = map.fitness;
         }
-        return sumFittness/(float)population.size();
+        return highestFitness;
     }
 
     private List<MapCandidate> getNewGen(List<MapCandidate> currentPop) {
@@ -131,47 +174,43 @@ public class GAPopulationGen implements PopulationGenerator {
         return newGeneration;
     }
 
-    // TODO: 30/11/2016 Optimise the crap out of this because it looks super slow
     private List<MapCandidate> crossover(MapCandidate parent1, MapCandidate parent2) {
-        int width = constraints.mapWidth, height = constraints.mapHeight;
         List<MapCandidate> children = new ArrayList<>();
-        int x = rng.nextInt(constraints.mapWidth - 1) + 1;
-        int y = rng.nextInt(constraints.mapHeight - 1) + 1;
-        Tile[][] child1Tiles = new Tile[width][height];
-        Tile[][] child2Tiles = new Tile[width][height];
-        //Copy first 'half' of parents to children
-        for (int i = 0; i < x; ++i) { // Copy half from parent 1 to child 1
-            if (i != x - 1) { //If not last row
-                System.arraycopy(parent1.tileSet[i], 0, child1Tiles[i], 0, parent1.tileSet[i].length);
+        int arraySize = Math.min(parent1.tileSet.size(), parent2.tileSet.size());
+        int crossoverPoint1 = rng.nextInt(arraySize);
+        int crossoverPoint2 = rng.nextInt(arraySize);
+        if (crossoverPoint1 < crossoverPoint2) {
+            int temp = crossoverPoint1;
+            crossoverPoint1 = crossoverPoint2;
+            crossoverPoint2 = temp;
+        }
+        List<Tile> child1Tiles = new ArrayList<>();
+        List<Tile> child2Tiles = new ArrayList<>();
+        for (int i = 0; i < arraySize; ++i) {
+            if (i > crossoverPoint1 && i < crossoverPoint2) {
+                child1Tiles.add(new Tile(parent2.tileSet.get(i)));
+                child2Tiles.add(new Tile(parent1.tileSet.get(i)));
             } else {
-                System.arraycopy(parent1.tileSet[i], 0, child1Tiles[i], 0, y);
+                child1Tiles.add(new Tile(parent1.tileSet.get(i)));
+                child2Tiles.add(new Tile(parent2.tileSet.get(i)));
             }
         }
-        for (int i = 0; i < x; ++i) { // Copy half from parent 2 to child 2
-            if (i != x - 1) { //If not last row
-                System.arraycopy(parent2.tileSet[i], 0, child2Tiles[i], 0, parent2.tileSet[i].length);
-            } else {
-                System.arraycopy(parent2.tileSet[i], 0, child2Tiles[i], 0, y);
-            }
-        }
-        //Copy second 'half' of parents to children
-        for (int i = x; i < width; ++i) { // Copy half from parent 2 to child 1
-            if (i == x) { //If first row of this half, fill out missing elements of the previous row
-                System.arraycopy(parent2.tileSet[i - 1], y, child1Tiles[i - 1], y, parent2.tileSet[i - 1].length - y);
-            }
-            System.arraycopy(parent2.tileSet[i], 0, child1Tiles[i], 0, parent2.tileSet[i].length);
-
-        }
-        for (int i = x; i < width; ++i) { // Copy half from parent 1 to child 2
-            if (i == x) { //If first row of this half, copy from crossover point
-                System.arraycopy(parent1.tileSet[i - 1], y, child2Tiles[i - 1], y, parent1.tileSet[i - 1].length - y);
-            }
-            System.arraycopy(parent1.tileSet[i], 0, child2Tiles[i], 0, parent1.tileSet[i].length);
-
-        }
-        children.add(new MapCandidate(child1Tiles));
-        children.add(new MapCandidate(child2Tiles));
+        children.add(mutate(new MapCandidate(child1Tiles)));
+        children.add(mutate(new MapCandidate(child2Tiles)));
         return children;
+    }
+
+    private MapCandidate mutate(MapCandidate map) {
+        double chance = rng.nextDouble();
+        if (chance <= 0.33) { // 1 in 3 chance to mutate
+            chance = rng.nextDouble();
+            if (chance <= 0.5) // 50/50 chance to add, or change tile
+                map.tileSet.add(new Tile(randomState.random(), rng.nextInt(constraints.mapWidth), rng.nextInt(constraints.mapHeight)));
+            else
+                map.tileSet.get(rng.nextInt(map.tileSet.size())).tileState = randomState.random();
+
+        }
+        return map;
     }
 
     //Private utility methods
@@ -186,13 +225,46 @@ public class GAPopulationGen implements PopulationGenerator {
     }
 
     private MapCandidate createCandidate(double[][] elevation, int width, int height) {
-        Tile[][] tileSet = new Tile[width][height];
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                tileSet[x][y] = new Tile(randomState.random(), elevation[x][y]);
-            }
+        List<Tile> tileSet = new ArrayList<>();
+        tileSet.add(new Tile(TileState.START, rng.nextInt(width), rng.nextInt(height)));
+        tileSet.add(new Tile(TileState.END, rng.nextInt(width), rng.nextInt(height)));
+        int x, y;
+        for (int i = 0; i < constraints.numOfObjectives; ++i) {
+            x = rng.nextInt(width);
+            y = rng.nextInt(height);
+            if (elevation[x][y] > 0.25)
+                tileSet.add(new Tile(TileState.OBJECTIVE, x, y));
         }
+        for (int i = 0; i < constraints.enemyLimit; ++i) {
+            x = rng.nextInt(width);
+            y = rng.nextInt(height);
+            if (elevation[x][y] > 0.25)
+                tileSet.add(new Tile(TileState.ENEMY, x, y));
+        }
+        for (int i = 0; i < constraints.itemLimit; ++i) {
+            x = rng.nextInt(width);
+            y = rng.nextInt(height);
+            if (elevation[x][y] > 0.25)
+                tileSet.add(new Tile(TileState.ITEM, x, y));
+        }
+        int numOfObstacle = numTiles - (constraints.itemLimit + constraints.numOfObjectives + constraints.enemyLimit);
+        for (int i = 0; i < numOfObstacle; ++i) {
+            x = rng.nextInt(width);
+            y = rng.nextInt(height);
+            if (elevation[x][y] > 0.25)
+                tileSet.add(new Tile(TileState.OBSTACLE, x, y));
+        }
+//        for (int i = 0; i < numTiles - 2; ++i) {
+//            //// TODO: 02/12/2016 Change random start to use normal instead of uniform distribution
+//            tileSet.add(new Tile(randomState.random(), rng.nextInt(width), rng.nextInt(height)));
+//        }
         return new MapCandidate(tileSet);
+    }
+
+    private int manhattanDist(int[] pos1, int[] pos2) {
+        int dX = pos2[0] - pos1[0];
+        int dY = pos2[1] - pos1[1];
+        return Math.abs(dX) + Math.abs(dY);
     }
 
     private static class RandomEnum<E extends Enum> {
@@ -204,8 +276,8 @@ public class GAPopulationGen implements PopulationGenerator {
             values = token.getEnumConstants();
         }
 
-        public E random() {
-            return values[RND.nextInt(values.length)];
+        public E random() { //We don't want random start and end points so remove them from the random range
+            return values[RND.nextInt(values.length - 2) + 2];
         }
     }
 
