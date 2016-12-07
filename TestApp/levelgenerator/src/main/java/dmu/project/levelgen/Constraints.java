@@ -1,24 +1,50 @@
 package dmu.project.levelgen;
 
 /**
+ * Class representing the rules and constraints of the level generation.
+ *
  * Created by Dom on 30/11/2016.
  */
 
 public class Constraints {
+    /**
+     * Width of map
+     */
     int mapWidth;
+    /**
+     * height of the map
+     */
     int mapHeight;
+    /**
+     * Target length of the path between start and end points of the level.
+     */
     float length;
+    /**
+     * Number of candidates within each generation
+     */
     int populationSize;
     /**
      * Value from 0.0 to 1.0 that represents the percentage of tiles that can be populated.
      */
     float tilePercentage;
-
+    /**
+     * Maximum number of generations to be evaluated before returning.
+     */
     int maxGenerations;
 
     //maybe change these to difficulty instead of constraints?
+    /**
+     * Number of objectives to be placed in the level.
+     */
     int numOfObjectives;
+
+    /**
+     * Maximum number of enemies in the level
+     */
     int enemyLimit;
+    /**
+     * Maximum number of items to be placed in the level.
+     */
     int itemLimit;
 
     public int getMapWidth() {

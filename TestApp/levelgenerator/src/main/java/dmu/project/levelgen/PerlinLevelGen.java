@@ -5,16 +5,34 @@ import java.util.Random;
 import dmu.project.noise.OpenSimplexNoise;
 
 /**
+ * Class wrapping OpenSimplexNoise.
+ *
  * Created by Dom on 18/11/2016.
  */
 
 public class PerlinLevelGen implements LevelGenerator {
+
+    /**
+     * OpenSimplexNoise library.
+     */
     private final OpenSimplexNoise simplexNoise;
 
+    /**
+     * Default constructor
+     */
     public PerlinLevelGen(){
         simplexNoise = new OpenSimplexNoise(new Random().nextLong());
     }
 
+    /**
+     * Generate a heightmap of the specified size using layered Perlin noise.
+     *
+     * @param noiseWidth Width of the noise map.
+     * @param noiseHeight Height of the noise map.
+     * @param width Width of the heightmap.
+     * @param height Height of the heightmap.
+     * @return A width by height 2D array of doubles between 0..1
+     */
     @Override
     public double[][] generateLevel(int noiseWidth, int noiseHeight, int width, int height) {
         double[][] noise = new double[noiseWidth][noiseHeight];
@@ -41,7 +59,15 @@ public class PerlinLevelGen implements LevelGenerator {
         return  elevation;
     }
 
-    public double noise(double nx, double ny){
+    /**
+     * Method to call to the noise library.
+     * OpenSimplexNoise returns values between -1..1 and are scaled to 0..1
+     *
+     * @param nx Noise X Coordinate to evaluate with.
+     * @param ny Noise Y Coordinate to evaluate with.
+     * @return Noise value scaled between 0..1
+     */
+    private double noise(double nx, double ny){
         return  simplexNoise.eval(nx,ny)/2 +0.5;
     }
 

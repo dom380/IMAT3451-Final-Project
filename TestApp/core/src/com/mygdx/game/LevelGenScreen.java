@@ -20,10 +20,12 @@ import java.util.List;
 import dmu.project.levelgen.Constraints;
 import dmu.project.levelgen.GAPopulationGen;
 import dmu.project.levelgen.LevelGenerator;
-import dmu.project.levelgen.Progress;
 import dmu.project.levelgen.Tile;
 
 /**
+ * Implementation of the LibGDX Screen class.
+ * Responsible for rendering the generated level for demonstration of prototype.
+ *
  * Created by Dom on 18/11/2016.
  */
 
@@ -35,8 +37,6 @@ public class LevelGenScreen implements Screen {
     private Texture spriteTexture;
     private TiledMap map;
     private TiledMapRenderer renderer;
-    private Vector2 lastTouch = new Vector2();
-    LevelGenerator levelGen;
 
     public LevelGenScreen(MyGdxGame game) {
         this.game = game;
@@ -57,9 +57,9 @@ public class LevelGenScreen implements Screen {
 
     private boolean init() {
         map = new TiledMap();
-//        levelGen = new PerlinLevelGen();
         int width = (Gdx.graphics.getWidth() / 8);
         int height = (Gdx.graphics.getHeight() / 10);
+        //Set level constraints
         Constraints constraints = new Constraints();
         constraints.setEnemyLimit(500);
         constraints.setLength(500);
@@ -70,19 +70,21 @@ public class LevelGenScreen implements Screen {
         constraints.setMapHeight(height);
         constraints.setMapWidth(width);
         constraints.setTilePercentage(0.1f);
+        //Generate Level
         GAPopulationGen populationGen = new GAPopulationGen(constraints);
-        Progress progress = new Progress();
-        List<Tile> mapObjects = populationGen.populate(progress);
+        List<Tile> mapObjects = populationGen.populate();
+        //Load textures
         tileTexture = new Texture(Gdx.files.internal("gradientFinal.png"));
         tileTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         spriteTexture = new Texture(Gdx.files.internal("sprites.png"));
         spriteTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         TextureRegion[][] splitTiles = TextureRegion.split(tileTexture, 8, 10);
         TextureRegion[][] splitSprites = TextureRegion.split(spriteTexture, 16, 16);
-        double[][] elevation = populationGen.getElevation(); //levelGen.generateLevel(512, 512, width, height);
+        //Construct TileMap.
+        double[][] elevation = populationGen.getElevation();
         TiledMapTileLayer layer = new TiledMapTileLayer(width, height, 8, 10);
         TiledMapTileLayer spriteLayer = new TiledMapTileLayer(width, height,  8, 10);
-        for (int x = 0; x < width; x++) {
+        for (int x = 0; x < width; x++) { //Set each tile to the correct sprite based on elevation.
             for (int y = 0; y < height; y++) {
                 TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
                 int tx, ty;
@@ -106,7 +108,7 @@ public class LevelGenScreen implements Screen {
                 layer.setCell(x, y, cell);
             }
         }
-        for(Tile tile:mapObjects){
+        for(Tile tile:mapObjects){ //For each level object set correct sprite.
             int tx = 0, ty = 0;
             switch (tile.tileState) {
                 case OBJECTIVE:

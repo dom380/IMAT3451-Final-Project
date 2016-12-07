@@ -5,6 +5,10 @@ import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
 
 /**
+ * Class to control the level camera.
+ *
+ * Touch to pan around. Pinch to zoom in and out.
+ *
  * Created by Dom on 23/11/2016.
  */
 

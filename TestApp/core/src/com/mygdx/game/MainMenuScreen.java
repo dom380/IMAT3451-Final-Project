@@ -16,6 +16,8 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
+ * Very basic menu screen
+ *
  * Created by Dom on 18/11/2016.
  */
 
@@ -58,7 +60,6 @@ public class MainMenuScreen implements Screen {
         playButton.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-//                ((Game)Gdx.app.getApplicationListener()).setScreen(new LoadingScreen(game));
                 ((Game)Gdx.app.getApplicationListener()).setScreen(new LevelGenScreen(game));
 
             }
