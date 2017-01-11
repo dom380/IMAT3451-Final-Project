@@ -8,9 +8,11 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -54,17 +56,32 @@ public class MainMenuScreen implements Screen {
         //Set table to fill stage
         mainTable.setFillParent(true);
         //Set alignment of contents in the table.
-        mainTable.top();
-        //Create buttons
+        mainTable.center();
+        Label noiseWidthLabel = new Label("Noise Width:", skin);
+        final TextField noiseWidthField = new TextField("",skin);
+        noiseWidthField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
+        Label noiseHeightLabel = new Label("Noise Height:", skin);
+        final TextField noiseHeightField = new TextField("",skin);
+        noiseHeightField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
+        mainTable.add(noiseWidthLabel);
+        mainTable.add(noiseWidthField);
+        mainTable.row();
+        mainTable.add(noiseHeightLabel);
+        mainTable.add(noiseHeightField);
+        mainTable.row();
+
+        //Add buttons to table
         TextButton playButton = new TextButton("Generate Level", skin);
         playButton.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                ((Game)Gdx.app.getApplicationListener()).setScreen(new LevelGenScreen(game));
+                int noiseWidth = noiseWidthField.getText().isEmpty() ? 1 : Integer.parseInt(noiseWidthField.getText());
+                int noiseHeight = noiseHeightField.getText().isEmpty() ? 1 : Integer.parseInt(noiseHeightField.getText());
+                ((Game)Gdx.app.getApplicationListener()).setScreen(new LevelGenScreen(game, noiseWidth,noiseHeight));
 
             }
         });
-        //Add buttons to table
+        mainTable.row();
         mainTable.add(playButton);
         mainTable.row();
         //Add table to stage

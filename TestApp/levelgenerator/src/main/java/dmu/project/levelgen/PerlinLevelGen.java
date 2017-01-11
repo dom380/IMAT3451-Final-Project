@@ -34,29 +34,39 @@ public class PerlinLevelGen implements LevelGenerator {
      * @return A width by height 2D array of doubles between 0..1
      */
     @Override
-    public double[][] generateLevel(int noiseWidth, int noiseHeight, int width, int height) {
-        double[][] noise = new double[noiseWidth][noiseHeight];
-        double[][] elevation = new double[width][height];
-        for (int y = 0; y < noiseHeight; ++y) {
-            for (int x = 0; x < noiseWidth; ++x) {
-                double nx = (x/(double)noiseWidth)-0.5, ny = (y/(double)noiseHeight)-0.5;
-                double e = (1.00 * noise( 1 * nx,  1 * ny)
-                        + 0.50 * noise( 2 * nx,  2 * ny)
-                        + 0.25 * noise( 4 * nx,  4 * ny)
-                        + 0.13 * noise( 8 * nx,  8 * ny)
-                        + 0.06 * noise(16 * nx, 16 * ny)
-                        + 0.03 * noise(32 * nx, 32 * ny));
-                e /= (1.00+0.50+0.25+0.13+0.06+0.03);
+    public double[][] generateLevel(int noiseWidth, int noiseHeight, int width, int height, int octaves, double persistence) {
+        double[][] noise = new double[width][width];
+        //double[][] elevation = new double[width][height];
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                double nx = ((x/(double)width))*noiseWidth, ny = ((y/(double)height))*noiseHeight;
+                double e = 0;
+                double amplitude = 1.0;
+                double frequency = 1.0;
+                double maxVal = 0;
+                double lacunarity = 2.0;
+                for(int currOctave = 0; currOctave < octaves; currOctave++){
+                    double noiseVal = (amplitude * noise(frequency * nx, frequency * ny));
+                    e += noiseVal ;
+                    maxVal += amplitude;
+                    amplitude *= persistence;
+                    frequency *= lacunarity;
+                }
+                e /= maxVal;
                 e = Math.pow(e,1.5);
                 noise[x][y] = e;
             }
         }
-        for (int y = 0; y < height; ++y) {
-            for (int x = 0; x < width; ++x) {
-                elevation[x][y] = noise[(x*noiseWidth/width)][(y*noiseHeight/height)];
-            }
-        }
-        return  elevation;
+//        double maxElevation = 0, minElevation = 0;
+//        for (int y = 0; y < height; ++y) {
+//            for (int x = 0; x < width; ++x) {
+//                double noiseVal = noise[(x*noiseWidth/width)][(y*noiseHeight/height)];
+//                if(noiseVal > maxElevation) maxElevation = noiseVal;
+//                if(noiseVal < minElevation) minElevation = noiseVal;
+//                elevation[x][y] = noiseVal;
+//            }
+//        }
+        return  noise;
     }
 
     /**
@@ -68,7 +78,8 @@ public class PerlinLevelGen implements LevelGenerator {
      * @return Noise value scaled between 0..1
      */
     private double noise(double nx, double ny){
-        return  simplexNoise.eval(nx,ny)/2 +0.5;
+        //return (simplexNoise.eval(nx,ny, 0.5) + 1.0)/2.0;
+        return (simplexNoise.eval(nx,ny)/2.0)+0.5;
     }
 
 }

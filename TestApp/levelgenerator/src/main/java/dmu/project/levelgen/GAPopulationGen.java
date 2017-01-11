@@ -57,7 +57,7 @@ public class GAPopulationGen implements PopulationGenerator {
         int height = constraints.mapHeight;
         int maxTiles = (int) (width * height * constraints.tilePercentage);
         numTiles = rng.nextInt(maxTiles); //Set a random amount of the available tiles to populate.
-        elevation = levelGen.generateLevel(512, 512, width, height); //Generate the base terrain.
+        elevation = levelGen.generateLevel(constraints.noiseWidth, constraints.noiseHeight, width, height, 8, 0.5); //Generate the base terrain.
         List<MapCandidate> population = initPopulation(constraints.populationSize, elevation);
         int maxGen = constraints.getMaxGenerations();
         int sameFitnessCount = 0;
@@ -307,7 +307,7 @@ public class GAPopulationGen implements PopulationGenerator {
         for (int i = 0; i < numOfObstacle; ++i) {
             x = rng.nextInt(width);
             y = rng.nextInt(height);
-            if (elevation[x][y] > 0.25)
+            if (elevation[x][y] > 0.25 && elevation[x][y] < 0.65)
                 tileSet.add(new Tile(TileState.OBSTACLE, x, y));
         }
 //        for (int i = 0; i < numTiles - 2; ++i) {

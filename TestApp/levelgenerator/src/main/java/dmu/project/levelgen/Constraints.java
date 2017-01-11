@@ -47,6 +47,10 @@ public class Constraints {
      */
     int itemLimit;
 
+    int noiseWidth;
+
+    int noiseHeight;
+
     public int getMapWidth() {
         return mapWidth;
     }
@@ -117,5 +121,21 @@ public class Constraints {
 
     public void setTilePercentage(float tilePercentage) {
         this.tilePercentage = tilePercentage;
+    }
+
+    public int getNoiseWidth() {
+        return noiseWidth;
+    }
+
+    public void setNoiseWidth(int noiseWidth) {
+        this.noiseWidth = noiseWidth;
+    }
+
+    public int getNoiseHeight() {
+        return noiseHeight;
+    }
+
+    public void setNoiseHeight(int noiseHeight) {
+        this.noiseHeight = noiseHeight;
     }
 }

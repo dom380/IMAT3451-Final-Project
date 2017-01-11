@@ -18,21 +18,22 @@ public class OpenSimplexNoiseTest {
 
     public static void main(String[] args)
             throws IOException {
+        for(int i =0; i<3; i++) {
+            OpenSimplexNoise noise = new OpenSimplexNoise();
 
-        OpenSimplexNoise noise = new OpenSimplexNoise();
+            LevelGenerator gen = new PerlinLevelGen();
+            double[][] level = gen.generateLevel(5, 5, WIDTH, HEIGHT, 8, 0.5);
 
-        LevelGenerator gen = new PerlinLevelGen();
-        double[][] level = gen.generateLevel(WIDTH, HEIGHT, WIDTH, HEIGHT);
-
-        BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-        for (int y = 0; y < HEIGHT; y++) {
-            for (int x = 0; x < WIDTH; x++) {
-                //double value = noise.eval(x / FEATURE_SIZE, y / FEATURE_SIZE, 0.0);
-                int rgb = 0x010101 * (int) ((level[y][x]) * 255);//(int)((value + 1) * 127.5);
-                image.setRGB(x, y, rgb);
+            BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+            for (int y = 0; y < HEIGHT; y++) {
+                for (int x = 0; x < WIDTH; x++) {
+                    //double value = noise.eval(x / FEATURE_SIZE, y / FEATURE_SIZE, 0.0);
+                    int rgb = 0x010101 * (int) ((level[y][x]) * 255);//(int)((value + 1) * 127.5);
+                    image.setRGB(x, y, rgb);
+                }
             }
+            ImageIO.write(image, "png", new File("noise"+i+".png"));
         }
-        ImageIO.write(image, "png", new File("noise.png"));
 
     }
 }

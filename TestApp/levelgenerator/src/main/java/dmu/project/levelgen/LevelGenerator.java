@@ -9,7 +9,18 @@ package dmu.project.levelgen;
 
 public interface LevelGenerator {
 
-    double[][] generateLevel(int noiseWidth, int noiseHeight, int width, int height);
+    /**
+     * Generate a level's heightmap
+     *
+     * @param noiseWidth
+     * @param noiseHeight
+     * @param width
+     * @param height
+     * @param octaves
+     * @param persistence
+     * @return
+     */
+    double[][] generateLevel(int noiseWidth, int noiseHeight, int width, int height, int octaves, double persistence);
 
 }
 

@@ -37,9 +37,17 @@ public class LevelGenScreen implements Screen {
     private Texture spriteTexture;
     private TiledMap map;
     private TiledMapRenderer renderer;
+    private int noiseWidth, noiseHeight;
 
     public LevelGenScreen(MyGdxGame game) {
+        this(game, 1, 1);
+    }
+
+    public LevelGenScreen(MyGdxGame game, int noiseWidth, int noiseHeight)
+    {
         this.game = game;
+        this.noiseWidth = noiseWidth;
+        this.noiseHeight = noiseHeight;
         camera = new OrthographicCamera();
         camera.viewportWidth = Gdx.graphics.getWidth();
         camera.viewportHeight = Gdx.graphics.getHeight();
@@ -61,15 +69,17 @@ public class LevelGenScreen implements Screen {
         int height = (Gdx.graphics.getHeight() / 10);
         //Set level constraints
         Constraints constraints = new Constraints();
-        constraints.setEnemyLimit(500);
+        constraints.setEnemyLimit(300);
         constraints.setLength(500);
         constraints.setItemLimit(30);
         constraints.setPopulationSize(200);
-        constraints.setMaxGenerations(1000);
+        constraints.setMaxGenerations(100);
         constraints.setNumOfObjectives(5);
         constraints.setMapHeight(height);
         constraints.setMapWidth(width);
         constraints.setTilePercentage(0.1f);
+        constraints.setNoiseWidth(noiseWidth);
+        constraints.setNoiseHeight(noiseHeight);
         //Generate Level
         GAPopulationGen populationGen = new GAPopulationGen(constraints);
         List<Tile> mapObjects = populationGen.populate();
@@ -103,7 +113,9 @@ public class LevelGenScreen implements Screen {
                     scalar = (elevation[x][y] - 0.54) / (1.0 - 0.55);
                 }
                 ty = (int) (32 * elevation[x][y] * scalar);
-
+                if(ty > 31){
+                    ty =31;
+                }
                 cell.setTile(new StaticTiledMapTile(splitTiles[tx][ty]));
                 layer.setCell(x, y, cell);
             }
