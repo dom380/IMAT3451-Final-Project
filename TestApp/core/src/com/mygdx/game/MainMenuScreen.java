@@ -6,13 +6,17 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -57,6 +61,20 @@ public class MainMenuScreen implements Screen {
         mainTable.setFillParent(true);
         //Set alignment of contents in the table.
         mainTable.center();
+        Label difficultyLabel = new Label("Difficulty",skin);
+        final Label difficultyValue = new Label("1.0", skin);
+        mainTable.add(difficultyLabel);
+        final Slider difficultySlider = new Slider(1.0f,10.0f,1.0f,false,skin);
+        difficultySlider.addListener(new ChangeListener(){
+
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                difficultyValue.setText(Float.toString(difficultySlider.getValue()));
+            }
+        });
+        mainTable.add(difficultySlider);
+        mainTable.add(difficultyValue);
+        mainTable.row();
         Label noiseWidthLabel = new Label("Noise Width:", skin);
         final TextField noiseWidthField = new TextField("",skin);
         noiseWidthField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
@@ -75,9 +93,10 @@ public class MainMenuScreen implements Screen {
         playButton.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                int diff  = (int) difficultySlider.getValue();
                 int noiseWidth = noiseWidthField.getText().isEmpty() ? 1 : Integer.parseInt(noiseWidthField.getText());
                 int noiseHeight = noiseHeightField.getText().isEmpty() ? 1 : Integer.parseInt(noiseHeightField.getText());
-                ((Game)Gdx.app.getApplicationListener()).setScreen(new LevelGenScreen(game, noiseWidth,noiseHeight));
+                ((Game)Gdx.app.getApplicationListener()).setScreen(new LevelGenScreen(game, noiseWidth,noiseHeight,diff));
 
             }
         });

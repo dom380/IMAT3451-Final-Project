@@ -13,13 +13,12 @@ import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
-import com.badlogic.gdx.math.Vector2;
 
 import java.util.List;
 
 import dmu.project.levelgen.Constraints;
 import dmu.project.levelgen.GAPopulationGen;
-import dmu.project.levelgen.LevelGenerator;
+import dmu.project.levelgen.HeightMap;
 import dmu.project.levelgen.Tile;
 
 /**
@@ -37,17 +36,18 @@ public class LevelGenScreen implements Screen {
     private Texture spriteTexture;
     private TiledMap map;
     private TiledMapRenderer renderer;
-    private int noiseWidth, noiseHeight;
+    private int noiseWidth, noiseHeight, difficulty, tileWidth = 8, tileHeight = 10;
 
     public LevelGenScreen(MyGdxGame game) {
-        this(game, 1, 1);
+        this(game, 1, 1, 5);
     }
 
-    public LevelGenScreen(MyGdxGame game, int noiseWidth, int noiseHeight)
+    public LevelGenScreen(MyGdxGame game, int noiseWidth, int noiseHeight, int difficulty)
     {
         this.game = game;
         this.noiseWidth = noiseWidth;
         this.noiseHeight = noiseHeight;
+        this.difficulty = difficulty;
         camera = new OrthographicCamera();
         camera.viewportWidth = Gdx.graphics.getWidth();
         camera.viewportHeight = Gdx.graphics.getHeight();
@@ -65,21 +65,19 @@ public class LevelGenScreen implements Screen {
 
     private boolean init() {
         map = new TiledMap();
-        int width = (Gdx.graphics.getWidth() / 8);
-        int height = (Gdx.graphics.getHeight() / 10);
+        int width = (Gdx.graphics.getWidth() / tileWidth);
+        int height = (Gdx.graphics.getHeight() / tileHeight);
         //Set level constraints
         Constraints constraints = new Constraints();
-        constraints.setEnemyLimit(300);
         constraints.setLength(500);
-        constraints.setItemLimit(30);
-        constraints.setPopulationSize(200);
+        constraints.setPopulationSize(50);
         constraints.setMaxGenerations(100);
-        constraints.setNumOfObjectives(5);
         constraints.setMapHeight(height);
         constraints.setMapWidth(width);
-        constraints.setTilePercentage(0.1f);
         constraints.setNoiseWidth(noiseWidth);
         constraints.setNoiseHeight(noiseHeight);
+        constraints.setObjectivesEnabled(true);
+        constraints.setDifficulty(difficulty);
         //Generate Level
         GAPopulationGen populationGen = new GAPopulationGen(constraints);
         List<Tile> mapObjects = populationGen.populate();
@@ -88,31 +86,31 @@ public class LevelGenScreen implements Screen {
         tileTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         spriteTexture = new Texture(Gdx.files.internal("sprites.png"));
         spriteTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-        TextureRegion[][] splitTiles = TextureRegion.split(tileTexture, 8, 10);
+        TextureRegion[][] splitTiles = TextureRegion.split(tileTexture, tileWidth, tileHeight);
         TextureRegion[][] splitSprites = TextureRegion.split(spriteTexture, 16, 16);
         //Construct TileMap.
-        double[][] elevation = populationGen.getElevation();
-        TiledMapTileLayer layer = new TiledMapTileLayer(width, height, 8, 10);
-        TiledMapTileLayer spriteLayer = new TiledMapTileLayer(width, height,  8, 10);
+        HeightMap heightMap = populationGen.getHeightMap();
+        TiledMapTileLayer layer = new TiledMapTileLayer(width, height, tileWidth, tileHeight);
+        TiledMapTileLayer spriteLayer = new TiledMapTileLayer(width, height,  tileWidth, tileHeight);
         for (int x = 0; x < width; x++) { //Set each tile to the correct sprite based on elevation.
             for (int y = 0; y < height; y++) {
                 TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
                 int tx, ty;
                 double scalar;
-                if (elevation[x][y] < 0.25) {
+                if (heightMap.elevation[x][y] < 0.25) {
                     tx = 0;
-                    scalar = elevation[x][y] / 0.25;
-                } else if (elevation[x][y] < 0.35) {
+                    scalar = heightMap.elevation[x][y] / 0.25;
+                } else if (heightMap.elevation[x][y] < 0.35) {
                     tx = 1;
-                    scalar = (elevation[x][y] - 0.24) / (0.35 - 0.25);
-                } else if (elevation[x][y] < 0.55) {
+                    scalar = (heightMap.elevation[x][y] - 0.24) / (0.35 - 0.25);
+                } else if (heightMap.elevation[x][y] < 0.55) {
                     tx = 2;
-                    scalar = (elevation[x][y] - 0.34) / (0.55 - 0.35);
+                    scalar = (heightMap.elevation[x][y] - 0.34) / (0.55 - 0.35);
                 } else {
                     tx = 3;
-                    scalar = (elevation[x][y] - 0.54) / (1.0 - 0.55);
+                    scalar = (heightMap.elevation[x][y] - 0.54) / (1.0 - 0.55);
                 }
-                ty = (int) (32 * elevation[x][y] * scalar);
+                ty = (int) (32 * heightMap.elevation[x][y] * scalar);
                 if(ty > 31){
                     ty =31;
                 }

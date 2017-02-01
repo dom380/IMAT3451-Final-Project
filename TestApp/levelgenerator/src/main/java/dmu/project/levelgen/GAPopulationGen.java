@@ -1,14 +1,28 @@
 package dmu.project.levelgen;
 
+import com.google.common.base.Stopwatch;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import dmu.project.utils.Grid;
+import dmu.project.utils.LIFOEntry;
+import dmu.project.utils.Node;
+import dmu.project.utils.Vector2D;
 
 /**
  * Implementation of the PopulationGenerator interface that uses a Genetic Algorithm.
- *
+ * <p>
  * Created by Dom on 30/11/2016.
  */
 
@@ -18,13 +32,15 @@ public class GAPopulationGen implements PopulationGenerator {
     private LevelGenerator levelGen;
     private final static Random rng = new Random();
     private int numTiles;
-    private double[][] elevation;
+    private HeightMap heightMap;
+
+    private static double rootTwo = Math.sqrt(2);
 
     /**
      * Default constructor.
      */
     public GAPopulationGen() {
-        levelGen = new PerlinLevelGen();
+        levelGen = new PerlinLevelGen(5, 5, 8, 0.5);
         constraints = new Constraints(); //todo set up default values
     }
 
@@ -34,7 +50,7 @@ public class GAPopulationGen implements PopulationGenerator {
      * @param constraints Level generation constraints.
      */
     public GAPopulationGen(Constraints constraints) {
-        levelGen = new PerlinLevelGen();
+        levelGen = new PerlinLevelGen(constraints.noiseWidth, constraints.noiseHeight, 8, 0.5);
         this.constraints = constraints;
     }
 
@@ -43,28 +59,28 @@ public class GAPopulationGen implements PopulationGenerator {
      *
      * @return heightmap.
      */
-    public double[][] getElevation() {
-        return elevation;
+    public HeightMap getHeightMap() {
+        return heightMap;
     }
 
     /**
      * Genetic Algorithm implementation of the populate method.
+     *
      * @return List of Tiles representing the level.
      */
     @Override
     public List<Tile> populate() {
         int width = constraints.mapWidth;
         int height = constraints.mapHeight;
-        int maxTiles = (int) (width * height * constraints.tilePercentage);
-        numTiles = rng.nextInt(maxTiles); //Set a random amount of the available tiles to populate.
-        elevation = levelGen.generateLevel(constraints.noiseWidth, constraints.noiseHeight, width, height, 8, 0.5); //Generate the base terrain.
-        List<MapCandidate> population = initPopulation(constraints.populationSize, elevation);
+        heightMap = levelGen.generateLevel(width, height, 0.25f); //Generate the base terrain.
+        List<MapCandidate> population = initPopulation(constraints.populationSize, heightMap);
         int maxGen = constraints.getMaxGenerations();
         int sameFitnessCount = 0;
         float highestFitness = 0, initFitness = 0, previousFitness = 0;
         for (int currentGen = 0; currentGen < maxGen; currentGen++) { //For each generation
             highestFitness = testFitness(population);
-            if (currentGen == 0) initFitness = highestFitness; //Get the initial population's fitness for debug purposes.
+            if (currentGen == 0)
+                initFitness = highestFitness; //Get the initial population's fitness for debug purposes.
             if (highestFitness > 0.9f) break; //If sufficient fitness reached then exit.
             if (highestFitness == previousFitness) { //Keep track of the number of generations with no fitness increase.
                 sameFitnessCount++;
@@ -108,15 +124,18 @@ public class GAPopulationGen implements PopulationGenerator {
      * @return Highest fitness found.
      */
     private float testFitness(List<MapCandidate> population) {
-        int wellPlacedEnemies;
+        //int wellPlacedEnemies;
+        int difficulty = constraints.difficulty;
         float highestFitness = 0;
         int[] startPos = new int[2];
         int[] endPos = new int[2];
+        Stopwatch timer = Stopwatch.createStarted();
         for (MapCandidate map : population) { //For each MapCandidate in population.
             int enemyCount = 0, itemCount = 0, objectiveCount = 0;
-            wellPlacedEnemies = 0;
-            List<Tile> enemyBucket = new ArrayList<>();
+            // wellPlacedEnemies = 0;
+            //List<Tile> enemyBucket = new ArrayList<>();
             List<Tile> objectiveBucket = new ArrayList<>();
+            List<Tile> obstacleBucket = new ArrayList<>();
             for (Tile tile : map.tileSet) { //Get the start and end tile positions, count number of enemies and objectives.
                 switch (tile.tileState) {
                     case START:
@@ -130,37 +149,46 @@ public class GAPopulationGen implements PopulationGenerator {
                         objectiveCount++;
                         break;
                     case ITEM:
-                        objectiveBucket.add(tile);
                         itemCount++;
                         break;
                     case ENEMY:
-                        enemyBucket.add(tile);
+                      //  enemyBucket.add(tile);
                         enemyCount++;
                         break;
-                }
-            }
-            for (Tile enemy : enemyBucket) { //Count the number of enemies close to an item or objective tile.
-                for (Tile objective : objectiveBucket) {
-                    if (manhattanDist(enemy.position, objective.position) < 3) {
-                        wellPlacedEnemies++;
+                    case OBSTACLE:
+                        obstacleBucket.add(tile);
                         break;
-                    }
                 }
             }
-            //todo get if there is a path to exit/objectives etc.
-            float pathLength = (float) Math.sqrt(((endPos[0] - startPos[0]) * (endPos[0] - startPos[0])) + ((endPos[1] - startPos[1]) * (endPos[1] - startPos[1])));
-            float pathLengthFitness = Math.max(1 - Math.abs((pathLength - constraints.length) / constraints.length), 0.01f); //0..1 value representing how close to the requested path length.
-            float enemyFitness = wellPlacedEnemies / (float) enemyCount; //Percentage of enemies that are placed near objectives.
-            float itemFitness = 1 - Math.abs((itemCount - constraints.itemLimit) / (float) constraints.itemLimit); //0..1 value representing how close to the requested item number
-            float objectiveFitness = 1 - Math.abs((objectiveCount - constraints.numOfObjectives)
-                    / (float) constraints.numOfObjectives); //0..1 value representing how close to the requested objective number.
-            map.fitness = (enemyFitness + pathLengthFitness + objectiveFitness + itemFitness) / 4.0f; //Final fitness average of individual checks.
-//            float enemyFitness = Math.max(1 - Math.abs((constraints.enemyLimit - enemyCount)/(float)constraints.enemyLimit), 0.01f);
-//            float itemFitness = Math.max(1 - Math.abs((constraints.itemLimit - itemCount)/(float)constraints.itemLimit), 0.01f);
-//            float ObjectiveFitness = Math.max(1 - Math.abs((constraints.numOfObjectives - objectiveCount) / constraints.numOfObjectives), 0.01f);
-//            map.fitness = (enemyFitness + itemFitness + pathLengthFitness + ObjectiveFitness) / 4.0f;
+
+            boolean goodPaths = true;
+            List<Node> cleaningList = new ArrayList<>();
+            for (Tile objective : objectiveBucket) {
+                if (!checkPath(startPos, objective.position, heightMap.grid, obstacleBucket, cleaningList)) {
+                    goodPaths = false;
+                    break;
+                }
+            }
+            for (Node node : cleaningList) { //Reset visited nodes for next search
+                node.fScore = -1;
+                node.gScore = -1;
+                node.hScore = -1;
+            }
+            if (!goodPaths) {
+                map.fitness = 0.0f;
+                continue;
+            }
+            float usableTiles = map.tileSet.size();
+            float mapDifficulty = (float) enemyCount / usableTiles;
+            mapDifficulty -= (itemCount / usableTiles) * 5.0f;
+            if (constraints.isObjectivesEnabled())
+                mapDifficulty += (float) objectiveCount / 10;
+            mapDifficulty *= 10;
+            map.fitness = 1.0f - Math.abs(difficulty - mapDifficulty) / difficulty;
             if (map.fitness > highestFitness) highestFitness = map.fitness;
         }
+        timer.elapsed(TimeUnit.SECONDS);
+        timer.stop();
         return highestFitness;
     }
 
@@ -252,11 +280,11 @@ public class GAPopulationGen implements PopulationGenerator {
     /**
      * Utility method to create the specified number of MapCandidates.
      *
-     * @param popSize Number of MapCandidates to create.
+     * @param popSize   Number of MapCandidates to create.
      * @param elevation Level Heightmap.
      * @return List of MapCandidates.
      */
-    private List<MapCandidate> initPopulation(int popSize, double[][] elevation) {
+    private List<MapCandidate> initPopulation(int popSize, HeightMap elevation) {
         List<MapCandidate> population = new ArrayList<MapCandidate>();
         int width = constraints.mapWidth;
         int height = constraints.mapHeight;
@@ -269,65 +297,303 @@ public class GAPopulationGen implements PopulationGenerator {
     /**
      * Utility method to create a MapCandidate.
      *
-     * @param elevation Heightmap.
-     * @param width Width of the level
-     * @param height Height of the level.
+     * @param heightMap Heightmap.
+     * @param width     Width of the level
+     * @param height    Height of the level.
      * @return MapCandidate.
      */
-    private MapCandidate createCandidate(double[][] elevation, int width, int height) {
+    private MapCandidate createCandidate(HeightMap heightMap, int width, int height) {
         List<Tile> tileSet = new ArrayList<>();
         //Add Start and End tile
-        tileSet.add(new Tile(TileState.START, rng.nextInt(width), rng.nextInt(height)));
-        tileSet.add(new Tile(TileState.END, rng.nextInt(width), rng.nextInt(height)));
         int x, y;
-        //Randomly place Objective tiles
-        for (int i = 0; i < constraints.numOfObjectives; ++i) {
+        do {
             x = rng.nextInt(width);
             y = rng.nextInt(height);
-            if (elevation[x][y] > 0.25)
+        } while (heightMap.elevation[x][y] < 0.25);
+        tileSet.add(new Tile(TileState.START, x, y));
+        do {
+            x = rng.nextInt(width);
+            y = rng.nextInt(height);
+        } while (heightMap.elevation[x][y] < 0.25);
+        tileSet.add(new Tile(TileState.END, x, y));
+        int freeTiles = rng.nextInt(heightMap.aboveWaterValues / 10 - 2) + 100;
+        if (constraints.isObjectivesEnabled()) {
+            int numOfObjectives = rng.nextInt(9) + 1;
+            for (int i = 0; i < numOfObjectives; ++i) {
+                do {
+                    x = rng.nextInt(width);
+                    y = rng.nextInt(height);
+                }
+                while (heightMap.elevation[x][y] < 0.25); //keep looking for a value above water level
                 tileSet.add(new Tile(TileState.OBJECTIVE, x, y));
+                freeTiles--;
+            }
         }
-        //Randomly place Enemy tiles
-        for (int i = 0; i < constraints.enemyLimit; ++i) {
-            x = rng.nextInt(width);
-            y = rng.nextInt(height);
-            if (elevation[x][y] > 0.25)
-                tileSet.add(new Tile(TileState.ENEMY, x, y));
+        int numOfEntity = rng.nextInt(freeTiles / 2);
+        for (int i = 0; i < numOfEntity; ++i) {
+            do {
+                x = rng.nextInt(width);
+                y = rng.nextInt(height);
+            }
+            while (heightMap.elevation[x][y] < 0.25 || heightMap.elevation[x][y] > 0.65); //keep looking for a value above water level
+            tileSet.add(new Tile(TileState.OBSTACLE, x, y));
+            //heightMap.grid.getNode(x,y).walkable = false;
+            freeTiles--;
         }
-        //Randomly place Item tiles
-        for (int i = 0; i < constraints.itemLimit; ++i) {
-            x = rng.nextInt(width);
-            y = rng.nextInt(height);
-            if (elevation[x][y] > 0.25)
-                tileSet.add(new Tile(TileState.ITEM, x, y));
+        numOfEntity = rng.nextInt(freeTiles / 2);
+        for (int i = 0; i < numOfEntity; ++i) {
+            do {
+                x = rng.nextInt(width);
+                y = rng.nextInt(height);
+            } while (heightMap.elevation[x][y] < 0.25); //keep looking for a value above water level
+            tileSet.add(new Tile(TileState.ENEMY, x, y));
+            freeTiles--;
         }
-        //Get the amount of unused available tiles.
-        int numOfObstacle = numTiles - (constraints.itemLimit + constraints.numOfObjectives + constraints.enemyLimit);
-        //Randomly place Obstacle tiles.
-        for (int i = 0; i < numOfObstacle; ++i) {
-            x = rng.nextInt(width);
-            y = rng.nextInt(height);
-            if (elevation[x][y] > 0.25 && elevation[x][y] < 0.65)
-                tileSet.add(new Tile(TileState.OBSTACLE, x, y));
+        numOfEntity = rng.nextInt(freeTiles / 2);
+        for (int i = 0; i < numOfEntity; ++i) {
+            do {
+                x = rng.nextInt(width);
+                y = rng.nextInt(height);
+            } while (heightMap.elevation[x][y] < 0.25); //keep looking for a value above water level
+            tileSet.add(new Tile(TileState.ITEM, x, y));
+            freeTiles--;
         }
-//        for (int i = 0; i < numTiles - 2; ++i) {
-//            //// TODO: 02/12/2016 Change random state to use normal instead of uniform distribution
-//            tileSet.add(new Tile(randomState.random(), rng.nextInt(width), rng.nextInt(height)));
+//        int objCount = 0;
+//        int maxObj = rng.nextInt(9) + 1;
+//        for (int i = 0; i < freeTiles; ++i) {
+//            // TODO: 02/12/2016 Change random state to use normal instead of uniform distribution
+//            TileState state = randomState.random();
+//            if(state == TileState.OBJECTIVE){
+//                if(!constraints.isObjectivesEnabled() || objCount >= maxObj)
+//                {
+//                    state = TileState.OBSTACLE;
+//                }
+//                else
+//                    objCount++;
+//            }
+//
+//            do {
+//                    x = rng.nextInt(width);
+//                    y = rng.nextInt(height);
+//                } while (heightMap.elevation[x][y] < 0.25);
+//            tileSet.add(new Tile(state, x, y));
 //        }
         return new MapCandidate(tileSet);
     }
 
     /**
-     * Calculate the Manhattan Distance between two positions.
+     * Calculate the Diagonal  Distance between two positions.
      *
      * @param pos1 Two value array representing (x,y) coordinates.
      * @param pos2 Two value array representing (x,y) coordinates.
-     * @return The Manhattan Distance.
+     * @return The Diagonal Distance.
      */
-    private int manhattanDist(int[] pos1, int[] pos2) {
-        int dX = pos2[0] - pos1[0];
-        int dY = pos2[1] - pos1[1];
-        return Math.abs(dX) + Math.abs(dY);
+    private double diagonalDist(int[] pos1, int[] pos2) {
+        int dX = Math.abs(pos2[0] - pos1[0]);
+        int dY = Math.abs(pos2[1] - pos1[1]);
+        return (dX) + (rootTwo - 2) * Math.min(dX, dY);
+
+    }
+
+    private double diagonalDist(Vector2D pos1, Vector2D pos2) {
+        double dX = Math.abs(pos2.getX() - pos1.getX());
+        double dY = Math.abs(pos2.getY() - pos1.getY());
+        return (dX) + (rootTwo - 2) * Math.min(dX, dY);
+
+    }
+
+    private double manhatDist(Vector2D pos1, Vector2D pos2) {
+        double dX = Math.abs(pos1.getX() - pos2.getX());
+        double dY = Math.abs(pos1.getY() - pos2.getY());
+        return (dX + dY);
+    }
+
+    private double realDist(Vector2D pos1, Vector2D pos2) {
+        double dX = Math.abs(pos2.getX() - pos1.getX());
+        double dY = Math.abs(pos2.getY() - pos1.getY());
+        return Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
+    }
+
+    private double realDist(int[] pos1, int[] pos2) {
+        int dX = Math.abs(pos2[0] - pos1[0]);
+        int dY = Math.abs(pos2[1] - pos1[1]);
+        return Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
+    }
+
+    private boolean checkPath(int[] start, int[] goal, Grid grid, List<Tile> tileSet, List<Node> cleaningList) {
+        boolean goodPath = false;
+        LIFOEntry.resetCount();
+//        final Map<Vector2D, Vector2D> cameFrom = new HashMap<>();
+        final Queue<LIFOEntry<Node>> frontier = new PriorityQueue<>();
+        Node startNode = grid.getNode(start[0], start[1]);
+        Node goalNode = grid.getNode(goal[0], goal[1]);
+        final Set<Node> closedSet = new HashSet<>();
+        //Stopwatch stopwatch = Stopwatch.createStarted();
+        //A* Search
+
+//        frontier.add(new LIFOEntry<Node>(startNode));
+//        startNode.fScore = diagonalDist(start, goal);
+//        while (!frontier.isEmpty()) {
+//            LIFOEntry entry = frontier.poll();
+//            Node current = (Node) entry.getEntry();
+//            if (current.position.equals(goalNode.position)) {
+//                goodPath = true;
+//                break;
+//            }
+//            closedSet.add(current);
+//            List<Node> neighbours = grid.getNeighbours(current, tileSet);
+//            for (Node neighbour : neighbours) {
+//                if (closedSet.contains(neighbour)) {
+//                    continue;
+//                }
+//                double gScore = current.gScore != -1 ? (current.gScore + realDist(current.position, neighbour.position)) : (realDist(current.position, neighbour.position));
+//                if (gScore >= neighbour.gScore && neighbour.gScore != -1)
+//                    continue; //This isn't a better path than one found before.
+//                neighbour.updateScore(gScore, diagonalDist(neighbour.position, goalNode.position), current);
+//                if (!frontier.contains(neighbour)) {
+//                    frontier.add(new LIFOEntry<Node>(neighbour));
+//                }
+//                cameFrom.put(neighbour.position, current.position);
+//
+//            }
+//            if (frontier.isEmpty()) {
+//                goodPath = false;
+//                break; //No path found
+//            }
+//        }
+//        long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+//        stopwatch.stop();
+//        goodPath = false;
+//        LIFOEntry.resetCount();
+//        closedSet.clear();
+//        frontier.clear();
+//        cameFrom.clear();
+//        grid.reset();
+//        stopwatch.reset();
+//        stopwatch.start();
+        frontier.add(new LIFOEntry<Node>(startNode));
+        cleaningList.add(startNode);
+        boolean moveDiag = grid.isMoveDiag();
+        //JPS
+        while (!frontier.isEmpty()) {
+            LIFOEntry<Node> entry = frontier.poll();
+            Node current = entry.getEntry();
+            if (current.position.equals(goalNode.position)) {
+                goodPath = true;
+                break;
+            }
+            closedSet.add(current);
+            List<Node> neighbours = grid.getNeighboursPrune(current, tileSet);
+            for (Node neighbour : neighbours) {
+                Node jumpNode = jump(grid, neighbour.position, current, goalNode, tileSet, moveDiag);
+                if (jumpNode != null && !closedSet.contains(jumpNode)) {
+                    double gScore = current.gScore != -1 ? (current.gScore + realDist(current.position, neighbour.position)) : (realDist(current.position, neighbour.position));
+                    if (gScore >= neighbour.gScore && neighbour.gScore != -1)
+                        continue; //This isn't a better path than on found before.
+                    cleaningList.add(jumpNode);
+                    if (moveDiag) {
+                        jumpNode.updateScore(gScore, diagonalDist(jumpNode.position, goalNode.position), null);
+                    } else {
+                        jumpNode.updateScore(gScore, manhatDist(jumpNode.position, goalNode.position), current);
+                    }
+                    LIFOEntry<Node> jumpEntry =  new LIFOEntry<Node>(jumpNode);
+                    if (!frontier.contains(jumpEntry)) {
+                        frontier.add(jumpEntry);
+                    }else{
+                        int debugcheck =1;
+                        debugcheck++;
+                    }
+//                    cameFrom.put(jumpNode.position, current.position);
+                }
+            }
+        }
+//        //BFS of map to check if path exists between two points.
+//        while (!frontier.isEmpty()) {
+//            LIFOEntry entry = frontier.poll();
+//            Node current = (Node) entry.getEntry();
+//            if (current.position.equals(goalNode.position)) {
+//                goodPath = true;
+//                break;
+//            }
+//
+//            List<Node> neighbours = grid.getNeighbours(current, tileSet);
+//            for (Node neighbour : neighbours) {
+//                if (!cameFrom.containsKey(neighbour.position)) {
+//                    frontier.add(new LIFOEntry<Node>(neighbour));
+//                    cameFrom.put(neighbour.position, current.position);
+//                }
+//            }
+//        }
+//        if(stopwatch.isRunning()) {
+//            elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+//            stopwatch.stop();
+//        }
+        return goodPath;
+    }
+
+    private Node jump(Grid grid, Vector2D nodePos, Node parent, Node goal, List<Tile> tileSet, boolean moveDiag) {
+        int x = nodePos.getX().intValue(), y = nodePos.getY().intValue();
+        if (!grid.walkable(x, y, tileSet)) { //If space isn't walkable return null
+            return null;
+        }
+        Node node = grid.getNode(x, y);
+        node.parent = parent;
+        if (node.position.equals(goal.position)) { //If end point, return it. Search over.
+            return node;
+        }
+        //get the normalized direction of travel
+        int dx = (int) ((node.position.getX() - parent.position.getX()) / Math.max(Math.abs(node.position.getX() - parent.position.getX()), 1));
+        int dy = (int) ((node.position.getY() - parent.position.getY()) / Math.max(Math.abs(node.position.getY() - parent.position.getY()), 1));
+
+        if (dx != 0 && dy != 0) { //If x and y have changed we're moving diagonally. Check for forced neighbours
+            if ((grid.walkable(x - dx, y + dy, tileSet) && !grid.walkable(x - dx, y, tileSet)) || //we are moving diagonally, don't check the parent, or our next diagonal step, but the other diagonals
+                    (grid.walkable(x + dx, y - dy, tileSet) && !grid.walkable(x, y - dy, tileSet))) {  //if we find a forced neighbor here, we are on a jump point, and we return the current position
+                return node;
+            }
+        } else { //Check horizontal and vertical
+            if (dx != 0) { //Moving in X
+                if (moveDiag) { //And we allow diagonal movement
+                    if ((grid.walkable(x + dx, y + 1, tileSet) && !grid.walkable(x, y + 1, tileSet)) || //check the diagonal nodes for forced neighbours
+                            (grid.walkable(x + dx, y - 1, tileSet) && !grid.walkable(x, y - 1, tileSet))) {
+                        return node;
+                    }
+                } else { //Diagonal moves not allowed.
+                    if (grid.walkable(x + 1, y, tileSet) || grid.walkable(x - 1, y, tileSet)) { // if left or right free
+                        return node;                                                            // return node as we're on a jump point
+                    }
+                }
+            } else { //Moving in Y
+                if (moveDiag) { //If diagonal movement allowed.
+                    if ((grid.walkable(x + 1, y + dy, tileSet) && !grid.walkable(x + 1, y, tileSet)) ||
+                            (grid.walkable(x - 1, y + dy, tileSet) && !grid.walkable(x - 1, y, tileSet))) {
+                        return node;
+                    }
+                } else {
+                    if (grid.walkable(x, y + 1, tileSet) || grid.walkable(x, y - 1, tileSet)) {
+                        return node;
+                    }
+                }
+            }
+        }
+        if (dx != 0 && dy != 0) { //Moving diagonally so have to check for vertical and horizontal jump points
+            Node jumpHoz = jump(grid, new Vector2D(x + dx, y), node, goal, tileSet, moveDiag);
+            if (jumpHoz != null) {
+                return node;
+            }
+            Node jumpVert = jump(grid, new Vector2D(x, y + dy), node, goal, tileSet, moveDiag);
+            if (jumpVert != null) {
+                return node;
+            }
+
+        }
+        if (moveDiag) {
+            if (grid.walkable(x + dx, y, tileSet) || grid.walkable(x, y + dy, tileSet)) {
+                return jump(grid, new Vector2D(x + dx, y + dy), node, goal, tileSet, true); //Haven't found a forced neighbour or goal yet, jump to next diagonal in current direction.
+            } else { //Blocked from going diagonally
+                return null;
+            }
+        }
+        return null;//Couldn't jump anywhere.
     }
 
     /**

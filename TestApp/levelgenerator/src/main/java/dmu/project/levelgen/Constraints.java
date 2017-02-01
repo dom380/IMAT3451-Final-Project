@@ -24,28 +24,15 @@ public class Constraints {
      */
     int populationSize;
     /**
-     * Value from 0.0 to 1.0 that represents the percentage of tiles that can be populated.
-     */
-    float tilePercentage;
-    /**
      * Maximum number of generations to be evaluated before returning.
      */
     int maxGenerations;
 
-    //maybe change these to difficulty instead of constraints?
+    boolean objectivesEnabled;
     /**
-     * Number of objectives to be placed in the level.
+     *  A value between 1-10 representing how difficult the generated level should be.
      */
-    int numOfObjectives;
-
-    /**
-     * Maximum number of enemies in the level
-     */
-    int enemyLimit;
-    /**
-     * Maximum number of items to be placed in the level.
-     */
-    int itemLimit;
+    int difficulty;
 
     int noiseWidth;
 
@@ -75,29 +62,6 @@ public class Constraints {
         this.length = length;
     }
 
-    public int getNumOfObjectives() {
-        return numOfObjectives;
-    }
-
-    public void setNumOfObjectives(int numOfObjectives) {
-        this.numOfObjectives = numOfObjectives;
-    }
-
-    public int getEnemyLimit() {
-        return enemyLimit;
-    }
-
-    public void setEnemyLimit(int enemyLimit) {
-        this.enemyLimit = enemyLimit;
-    }
-
-    public int getItemLimit() {
-        return itemLimit;
-    }
-
-    public void setItemLimit(int itemLimit) {
-        this.itemLimit = itemLimit;
-    }
 
     public int getMaxGenerations() {
         return maxGenerations;
@@ -115,14 +79,6 @@ public class Constraints {
         this.populationSize = populationSize;
     }
 
-    public float getTilePercentage() {
-        return tilePercentage;
-    }
-
-    public void setTilePercentage(float tilePercentage) {
-        this.tilePercentage = tilePercentage;
-    }
-
     public int getNoiseWidth() {
         return noiseWidth;
     }
@@ -137,5 +93,26 @@ public class Constraints {
 
     public void setNoiseHeight(int noiseHeight) {
         this.noiseHeight = noiseHeight;
+    }
+
+    public boolean isObjectivesEnabled() {
+        return objectivesEnabled;
+    }
+
+    public void setObjectivesEnabled(boolean objectivesEnabled) {
+        this.objectivesEnabled = objectivesEnabled;
+    }
+
+    public int getDifficulty() {
+        return difficulty;
+    }
+
+    public void setDifficulty(int difficulty) {
+        if(difficulty > 10)
+            this.difficulty = 10;
+        else if(difficulty < 1)
+            this.difficulty = 1;
+        else
+            this.difficulty = difficulty;
     }
 }

@@ -12,15 +12,12 @@ public interface LevelGenerator {
     /**
      * Generate a level's heightmap
      *
-     * @param noiseWidth
-     * @param noiseHeight
-     * @param width
-     * @param height
-     * @param octaves
-     * @param persistence
-     * @return
+     * @param width the width of the level.
+     * @param height the height of the level.
+     * @param waterLevel a value between 0..1 that represents the water level for the generated map.
+     * @return A 2D width by height array of height values representing the terrain.
      */
-    double[][] generateLevel(int noiseWidth, int noiseHeight, int width, int height, int octaves, double persistence);
+    HeightMap generateLevel(int width, int height, float waterLevel);
 
 }
 
