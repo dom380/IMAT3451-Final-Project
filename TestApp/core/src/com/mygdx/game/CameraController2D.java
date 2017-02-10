@@ -6,9 +6,9 @@ import com.badlogic.gdx.math.Vector2;
 
 /**
  * Class to control the level camera.
- *
+ * <p>
  * Touch to pan around. Pinch to zoom in and out.
- *
+ * <p>
  * Created by Dom on 23/11/2016.
  */
 
@@ -21,21 +21,28 @@ public class CameraController2D implements GestureDetector.GestureListener {
     private Vector2 scrollLimit = new Vector2();
 
     public CameraController2D(OrthographicCamera camera) {
-        this.camera = camera;
-        maxScale = camera.zoom;
-        scrollLimit = new Vector2(camera.viewportWidth, camera.viewportHeight);
+        this(camera, 1.0f, 1.0f);
     }
 
-    private void constrainCamera(){
+    public CameraController2D(OrthographicCamera camera, float zoom, float scale) {
+        this.camera = camera;
+        camera.zoom = zoom;
+        maxScale = scale;
+        this.camera.position.x = (camera.viewportWidth * scale) / 2;
+        this.camera.position.y = (camera.viewportHeight * scale) / 2;
+        this.scrollLimit = new Vector2(camera.viewportWidth * scale, camera.viewportHeight * scale); //new Vector2(camera.viewportWidth, camera.viewportHeight); //scrollLimit;
+    }
+
+    private void constrainCamera() {
         //Constrain camera from scrolling outside of map
-        if(camera.position.x - (camera.viewportWidth*camera.zoom) / 2 < 0)
-            camera.position.x = (camera.viewportWidth*camera.zoom) / 2;
-        else if(camera.position.x + (camera.viewportWidth*camera.zoom) / 2 > scrollLimit.x)
-            camera.position.x = scrollLimit.x - (camera.viewportWidth*camera.zoom) / 2;
-        if(camera.position.y - (camera.viewportHeight*camera.zoom) / 2 < 0)
-            camera.position.y =  (camera.viewportHeight*camera.zoom) / 2;
-        else if(camera.position.y + (camera.viewportHeight*camera.zoom) / 2 > scrollLimit.y)
-            camera.position.y = scrollLimit.y - (camera.viewportHeight*camera.zoom) / 2;
+        if (camera.position.x - (camera.viewportWidth * camera.zoom) / 2 < 0)
+            camera.position.x = (camera.viewportWidth * camera.zoom) / 2;
+        else if (camera.position.x + (camera.viewportWidth * camera.zoom) / 2 > scrollLimit.x)
+            camera.position.x = scrollLimit.x - (camera.viewportWidth * camera.zoom) / 2;
+        if (camera.position.y - (camera.viewportHeight * camera.zoom) / 2 < 0)
+            camera.position.y = (camera.viewportHeight * camera.zoom) / 2;
+        else if (camera.position.y + (camera.viewportHeight * camera.zoom) / 2 > scrollLimit.y)
+            camera.position.y = scrollLimit.y - (camera.viewportHeight * camera.zoom) / 2;
         camera.update();
     }
 

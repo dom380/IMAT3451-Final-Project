@@ -5,10 +5,8 @@ import com.google.common.base.Stopwatch;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Random;
@@ -33,8 +31,6 @@ public class GAPopulationGen implements PopulationGenerator {
     private final static Random rng = new Random();
     private int numTiles;
     private HeightMap heightMap;
-
-    private static double rootTwo = Math.sqrt(2);
 
     /**
      * Default constructor.
@@ -77,11 +73,16 @@ public class GAPopulationGen implements PopulationGenerator {
         int maxGen = constraints.getMaxGenerations();
         int sameFitnessCount = 0;
         float highestFitness = 0, initFitness = 0, previousFitness = 0;
+        boolean reachedMaxFit = false;
         for (int currentGen = 0; currentGen < maxGen; currentGen++) { //For each generation
             highestFitness = testFitness(population);
-            if (currentGen == 0)
+            if (currentGen == 0) {
                 initFitness = highestFitness; //Get the initial population's fitness for debug purposes.
-            if (highestFitness > 0.9f) break; //If sufficient fitness reached then exit.
+            }
+            if (highestFitness > 0.9f) { //If sufficient fitness reached then exit.
+                reachedMaxFit = true;
+                break;
+            }
             if (highestFitness == previousFitness) { //Keep track of the number of generations with no fitness increase.
                 sameFitnessCount++;
             }
@@ -90,7 +91,8 @@ public class GAPopulationGen implements PopulationGenerator {
             previousFitness = highestFitness;
             population = getNewGen(population); //Perform crossover and mutation to get next generation.
         }
-        highestFitness = testFitness(population); //get fitness of final generation.
+        if (!reachedMaxFit)
+            highestFitness = testFitness(population); //get fitness of final generation.
 
         Collections.sort(population, Collections.reverseOrder(new Comparator<MapCandidate>() {
             @Override
@@ -125,24 +127,18 @@ public class GAPopulationGen implements PopulationGenerator {
      */
     private float testFitness(List<MapCandidate> population) {
         //int wellPlacedEnemies;
-        int difficulty = constraints.difficulty;
         float highestFitness = 0;
         int[] startPos = new int[2];
-        int[] endPos = new int[2];
         Stopwatch timer = Stopwatch.createStarted();
         for (MapCandidate map : population) { //For each MapCandidate in population.
-            int enemyCount = 0, itemCount = 0, objectiveCount = 0;
-            // wellPlacedEnemies = 0;
+            int enemyCount = 0, itemCount = 0, objectiveCount = 0, poorPlacedEnemies = 0;
             //List<Tile> enemyBucket = new ArrayList<>();
             List<Tile> objectiveBucket = new ArrayList<>();
             List<Tile> obstacleBucket = new ArrayList<>();
-            for (Tile tile : map.tileSet) { //Get the start and end tile positions, count number of enemies and objectives.
+            for (Tile tile : map.tileSet) { //Get the start position, count number of enemies and objectives.
                 switch (tile.tileState) {
                     case START:
                         startPos = tile.position;
-                        break;
-                    case END:
-                        endPos = tile.position;
                         break;
                     case OBJECTIVE:
                         objectiveBucket.add(tile);
@@ -152,7 +148,9 @@ public class GAPopulationGen implements PopulationGenerator {
                         itemCount++;
                         break;
                     case ENEMY:
-                      //  enemyBucket.add(tile);
+                        if (Heuristics.diagonalDist(tile.position, startPos) < 8)
+                            poorPlacedEnemies++;
+                        //enemyBucket.add(tile);
                         enemyCount++;
                         break;
                     case OBSTACLE:
@@ -160,31 +158,20 @@ public class GAPopulationGen implements PopulationGenerator {
                         break;
                 }
             }
-
-            boolean goodPaths = true;
-            List<Node> cleaningList = new ArrayList<>();
-            for (Tile objective : objectiveBucket) {
-                if (!checkPath(startPos, objective.position, heightMap.grid, obstacleBucket, cleaningList)) {
-                    goodPaths = false;
-                    break;
-                }
-            }
-            for (Node node : cleaningList) { //Reset visited nodes for next search
-                node.fScore = -1;
-                node.gScore = -1;
-                node.hScore = -1;
-            }
-            if (!goodPaths) {
+            /*TODO - New fitness test!
+            * Check num of enemies near start pos - Too many too close lower fitness
+            * Check dist to objectives - too close lower, too far low? (maybe depend of difficulty?)
+            * maybe enemy placement?
+            */
+            Float fitness = 1.0f;
+            fitness -= ((float) poorPlacedEnemies / (float) enemyCount)*2.0f;
+            //Test if there's a path between the start and each objective
+            boolean goodPaths = testPathFitness(fitness, startPos, objectiveBucket, obstacleBucket);
+            if (!goodPaths) { //If we can't reach every objective set fitness to 0
                 map.fitness = 0.0f;
                 continue;
             }
-            float usableTiles = map.tileSet.size();
-            float mapDifficulty = (float) enemyCount / usableTiles;
-            mapDifficulty -= (itemCount / usableTiles) * 5.0f;
-            if (constraints.isObjectivesEnabled())
-                mapDifficulty += (float) objectiveCount / 10;
-            mapDifficulty *= 10;
-            map.fitness = 1.0f - Math.abs(difficulty - mapDifficulty) / difficulty;
+            map.fitness = fitness;
             if (map.fitness > highestFitness) highestFitness = map.fitness;
         }
         timer.elapsed(TimeUnit.SECONDS);
@@ -303,124 +290,35 @@ public class GAPopulationGen implements PopulationGenerator {
      * @return MapCandidate.
      */
     private MapCandidate createCandidate(HeightMap heightMap, int width, int height) {
-        List<Tile> tileSet = new ArrayList<>();
-        //Add Start and End tile
-        int x, y;
-        do {
-            x = rng.nextInt(width);
-            y = rng.nextInt(height);
-        } while (heightMap.elevation[x][y] < 0.25);
-        tileSet.add(new Tile(TileState.START, x, y));
-        do {
-            x = rng.nextInt(width);
-            y = rng.nextInt(height);
-        } while (heightMap.elevation[x][y] < 0.25);
-        tileSet.add(new Tile(TileState.END, x, y));
-        int freeTiles = rng.nextInt(heightMap.aboveWaterValues / 10 - 2) + 100;
-        if (constraints.isObjectivesEnabled()) {
-            int numOfObjectives = rng.nextInt(9) + 1;
-            for (int i = 0; i < numOfObjectives; ++i) {
-                do {
-                    x = rng.nextInt(width);
-                    y = rng.nextInt(height);
-                }
-                while (heightMap.elevation[x][y] < 0.25); //keep looking for a value above water level
-                tileSet.add(new Tile(TileState.OBJECTIVE, x, y));
-                freeTiles--;
+        return CandidateFactory.createCandidate(heightMap, width, height, constraints.getDifficulty(), constraints.isObjectivesEnabled());
+    }
+
+
+    private boolean testPathFitness(Float fitness, int[] startPos, List<Tile> objectiveBucket, List<Tile> obstacleBucket) {
+        List<Node> cleaningList = new ArrayList<>();
+        List<Node> obstacles = new ArrayList<>();
+        boolean goodPaths = true;
+        for (Tile tile : obstacleBucket) { //mark each obstacle tile as not walkable on grid.
+            Node node = heightMap.grid.getNode(tile.position[0], tile.position[1]);
+            node.walkable = false;
+            obstacles.add(node);
+        }
+        for (Tile objective : objectiveBucket) { //Test for path to each objective.
+            if(Heuristics.diagonalDist(objective.position, startPos) < 10 || Heuristics.diagonalDist(objective.position, startPos) > 100){ //TODO tune this because it's probs garbage
+                fitness -= 0.05f;
             }
-        }
-        int numOfEntity = rng.nextInt(freeTiles / 2);
-        for (int i = 0; i < numOfEntity; ++i) {
-            do {
-                x = rng.nextInt(width);
-                y = rng.nextInt(height);
+            if (!checkPath(startPos, objective.position, heightMap.grid, cleaningList)) {
+                goodPaths = false;
+                break;
             }
-            while (heightMap.elevation[x][y] < 0.25 || heightMap.elevation[x][y] > 0.65); //keep looking for a value above water level
-            tileSet.add(new Tile(TileState.OBSTACLE, x, y));
-            //heightMap.grid.getNode(x,y).walkable = false;
-            freeTiles--;
+            clearNodes(cleaningList); //Reset node visited in search and empty the list.
         }
-        numOfEntity = rng.nextInt(freeTiles / 2);
-        for (int i = 0; i < numOfEntity; ++i) {
-            do {
-                x = rng.nextInt(width);
-                y = rng.nextInt(height);
-            } while (heightMap.elevation[x][y] < 0.25); //keep looking for a value above water level
-            tileSet.add(new Tile(TileState.ENEMY, x, y));
-            freeTiles--;
-        }
-        numOfEntity = rng.nextInt(freeTiles / 2);
-        for (int i = 0; i < numOfEntity; ++i) {
-            do {
-                x = rng.nextInt(width);
-                y = rng.nextInt(height);
-            } while (heightMap.elevation[x][y] < 0.25); //keep looking for a value above water level
-            tileSet.add(new Tile(TileState.ITEM, x, y));
-            freeTiles--;
-        }
-//        int objCount = 0;
-//        int maxObj = rng.nextInt(9) + 1;
-//        for (int i = 0; i < freeTiles; ++i) {
-//            // TODO: 02/12/2016 Change random state to use normal instead of uniform distribution
-//            TileState state = randomState.random();
-//            if(state == TileState.OBJECTIVE){
-//                if(!constraints.isObjectivesEnabled() || objCount >= maxObj)
-//                {
-//                    state = TileState.OBSTACLE;
-//                }
-//                else
-//                    objCount++;
-//            }
-//
-//            do {
-//                    x = rng.nextInt(width);
-//                    y = rng.nextInt(height);
-//                } while (heightMap.elevation[x][y] < 0.25);
-//            tileSet.add(new Tile(state, x, y));
-//        }
-        return new MapCandidate(tileSet);
+        clearNodes(cleaningList);
+        clearNodes(obstacles);
+        return goodPaths;
     }
 
-    /**
-     * Calculate the Diagonal  Distance between two positions.
-     *
-     * @param pos1 Two value array representing (x,y) coordinates.
-     * @param pos2 Two value array representing (x,y) coordinates.
-     * @return The Diagonal Distance.
-     */
-    private double diagonalDist(int[] pos1, int[] pos2) {
-        int dX = Math.abs(pos2[0] - pos1[0]);
-        int dY = Math.abs(pos2[1] - pos1[1]);
-        return (dX) + (rootTwo - 2) * Math.min(dX, dY);
-
-    }
-
-    private double diagonalDist(Vector2D pos1, Vector2D pos2) {
-        double dX = Math.abs(pos2.getX() - pos1.getX());
-        double dY = Math.abs(pos2.getY() - pos1.getY());
-        return (dX) + (rootTwo - 2) * Math.min(dX, dY);
-
-    }
-
-    private double manhatDist(Vector2D pos1, Vector2D pos2) {
-        double dX = Math.abs(pos1.getX() - pos2.getX());
-        double dY = Math.abs(pos1.getY() - pos2.getY());
-        return (dX + dY);
-    }
-
-    private double realDist(Vector2D pos1, Vector2D pos2) {
-        double dX = Math.abs(pos2.getX() - pos1.getX());
-        double dY = Math.abs(pos2.getY() - pos1.getY());
-        return Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
-    }
-
-    private double realDist(int[] pos1, int[] pos2) {
-        int dX = Math.abs(pos2[0] - pos1[0]);
-        int dY = Math.abs(pos2[1] - pos1[1]);
-        return Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
-    }
-
-    private boolean checkPath(int[] start, int[] goal, Grid grid, List<Tile> tileSet, List<Node> cleaningList) {
+    private boolean checkPath(int[] start, int[] goal, Grid grid, List<Node> cleaningList) {
         boolean goodPath = false;
         LIFOEntry.resetCount();
 //        final Map<Vector2D, Vector2D> cameFrom = new HashMap<>();
@@ -428,9 +326,8 @@ public class GAPopulationGen implements PopulationGenerator {
         Node startNode = grid.getNode(start[0], start[1]);
         Node goalNode = grid.getNode(goal[0], goal[1]);
         final Set<Node> closedSet = new HashSet<>();
-        //Stopwatch stopwatch = Stopwatch.createStarted();
+        Stopwatch stopwatch = Stopwatch.createStarted();
         //A* Search
-
 //        frontier.add(new LIFOEntry<Node>(startNode));
 //        startNode.fScore = diagonalDist(start, goal);
 //        while (!frontier.isEmpty()) {
@@ -441,8 +338,9 @@ public class GAPopulationGen implements PopulationGenerator {
 //                break;
 //            }
 //            closedSet.add(current);
-//            List<Node> neighbours = grid.getNeighbours(current, tileSet);
-//            for (Node neighbour : neighbours) {
+//            List<Vector2D> neighbours = grid.getNeighbours(current, tileSet);
+//            for (Vector2D neighbourPos : neighbours) {
+//                Node neighbour = grid.getNode(neighbourPos.getX().intValue(),neighbourPos.getY().intValue());
 //                if (closedSet.contains(neighbour)) {
 //                    continue;
 //                }
@@ -453,7 +351,7 @@ public class GAPopulationGen implements PopulationGenerator {
 //                if (!frontier.contains(neighbour)) {
 //                    frontier.add(new LIFOEntry<Node>(neighbour));
 //                }
-//                cameFrom.put(neighbour.position, current.position);
+//                //cameFrom.put(neighbour.position, current.position);
 //
 //            }
 //            if (frontier.isEmpty()) {
@@ -467,10 +365,9 @@ public class GAPopulationGen implements PopulationGenerator {
 //        LIFOEntry.resetCount();
 //        closedSet.clear();
 //        frontier.clear();
-//        cameFrom.clear();
 //        grid.reset();
 //        stopwatch.reset();
-//        stopwatch.start();
+        //stopwatch.start();
         frontier.add(new LIFOEntry<Node>(startNode));
         cleaningList.add(startNode);
         boolean moveDiag = grid.isMoveDiag();
@@ -479,30 +376,28 @@ public class GAPopulationGen implements PopulationGenerator {
             LIFOEntry<Node> entry = frontier.poll();
             Node current = entry.getEntry();
             if (current.position.equals(goalNode.position)) {
+                stopwatch.stop();
                 goodPath = true;
                 break;
             }
             closedSet.add(current);
-            List<Node> neighbours = grid.getNeighboursPrune(current, tileSet);
-            for (Node neighbour : neighbours) {
-                Node jumpNode = jump(grid, neighbour.position, current, goalNode, tileSet, moveDiag);
+            List<Vector2D> neighbours = grid.getNeighboursPrune(current);
+            for (Vector2D neighbourPos : neighbours) {
+                Node jumpNode = jump(grid, neighbourPos, current, goalNode, moveDiag);
                 if (jumpNode != null && !closedSet.contains(jumpNode)) {
-                    double gScore = current.gScore != -1 ? (current.gScore + realDist(current.position, neighbour.position)) : (realDist(current.position, neighbour.position));
+                    Node neighbour = grid.getNode(neighbourPos.getX().intValue(), neighbourPos.getY().intValue());
+                    double gScore = current.gScore != -1 ? (current.gScore + Heuristics.realDist(current.position, neighbour.position)) : (Heuristics.realDist(current.position, neighbour.position));
                     if (gScore >= neighbour.gScore && neighbour.gScore != -1)
                         continue; //This isn't a better path than on found before.
                     cleaningList.add(jumpNode);
                     if (moveDiag) {
-                        jumpNode.updateScore(gScore, diagonalDist(jumpNode.position, goalNode.position), null);
+                        jumpNode.updateScore(gScore, Heuristics.diagonalDist(jumpNode.position, goalNode.position), null);
                     } else {
-                        jumpNode.updateScore(gScore, manhatDist(jumpNode.position, goalNode.position), current);
+                        jumpNode.updateScore(gScore, Heuristics.manhatDist(jumpNode.position, goalNode.position), current);
                     }
-                    LIFOEntry<Node> jumpEntry =  new LIFOEntry<Node>(jumpNode);
-                    if (!frontier.contains(jumpEntry)) {
+                    LIFOEntry<Node> jumpEntry = new LIFOEntry<Node>(jumpNode);
+                    if (!frontier.contains(jumpEntry))
                         frontier.add(jumpEntry);
-                    }else{
-                        int debugcheck =1;
-                        debugcheck++;
-                    }
 //                    cameFrom.put(jumpNode.position, current.position);
                 }
             }
@@ -524,16 +419,16 @@ public class GAPopulationGen implements PopulationGenerator {
 //                }
 //            }
 //        }
-//        if(stopwatch.isRunning()) {
-//            elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
-//            stopwatch.stop();
-//        }
+        if (stopwatch.isRunning()) {
+            long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+            stopwatch.stop();
+        }
         return goodPath;
     }
 
-    private Node jump(Grid grid, Vector2D nodePos, Node parent, Node goal, List<Tile> tileSet, boolean moveDiag) {
+    private Node jump(Grid grid, Vector2D nodePos, Node parent, Node goal, boolean moveDiag) {
         int x = nodePos.getX().intValue(), y = nodePos.getY().intValue();
-        if (!grid.walkable(x, y, tileSet)) { //If space isn't walkable return null
+        if (!grid.walkable(x, y)) { //If space isn't walkable return null
             return null;
         }
         Node node = grid.getNode(x, y);
@@ -542,58 +437,64 @@ public class GAPopulationGen implements PopulationGenerator {
             return node;
         }
         //get the normalized direction of travel
-        int dx = (int) ((node.position.getX() - parent.position.getX()) / Math.max(Math.abs(node.position.getX() - parent.position.getX()), 1));
-        int dy = (int) ((node.position.getY() - parent.position.getY()) / Math.max(Math.abs(node.position.getY() - parent.position.getY()), 1));
+        int px = parent.position.getX().intValue(), py = parent.position.getY().intValue();
+        int dx = (x - px) / Math.max(Math.abs(x - px), 1);
+        int dy = (y - py) / Math.max(Math.abs(y - py), 1);
 
         if (dx != 0 && dy != 0) { //If x and y have changed we're moving diagonally. Check for forced neighbours
-            if ((grid.walkable(x - dx, y + dy, tileSet) && !grid.walkable(x - dx, y, tileSet)) || //we are moving diagonally, don't check the parent, or our next diagonal step, but the other diagonals
-                    (grid.walkable(x + dx, y - dy, tileSet) && !grid.walkable(x, y - dy, tileSet))) {  //if we find a forced neighbor here, we are on a jump point, and we return the current position
+            if ((grid.walkable(x - dx, y + dy) && !grid.walkable(x - dx, y)) || //we are moving diagonally, don't check the parent, or our next diagonal step, but the other diagonals
+                    (grid.walkable(x + dx, y - dy) && !grid.walkable(x, y - dy))) {  //if we find a forced neighbor here, we are on a jump point, and we return the current position
+                return node;
+            }
+            //Moving diagonally so have to check for vertical and horizontal jump points
+            if (jump(grid, new Vector2D(x + dx, y), node, goal, moveDiag) != null || jump(grid, new Vector2D(x, y + dy), node, goal, moveDiag) != null) {
                 return node;
             }
         } else { //Check horizontal and vertical
             if (dx != 0) { //Moving in X
                 if (moveDiag) { //And we allow diagonal movement
-                    if ((grid.walkable(x + dx, y + 1, tileSet) && !grid.walkable(x, y + 1, tileSet)) || //check the diagonal nodes for forced neighbours
-                            (grid.walkable(x + dx, y - 1, tileSet) && !grid.walkable(x, y - 1, tileSet))) {
+                    if ((grid.walkable(x + dx, y + 1) && !grid.walkable(x, y + 1)) || //check the diagonal nodes for forced neighbours
+                            (grid.walkable(x + dx, y - 1) && !grid.walkable(x, y - 1))) {
                         return node;
                     }
                 } else { //Diagonal moves not allowed.
-                    if (grid.walkable(x + 1, y, tileSet) || grid.walkable(x - 1, y, tileSet)) { // if left or right free
+                    if (grid.walkable(x + 1, y) || grid.walkable(x - 1, y)) { // if left or right free
                         return node;                                                            // return node as we're on a jump point
                     }
                 }
             } else { //Moving in Y
                 if (moveDiag) { //If diagonal movement allowed.
-                    if ((grid.walkable(x + 1, y + dy, tileSet) && !grid.walkable(x + 1, y, tileSet)) ||
-                            (grid.walkable(x - 1, y + dy, tileSet) && !grid.walkable(x - 1, y, tileSet))) {
+                    if ((grid.walkable(x + 1, y + dy) && !grid.walkable(x + 1, y)) ||
+                            (grid.walkable(x - 1, y + dy) && !grid.walkable(x - 1, y))) {
                         return node;
                     }
                 } else {
-                    if (grid.walkable(x, y + 1, tileSet) || grid.walkable(x, y - 1, tileSet)) {
+                    if (grid.walkable(x, y + 1) || grid.walkable(x, y - 1)) {
                         return node;
                     }
                 }
             }
         }
-        if (dx != 0 && dy != 0) { //Moving diagonally so have to check for vertical and horizontal jump points
-            Node jumpHoz = jump(grid, new Vector2D(x + dx, y), node, goal, tileSet, moveDiag);
-            if (jumpHoz != null) {
-                return node;
-            }
-            Node jumpVert = jump(grid, new Vector2D(x, y + dy), node, goal, tileSet, moveDiag);
-            if (jumpVert != null) {
-                return node;
-            }
-
-        }
         if (moveDiag) {
-            if (grid.walkable(x + dx, y, tileSet) || grid.walkable(x, y + dy, tileSet)) {
-                return jump(grid, new Vector2D(x + dx, y + dy), node, goal, tileSet, true); //Haven't found a forced neighbour or goal yet, jump to next diagonal in current direction.
+            if (grid.walkable(x + dx, y) || grid.walkable(x, y + dy)) {
+                return jump(grid, new Vector2D(x + dx, y + dy), node, goal, true); //Haven't found a forced neighbour or goal yet, jump to next diagonal in current direction.
             } else { //Blocked from going diagonally
                 return null;
             }
         }
         return null;//Couldn't jump anywhere.
+    }
+
+    void clearNodes(List<Node> nodes) {
+        if (nodes.isEmpty()) return;
+        for (Node node : nodes) {
+            node.fScore = -1;
+            node.gScore = -1;
+            node.hScore = -1;
+            node.parent = null;
+            node.walkable = true;
+        }
+        nodes.clear();
     }
 
     /**

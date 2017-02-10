@@ -64,7 +64,7 @@ public class PerlinLevelGen implements LevelGenerator {
     public HeightMap generateLevel(int width, int height, float waterLevel) {
         double[][] noise = new double[width][height];
         //double[][] elevation = new double[width][height];
-        HeightMap heightMap = new HeightMap(width, height, true);
+        HeightMap heightMap = new HeightMap(width, height, true, waterLevel);
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 double nx = noiseX + (((x / (double) width)) * noiseWidth), ny = noiseY + (((y / (double) height)) * noiseHeight);

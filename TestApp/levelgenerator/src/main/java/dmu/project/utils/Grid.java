@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import dmu.project.levelgen.Tile;
-import dmu.project.levelgen.TileState;
-
 /**
  * Created by Dom on 25/01/2017.
  */
@@ -32,22 +29,15 @@ public class Grid {
         return grid[x][y];
     }
 
-    public boolean walkable(int x, int y, List<Tile> tilesSet) {
+    public boolean walkable(int x, int y) {
         if ((x < 0) || (x >= xMax)) {
             int check = 1;
             return false;
         } else if ((y < 0) || (y >= yMax)) {
             int check = 1;
             return false;
-        } else if (!grid[x][y].walkable) {
-            return false;
         }
-        for (Tile tile : tilesSet) {
-            if (tile.position[0] == x && tile.position[1] == y && tile.tileState == TileState.OBSTACLE) {
-                return false;
-            }
-        }
-        return true;
+        return grid[x][y].walkable;
     }
 
     public void reset() {
@@ -56,39 +46,39 @@ public class Grid {
                 grid[i][j].fScore = -1;
                 grid[i][j].gScore = -1;
                 grid[i][j].hScore = -1;
+                grid[i][j].parent = null;
             }
         }
     }
 
 
-    public List<Node> getNeighbours(Node node, List<Tile> tilesSet) {
-        List<Node> neighbours = new ArrayList<>();
+    public List<Vector2D> getNeighbours(Node node) {
+        List<Vector2D> neighbours = new ArrayList<>();
         if (moveDiag) {
             for (Vector2D dir : eightDir) {
                 double x = node.position.add(dir).getX();
                 double y = node.position.add(dir).getY();
-                if (walkable((int) x, (int) y, tilesSet))
-                    neighbours.add(grid[(int) x][(int) y]);
+                if (walkable((int) x, (int) y))
+                    neighbours.add(new Vector2D(x, y));
             }
             return neighbours;
         } else {
             for (Vector2D dir : fourDir) {
                 double x = node.position.add(dir).getX();
                 double y = node.position.add(dir).getY();
-                if (walkable((int) x, (int) y, tilesSet))
-                    neighbours.add(grid[(int) x][(int) y]);
+                if (walkable((int) x, (int) y))
+                    neighbours.add(new Vector2D(x, y));
             }
             return neighbours;
         }
     }
 
-    public List<Node> getNeighboursPrune(Node node, List<Tile> tilesSet) {
+    public List<Vector2D> getNeighboursPrune(Node node) {
         if (node.parent == null) {
-            return getNeighbours(node, tilesSet);
+            return getNeighbours(node);
         } else {
-            List<Node> neighbors = new ArrayList<>();
+            List<Vector2D> neighbors = new ArrayList<>();
             int px, py, dx, dy, x, y;
-            boolean walkX = false, walkY = false;
             x = node.position.getX().intValue();
             y = node.position.getY().intValue();
             px = node.parent.position.getX().intValue();
@@ -98,66 +88,42 @@ public class Grid {
             dy = (y - py) / Math.max(Math.abs(y - py), 1);
             //search diagonally
             if (dx != 0 && dy != 0 && moveDiag) {
-                if (walkable(x, y + dy, tilesSet)) {
-                    neighbors.add(grid[x][(y + dy)]);
-                    walkY = true;
+                if (walkable(x, y + dy)) {
+                    neighbors.add(new Vector2D(x, (y + dy)));
                 }
-                if (walkable(x + dx, y, tilesSet)) {
-                    neighbors.add(grid[x + dx][y]);
-                    walkX = true;
+                if (walkable(x + dx, y)) {
+                    neighbors.add(new Vector2D(x + dx, y));
                 }
-                if (walkX || walkY) {
-                    if (walkable(x + dx, y + dy, tilesSet))
-                        neighbors.add(grid[x + dx][y + dy]);
+                if (walkable(x + dx, y + dy)) {
+                    neighbors.add(new Vector2D(x + dx, y + dy));
                 }
-                if (!walkable(x - dx, y, tilesSet) && walkY) {
-                    neighbors.add(grid[x - dx][y + dy]);
+                if (!walkable(x - dx, y)) { //Check for forced neighbour
+                    neighbors.add(new Vector2D(x - dx, y + dy));
                 }
-                if (!walkable(x, y - dy, tilesSet) && walkX) {
-                    neighbors.add(grid[x + dx][y - dy]);
+                if (!walkable(x, y - dy)) { //Check for forced neighbour
+                    neighbors.add(new Vector2D(x + dx, y - dy));
                 }
-            } else {
-                if (dx == 0) {
-                    if (walkable(x, y + dy, tilesSet)) {
-                        neighbors.add(grid[x][y + dy]);
-                        if (!walkable(x + 1, y, tilesSet)) {
-                            if (walkable(x + 1, y + dy, tilesSet)) {
-                                neighbors.add(grid[x + 1][y + dy]);
-                            }
-                        }
-                        if (!walkable(x - 1, y, tilesSet)) {
-                            if (walkable(x - 1, y + dy, tilesSet)) {
-                                neighbors.add(grid[x - 1][y + dy]);
-                            }
-                        }
+            } else { //Moving Horz/vert
+                if (dx == 0) { //If moving in x
+                    if (walkable(x, y + dy)) {
+                        neighbors.add(new Vector2D(x, y + dy));
                     }
-                    if (!moveDiag) {
-                        if (walkable(x + 1, y, tilesSet)) {
-                            neighbors.add(grid[x + 1][y]);
-                        }
-                        if (walkable(x - 1, y, tilesSet)) {
-                            neighbors.add(grid[x - 1][y]);
-                        }
+                    if (!walkable(x + 1, y)) {
+                        neighbors.add(new Vector2D(x + 1, y + dy));
                     }
-                } else {
-                    if (walkable(x + dx, y, tilesSet)) {
-                        neighbors.add(grid[x + dx][y]);
-                        if (!walkable(x, y + 1, tilesSet)) {
-                            if (walkable(x + dx, y + 1, tilesSet))
-                                neighbors.add(grid[x + dx][y + 1]);
-                        }
-                        if (!walkable(x, y - 1, tilesSet)) {
-                            if (walkable(x + dx, y - 1, tilesSet))
-                                neighbors.add(grid[x + dx][y - 1]);
-                        }
+                    if (!walkable(x - 1, y)) {
+                        neighbors.add(new Vector2D(x - 1, y + dy));
                     }
-                    if (!moveDiag) {
-                        if (walkable(x, y + 1, tilesSet)) {
-                            neighbors.add(grid[x][y + 1]);
-                        }
-                        if (walkable(x, y - 1, tilesSet)) {
-                            neighbors.add(grid[x][y - 1]);
-                        }
+
+                } else { //moving in y
+                    if (walkable(x + dx, y)) {
+                        neighbors.add(new Vector2D(x + dx, y));
+                    }
+                    if (!walkable(x, y + 1)) {
+                        neighbors.add(new Vector2D(x + dx, y + 1));
+                    }
+                    if (!walkable(x, y - 1)) {
+                        neighbors.add(new Vector2D(x + dx, y - 1));
                     }
                 }
             }

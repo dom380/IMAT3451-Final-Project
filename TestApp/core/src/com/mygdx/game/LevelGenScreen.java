@@ -13,6 +13,7 @@ import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
+import com.badlogic.gdx.math.Vector2;
 
 import java.util.List;
 
@@ -65,8 +66,8 @@ public class LevelGenScreen implements Screen {
 
     private boolean init() {
         map = new TiledMap();
-        int width = (Gdx.graphics.getWidth() / tileWidth);
-        int height = (Gdx.graphics.getHeight() / tileHeight);
+        int width = (Gdx.graphics.getWidth() / tileWidth)/2;
+        int height = (Gdx.graphics.getHeight() / tileHeight)/2;
         //Set level constraints
         Constraints constraints = new Constraints();
         constraints.setLength(500);
@@ -121,6 +122,9 @@ public class LevelGenScreen implements Screen {
         for(Tile tile:mapObjects){ //For each level object set correct sprite.
             int tx = 0, ty = 0;
             switch (tile.tileState) {
+                case START:
+                    tx = 4;
+                    break;
                 case OBJECTIVE:
                     tx = 1;
                     break;
@@ -142,7 +146,7 @@ public class LevelGenScreen implements Screen {
         map.getLayers().add(spriteLayer);
         renderer = new OrthogonalTiledMapRenderer(map);
         renderer.setView((OrthographicCamera) camera);
-        CameraController2D cameraInputController = new CameraController2D((OrthographicCamera) camera);
+        CameraController2D cameraInputController = new CameraController2D((OrthographicCamera) camera, 0.5f, 0.5f);
         Gdx.input.setInputProcessor(new GestureDetector(cameraInputController));
         return true;
     }
