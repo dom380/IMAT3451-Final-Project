@@ -1,15 +1,41 @@
 package dmu.project.levelgen;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+
+import dmu.project.utils.Vector2D;
 
 /**
  * Created by Dom on 10/02/2017.
  */
 
 public class CandidateFactory {
-    /* Will require some tweaking
+
+    private static Random rng = new Random();
+    private HeightMap heightMap;
+    private int width;
+    private int height;
+    private boolean objectivesEnabled;
+
+    CandidateFactory(HeightMap heightMap, int width, int height, boolean objectivesEnabled) {
+        this.heightMap = heightMap;
+        this.width = width;
+        this.height = height;
+        this.objectivesEnabled = objectivesEnabled;
+    }
+
+    CandidateFactory(HeightMap heightMap, int width, int height, boolean objectivesEnabled, long seed) {
+        this.heightMap = heightMap;
+        this.width = width;
+        this.height = height;
+        this.objectivesEnabled = objectivesEnabled;
+        rng = new Random(seed);
+    }
+
+    /* TODO Requires tweaking
             Things that impact difficulty:
                 - Order of entities being added
                 - Number of tiles available
@@ -27,85 +53,92 @@ public class CandidateFactory {
                 - slightly more items?
                 - hard limit objectives to 1-3.
          */
-    public static MapCandidate createCandidate(HeightMap heightMap, int width, int height, int difficulty, boolean objectivesEnabled) {
+    public MapCandidate createCandidate(int difficulty) {
         List<Tile> tileSet = new ArrayList<>();
-        //Add Start tile
-        int x, y;
-        do {
-            x = rng.nextInt(width);
-            y = rng.nextInt(height);
-        } while (heightMap.elevation[x][y] < heightMap.waterLevel);
-        tileSet.add(new Tile(TileState.START, x, y));
-        Integer freeTiles = rng.nextInt((heightMap.aboveWaterValues / 10) - 2) + 100; //This probably should be tweaked as well
+        Set<Vector2D> usedTiles = new LinkedHashSet<>();
+        addTiles(tileSet, TileState.START, 1, 1, usedTiles);
+        int freeTiles = rng.nextInt((heightMap.aboveWaterValues / 5) - 1) + 100; //This probably should be tweaked as well
         if (difficulty < 7) { //Order affects difficulty slightly
-            addObjectives(heightMap, tileSet, width, height, difficulty, objectivesEnabled, freeTiles);
-            addObstacles(heightMap, tileSet, width, height, difficulty, freeTiles);
-            addEnemies(heightMap, tileSet, width, height, difficulty, freeTiles);
-            addItems(heightMap, tileSet, width, height, difficulty, freeTiles);
+            freeTiles -= addObjectives(tileSet, difficulty, freeTiles, usedTiles);
+            freeTiles -= addObstacles(tileSet, difficulty, freeTiles, usedTiles);
+            freeTiles -= addEnemies(tileSet, difficulty, freeTiles, usedTiles);
+            addItems(tileSet, difficulty, freeTiles, usedTiles);
         } else {
-            addObjectives(heightMap, tileSet, width, height, difficulty, objectivesEnabled, freeTiles);
-            addEnemies(heightMap, tileSet, width, height, difficulty, freeTiles);
-            addObstacles(heightMap, tileSet, width, height, difficulty, freeTiles);
-            addItems(heightMap, tileSet, width, height, difficulty, freeTiles);
+            freeTiles -= addObjectives(tileSet, difficulty, freeTiles, usedTiles);
+            freeTiles -= addEnemies(tileSet, difficulty, freeTiles, usedTiles);
+            freeTiles -= addObstacles(tileSet, difficulty, freeTiles, usedTiles);
+            addItems(tileSet, difficulty, freeTiles, usedTiles);
         }
         return new MapCandidate(tileSet);
     }
 
-    private static void addObjectives(HeightMap heightMap, List<Tile> tileSet, int width, int height, int difficulty, boolean objectivesEnabled, Integer freeTiles) {
+    private int addObjectives(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
         if (objectivesEnabled) {
-            int minObjectives = difficulty / 2 == 0 ? 1 : difficulty / 2;
-            int numOfObjectives = Math.max(rng.nextInt(difficulty - 1) + 1, minObjectives); //Add objectives
-            addTiles(heightMap, tileSet, TileState.OBJECTIVE, numOfObjectives, width, height, freeTiles);
-        }
+            int numOfObjectives;
+            if (difficulty == 1) {
+                numOfObjectives = 1;
+            } else {
+                int minObjectives = difficulty / 2;
+                numOfObjectives = Math.max(rng.nextInt(difficulty - 1) + 1, minObjectives); //Add objectives
+            }
+            addTiles(tileSet, TileState.OBJECTIVE, numOfObjectives, freeTiles, usedTiles);
+            return numOfObjectives;
+        } else
+            return 0;
     }
 
-    private static void addEnemies(HeightMap heightMap, List<Tile> tileSet, int width, int height, int difficulty, Integer freeTiles) {
+    private int addEnemies(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
         int numOfEntity;
         if (difficulty < 4) {
-            numOfEntity = rng.nextInt(freeTiles / 4); //Add enemies
+            numOfEntity = rng.nextInt((freeTiles / 4) - (freeTiles / 6)) + (freeTiles / 6); //Add enemies
         } else {
-            numOfEntity = rng.nextInt(freeTiles / 2);
+            numOfEntity = rng.nextInt(freeTiles / 2 - (freeTiles / 4)) + (freeTiles / 4);
         }
-        addTiles(heightMap, tileSet, TileState.ENEMY, numOfEntity, width, height, freeTiles);
+        addTiles(tileSet, TileState.ENEMY, numOfEntity, freeTiles, usedTiles);
+        return numOfEntity;
     }
 
-    private static void addItems(HeightMap heightMap, List<Tile> tileSet, int width, int height, int difficulty, Integer freeTiles) {
+    private int addItems(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
         int numOfEntity;
         if (difficulty < 4) {
             numOfEntity = rng.nextInt(freeTiles / 4);
         } else {
             numOfEntity = rng.nextInt(freeTiles / 6); //Higher difficulty = less items
         }
-        addTiles(heightMap, tileSet, TileState.ITEM, numOfEntity, width, height, freeTiles);
+        addTiles(tileSet, TileState.ITEM, numOfEntity, freeTiles, usedTiles);
+        return numOfEntity;
     }
 
-    private static void addObstacles(HeightMap heightMap, List<Tile> tileSet, int width, int height, int difficulty, Integer freeTiles) {
+    private int addObstacles(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
         int x, y;
         int numOfEntity = rng.nextInt(freeTiles / 2);
-        for (int i = 0; i < numOfEntity; ++i) { //Add obstacles
-            do {
-                x = rng.nextInt(width);
-                y = rng.nextInt(height);
-            }
-            while (heightMap.elevation[x][y] < heightMap.waterLevel || heightMap.elevation[x][y] >= 0.65); //keep looking for a value above water level
-            tileSet.add(new Tile(TileState.OBSTACLE, x, y));
-            freeTiles--;
-        }
+        addTiles(tileSet, TileState.OBSTACLE, numOfEntity, freeTiles, usedTiles);
+//        for (int i = 0; i < numOfEntity; ++i) { //Add obstacles
+//            do {
+//                x = rng.nextInt(width);
+//                y = rng.nextInt(height);
+//            }
+//            while (heightMap.elevation[x][y] < heightMap.waterLevel || heightMap.elevation[x][y] >= 0.65); //keep looking for a value above water level
+//            tileSet.add(new Tile(TileState.OBSTACLE, x, y));
+//            freeTiles -= 1;
+//        }
+        return numOfEntity;
     }
 
-    private static void addTiles(HeightMap heightMap, List<Tile> tileSet, TileState tileState, int numOfEntity, int width, int height, Integer freeTiles) {
+    private void addTiles(List<Tile> tileSet, TileState tileState, int numOfEntity, int freeTiles, Set<Vector2D> usedTiles) {
         int x, y;
         for (int i = 0; i < numOfEntity; ++i) {
+            Vector2D position;
             do {
-                x = rng.nextInt(width);
-                y = rng.nextInt(height);
+                x = rng.nextInt(width - 2) + 2;
+                y = rng.nextInt(height - 2) + 2;
+                position = new Vector2D(x, y);
             }
-            while (heightMap.elevation[x][y] < heightMap.waterLevel); //keep looking for a value above water level
+            while (heightMap.elevation[x][y] < heightMap.waterLevel || usedTiles.contains(position)); //keep looking for a value above water level
             tileSet.add(new Tile(tileState, x, y));
-            freeTiles--;
+            usedTiles.add(position);
+            freeTiles -= 1;
         }
     }
-
-    private final static Random rng = new Random();
 
 }

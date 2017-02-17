@@ -21,16 +21,22 @@ public class CameraController2D implements GestureDetector.GestureListener {
     private Vector2 scrollLimit = new Vector2();
 
     public CameraController2D(OrthographicCamera camera) {
-        this(camera, 1.0f, 1.0f);
+        this(camera, 1.0f, 1.0f, 1.0f);
     }
 
-    public CameraController2D(OrthographicCamera camera, float zoom, float scale) {
+    /**
+     * @param camera The camera to control input for.
+     * @param zoom   The initial zoom. Value between 0.0-1.0
+     * @param scaleX
+     * @param scaleY
+     */
+    public CameraController2D(OrthographicCamera camera, float zoom, float scaleX, float scaleY) {
         this.camera = camera;
         camera.zoom = zoom;
-        maxScale = scale;
-        this.camera.position.x = (camera.viewportWidth * scale) / 2;
-        this.camera.position.y = (camera.viewportHeight * scale) / 2;
-        this.scrollLimit = new Vector2(camera.viewportWidth * scale, camera.viewportHeight * scale); //new Vector2(camera.viewportWidth, camera.viewportHeight); //scrollLimit;
+        maxScale = Math.min(scaleX, scaleY);
+        this.camera.position.x = (camera.viewportWidth * scaleX) / 2;
+        this.camera.position.y = (camera.viewportHeight * scaleY) / 2;
+        this.scrollLimit = new Vector2(camera.viewportWidth * scaleX, camera.viewportHeight * scaleY); //new Vector2(camera.viewportWidth, camera.viewportHeight); //scrollLimit;
     }
 
     private void constrainCamera() {

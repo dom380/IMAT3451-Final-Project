@@ -28,9 +28,10 @@ public class GAPopulationGen implements PopulationGenerator {
 
     private Constraints constraints;
     private LevelGenerator levelGen;
-    private final static Random rng = new Random();
+    private static Random rng = new Random();
     private int numTiles;
     private HeightMap heightMap;
+    private CandidateFactory candidateFactory;
 
     /**
      * Default constructor.
@@ -46,7 +47,14 @@ public class GAPopulationGen implements PopulationGenerator {
      * @param constraints Level generation constraints.
      */
     public GAPopulationGen(Constraints constraints) {
-        levelGen = new PerlinLevelGen(constraints.noiseWidth, constraints.noiseHeight, 8, 0.5);
+        if (constraints.seed != -1) {
+            long seed = constraints.seed;
+            levelGen = new PerlinLevelGen(seed, constraints.noiseWidth, constraints.noiseHeight, 8, 0.5);
+            rng = new Random(seed);
+            randomState = new RandomEnum<>(TileState.class, seed);
+        } else {
+            levelGen = new PerlinLevelGen(constraints.noiseWidth, constraints.noiseHeight, 8, 0.5);
+        }
         this.constraints = constraints;
     }
 
@@ -69,6 +77,11 @@ public class GAPopulationGen implements PopulationGenerator {
         int width = constraints.mapWidth;
         int height = constraints.mapHeight;
         heightMap = levelGen.generateLevel(width, height, 0.25f); //Generate the base terrain.
+        if (constraints.seed > 0) {
+            candidateFactory = new CandidateFactory(heightMap, width - 2, height - 2, constraints.objectivesEnabled, constraints.seed);
+        } else {
+            candidateFactory = new CandidateFactory(heightMap, width - 2, height - 2, constraints.objectivesEnabled);
+        }
         List<MapCandidate> population = initPopulation(constraints.populationSize, heightMap);
         int maxGen = constraints.getMaxGenerations();
         int sameFitnessCount = 0;
@@ -83,11 +96,11 @@ public class GAPopulationGen implements PopulationGenerator {
                 reachedMaxFit = true;
                 break;
             }
-            if (highestFitness == previousFitness) { //Keep track of the number of generations with no fitness increase.
+            if (Math.abs(highestFitness - previousFitness) < 0.0001) { //Keep track of the number of generations with no meaningful fitness increase.
                 sameFitnessCount++;
             }
-            if (sameFitnessCount > 300) //// TODO: 07/12/2016 Move to constraint or config.
-                break; //If no fitness improvement for the last 300 generations exit
+            if (sameFitnessCount > 10) // TODO: 07/12/2016 Move to constraint or config.
+                break; //If no fitness improvement for the last x generations exit
             previousFitness = highestFitness;
             population = getNewGen(population); //Perform crossover and mutation to get next generation.
         }
@@ -131,46 +144,61 @@ public class GAPopulationGen implements PopulationGenerator {
         int[] startPos = new int[2];
         Stopwatch timer = Stopwatch.createStarted();
         for (MapCandidate map : population) { //For each MapCandidate in population.
-            int enemyCount = 0, itemCount = 0, objectiveCount = 0, poorPlacedEnemies = 0;
-            //List<Tile> enemyBucket = new ArrayList<>();
+            int enemyCount = 0, itemCount = 0, poorPlacedEnemies = 0;
             List<Tile> objectiveBucket = new ArrayList<>();
             List<Tile> obstacleBucket = new ArrayList<>();
+            boolean hasStart = false;
             for (Tile tile : map.tileSet) { //Get the start position, count number of enemies and objectives.
                 switch (tile.tileState) {
                     case START:
                         startPos = tile.position;
+                        hasStart = true;
                         break;
                     case OBJECTIVE:
                         objectiveBucket.add(tile);
-                        objectiveCount++;
+                        break;
+                    case ENEMY:
+                        if (Heuristics.diagonalDist(tile.position, startPos) < 10)
+                            poorPlacedEnemies++;
+                        enemyCount++;
                         break;
                     case ITEM:
                         itemCount++;
-                        break;
-                    case ENEMY:
-                        if (Heuristics.diagonalDist(tile.position, startPos) < 8)
-                            poorPlacedEnemies++;
-                        //enemyBucket.add(tile);
-                        enemyCount++;
                         break;
                     case OBSTACLE:
                         obstacleBucket.add(tile);
                         break;
                 }
             }
-            /*TODO - New fitness test!
+            /*TODO - New fitness test! NEED TUNING
             * Check num of enemies near start pos - Too many too close lower fitness
             * Check dist to objectives - too close lower, too far low? (maybe depend of difficulty?)
             * maybe enemy placement?
             */
-            Float fitness = 1.0f;
-            fitness -= ((float) poorPlacedEnemies / (float) enemyCount)*2.0f;
-            //Test if there's a path between the start and each objective
-            boolean goodPaths = testPathFitness(fitness, startPos, objectiveBucket, obstacleBucket);
-            if (!goodPaths) { //If we can't reach every objective set fitness to 0
+            if (!hasStart) { //If we don't have a start position (which shouldn't happen) get rid of this candidate.
                 map.fitness = 0.0f;
                 continue;
             }
+            Float fitness = 1.0f;
+            if (enemyCount > 0) { //If there are no enemies it's a pretty poor map so set fitness to 0 and move on.
+                fitness -= 0.05f * poorPlacedEnemies;//((float) poorPlacedEnemies / (float) enemyCount) * 2.0f;
+            } else {
+                map.fitness = 0.0f;
+                continue;
+            }
+            if (itemCount == 0) { //Mark down maps with no items as that's less interesting.
+                fitness -= 0.1f;
+            }
+            if (obstacleBucket.isEmpty()) { //Mark down maps with no obstacles as that's also less interesting.
+                fitness -= 0.1f;
+            }
+            //Test if there's a path between the start and each objective
+            PathFitness pathFitness = testPathFitness(startPos, objectiveBucket, obstacleBucket);
+            if (!pathFitness.goodPaths) { //If we can't reach every objective set fitness to 0
+                map.fitness = 0.0f;
+                continue;
+            }
+            fitness += pathFitness.fitness;
             map.fitness = fitness;
             if (map.fitness > highestFitness) highestFitness = map.fitness;
         }
@@ -217,7 +245,8 @@ public class GAPopulationGen implements PopulationGenerator {
      */
     private List<MapCandidate> crossover(MapCandidate parent1, MapCandidate parent2) {
         List<MapCandidate> children = new ArrayList<>();
-        int arraySize = Math.min(parent1.tileSet.size(), parent2.tileSet.size());
+        int arraySize1 = parent1.tileSet.size(), arraySize2 = parent2.tileSet.size();
+        int arraySize = Math.min(arraySize1, arraySize2);
         int crossoverPoint1 = rng.nextInt(arraySize);
         int crossoverPoint2 = rng.nextInt(arraySize);
         if (crossoverPoint1 > crossoverPoint2) { //Ensure crossover point 1 is smaller than 2
@@ -235,6 +264,12 @@ public class GAPopulationGen implements PopulationGenerator {
                 child1Tiles.add(new Tile(parent1.tileSet.get(i)));
                 child2Tiles.add(new Tile(parent2.tileSet.get(i)));
             }
+        }
+        for (int i = arraySize; i < arraySize1; ++i) { //Ensure we don't discard any tiles from the crossover
+            child1Tiles.add(parent1.tileSet.get(i));
+        }
+        for (int i = arraySize; i < arraySize2; ++i) { //Ensure we don't discard any tiles from the crossover
+            child2Tiles.add(parent2.tileSet.get(i));
         }
         //Move out of this function? Should we be mutating in the crossover function?
         children.add(mutate(new MapCandidate(child1Tiles)));
@@ -273,49 +308,58 @@ public class GAPopulationGen implements PopulationGenerator {
      */
     private List<MapCandidate> initPopulation(int popSize, HeightMap elevation) {
         List<MapCandidate> population = new ArrayList<MapCandidate>();
-        int width = constraints.mapWidth;
-        int height = constraints.mapHeight;
         for (int i = 0; i < popSize; ++i) {
-            population.add(createCandidate(elevation, width, height));
+            population.add(candidateFactory.createCandidate(constraints.getDifficulty()));
         }
         return population;
     }
 
-    /**
-     * Utility method to create a MapCandidate.
-     *
-     * @param heightMap Heightmap.
-     * @param width     Width of the level
-     * @param height    Height of the level.
-     * @return MapCandidate.
-     */
-    private MapCandidate createCandidate(HeightMap heightMap, int width, int height) {
-        return CandidateFactory.createCandidate(heightMap, width, height, constraints.getDifficulty(), constraints.isObjectivesEnabled());
+    private class PathFitness {
+        boolean goodPaths;
+        float fitness;
+
+        PathFitness(boolean goodPaths, float fitness) {
+            this.goodPaths = goodPaths;
+            this.fitness = fitness;
+        }
     }
 
-
-    private boolean testPathFitness(Float fitness, int[] startPos, List<Tile> objectiveBucket, List<Tile> obstacleBucket) {
+    private PathFitness testPathFitness(int[] startPos, List<Tile> objectiveBucket, List<Tile> obstacleBucket) {
         List<Node> cleaningList = new ArrayList<>();
         List<Node> obstacles = new ArrayList<>();
+        float fitness = 0.0f;
         boolean goodPaths = true;
         for (Tile tile : obstacleBucket) { //mark each obstacle tile as not walkable on grid.
             Node node = heightMap.grid.getNode(tile.position[0], tile.position[1]);
             node.walkable = false;
             obstacles.add(node);
         }
-        for (Tile objective : objectiveBucket) { //Test for path to each objective.
-            if(Heuristics.diagonalDist(objective.position, startPos) < 10 || Heuristics.diagonalDist(objective.position, startPos) > 100){ //TODO tune this because it's probs garbage
-                fitness -= 0.05f;
+        //Test start position is reasonable
+        int startTiles = heightMap.grid.getNeighbours(heightMap.grid.getNode(startPos[0], startPos[1])).size();
+        if(startTiles < 8) { //If not all nodes immediately surround the start are free, mark down map.
+            fitness -= 0.025f * (8-startTiles);
+        }
+        int listSize = objectiveBucket.size();
+        for (int i = 0; i < listSize; ++i) { //Test for path to each objective.
+            Tile objective = objectiveBucket.get(i);
+            if (Heuristics.diagonalDist(objective.position, startPos) < 20 || Heuristics.diagonalDist(objective.position, startPos) > 300) { //TODO tune this because it's probs garbage
+                fitness -= 0.075f;
             }
             if (!checkPath(startPos, objective.position, heightMap.grid, cleaningList)) {
                 goodPaths = false;
                 break;
             }
             clearNodes(cleaningList); //Reset node visited in search and empty the list.
+            for (int j = i + 1; j < listSize; ++j) { //Now check how close the objects are to each other.
+                if (Heuristics.diagonalDist(objective.position, objectiveBucket.get(j).position) < 15) {
+                    fitness -= 0.05f;
+                }
+            }
+
         }
         clearNodes(cleaningList);
         clearNodes(obstacles);
-        return goodPaths;
+        return new PathFitness(goodPaths, fitness);
     }
 
     private boolean checkPath(int[] start, int[] goal, Grid grid, List<Node> cleaningList) {
@@ -504,17 +548,22 @@ public class GAPopulationGen implements PopulationGenerator {
      */
     private static class RandomEnum<E extends Enum> {
 
-        private static final Random RND = new Random();
+        private static Random RNG = new Random();
         private final E[] values;
 
         public RandomEnum(Class<E> token) {
             values = token.getEnumConstants();
         }
 
+        public RandomEnum(Class<E> token, long seed) {
+            RNG = new Random(seed);
+            values = token.getEnumConstants();
+        }
+
         public E random() { //We don't want random start and end points so remove them from the random range
-            return values[RND.nextInt(values.length - 2) + 2];
+            return values[RNG.nextInt(values.length - 2) + 2];
         }
     }
 
-    private static RandomEnum<TileState> randomState = new RandomEnum<TileState>(TileState.class);
+    private static RandomEnum<TileState> randomState = new RandomEnum<>(TileState.class);
 }

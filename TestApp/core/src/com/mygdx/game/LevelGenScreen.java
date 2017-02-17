@@ -21,11 +21,12 @@ import dmu.project.levelgen.Constraints;
 import dmu.project.levelgen.GAPopulationGen;
 import dmu.project.levelgen.HeightMap;
 import dmu.project.levelgen.Tile;
+import dmu.project.levelgen.TileState;
 
 /**
  * Implementation of the LibGDX Screen class.
  * Responsible for rendering the generated level for demonstration of prototype.
- *
+ * <p>
  * Created by Dom on 18/11/2016.
  */
 
@@ -37,18 +38,19 @@ public class LevelGenScreen implements Screen {
     private Texture spriteTexture;
     private TiledMap map;
     private TiledMapRenderer renderer;
-    private int noiseWidth, noiseHeight, difficulty, tileWidth = 8, tileHeight = 10;
-
+    private int noiseWidth, noiseHeight, difficulty, tileWidth = 16, tileHeight = 16;
+    private final static long debugSeed = -2656433763347937011L;
+    private boolean debugEnabled;
     public LevelGenScreen(MyGdxGame game) {
-        this(game, 1, 1, 5);
+        this(game, 1, 1, 5, false);
     }
 
-    public LevelGenScreen(MyGdxGame game, int noiseWidth, int noiseHeight, int difficulty)
-    {
+    public LevelGenScreen(MyGdxGame game, int noiseWidth, int noiseHeight, int difficulty, boolean debugEnabled) {
         this.game = game;
         this.noiseWidth = noiseWidth;
         this.noiseHeight = noiseHeight;
         this.difficulty = difficulty;
+        this.debugEnabled = debugEnabled;
         camera = new OrthographicCamera();
         camera.viewportWidth = Gdx.graphics.getWidth();
         camera.viewportHeight = Gdx.graphics.getHeight();
@@ -66,24 +68,33 @@ public class LevelGenScreen implements Screen {
 
     private boolean init() {
         map = new TiledMap();
-        int width = (Gdx.graphics.getWidth() / tileWidth)/2;
-        int height = (Gdx.graphics.getHeight() / tileHeight)/2;
+        int width = 80;
+        int height = 50;
+        float scaleX = (float)width / (Gdx.graphics.getWidth() / tileWidth);
+        float scaleY = (float)height / (Gdx.graphics.getHeight() / tileWidth);
         //Set level constraints
         Constraints constraints = new Constraints();
-        constraints.setLength(500);
-        constraints.setPopulationSize(50);
-        constraints.setMaxGenerations(100);
+        constraints.setPopulationSize(100);
+        constraints.setMaxGenerations(50);
         constraints.setMapHeight(height);
         constraints.setMapWidth(width);
         constraints.setNoiseWidth(noiseWidth);
         constraints.setNoiseHeight(noiseHeight);
         constraints.setObjectivesEnabled(true);
         constraints.setDifficulty(difficulty);
+        if(debugEnabled)
+            constraints.setSeed(debugSeed);
         //Generate Level
         GAPopulationGen populationGen = new GAPopulationGen(constraints);
         List<Tile> mapObjects = populationGen.populate();
+        int count = 0;
+        for (Tile tile : mapObjects) {
+            if (tile.tileState == TileState.ENEMY)
+                count++;
+        }
         //Load textures
-        tileTexture = new Texture(Gdx.files.internal("gradientFinal.png"));
+//        tileTexture = new Texture(Gdx.files.internal("gradientFinal.png"));
+        tileTexture = new Texture(Gdx.files.internal("16gradientv2.png"));
         tileTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         spriteTexture = new Texture(Gdx.files.internal("sprites.png"));
         spriteTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
@@ -92,7 +103,7 @@ public class LevelGenScreen implements Screen {
         //Construct TileMap.
         HeightMap heightMap = populationGen.getHeightMap();
         TiledMapTileLayer layer = new TiledMapTileLayer(width, height, tileWidth, tileHeight);
-        TiledMapTileLayer spriteLayer = new TiledMapTileLayer(width, height,  tileWidth, tileHeight);
+        TiledMapTileLayer spriteLayer = new TiledMapTileLayer(width, height, tileWidth, tileHeight);
         for (int x = 0; x < width; x++) { //Set each tile to the correct sprite based on elevation.
             for (int y = 0; y < height; y++) {
                 TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
@@ -111,15 +122,15 @@ public class LevelGenScreen implements Screen {
                     tx = 3;
                     scalar = (heightMap.elevation[x][y] - 0.54) / (1.0 - 0.55);
                 }
-                ty = (int) (32 * heightMap.elevation[x][y] * scalar);
-                if(ty > 31){
-                    ty =31;
+                ty = (int) (64 * heightMap.elevation[x][y] * scalar);
+                if (ty > 63) {
+                    ty = 63;
                 }
                 cell.setTile(new StaticTiledMapTile(splitTiles[tx][ty]));
                 layer.setCell(x, y, cell);
             }
         }
-        for(Tile tile:mapObjects){ //For each level object set correct sprite.
+        for (Tile tile : mapObjects) { //For each level object set correct sprite.
             int tx = 0, ty = 0;
             switch (tile.tileState) {
                 case START:
@@ -140,13 +151,13 @@ public class LevelGenScreen implements Screen {
             }
             TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
             cell.setTile(new StaticTiledMapTile(splitSprites[ty][tx]));
-            spriteLayer.setCell(tile.position[0],tile.position[1],cell);
+            spriteLayer.setCell(tile.position[0], tile.position[1], cell);
         }
         map.getLayers().add(layer);
         map.getLayers().add(spriteLayer);
         renderer = new OrthogonalTiledMapRenderer(map);
         renderer.setView((OrthographicCamera) camera);
-        CameraController2D cameraInputController = new CameraController2D((OrthographicCamera) camera, 0.5f, 0.5f);
+        CameraController2D cameraInputController = new CameraController2D((OrthographicCamera) camera, Math.min(scaleX,scaleY), scaleX, scaleY);
         Gdx.input.setInputProcessor(new GestureDetector(cameraInputController));
         return true;
     }

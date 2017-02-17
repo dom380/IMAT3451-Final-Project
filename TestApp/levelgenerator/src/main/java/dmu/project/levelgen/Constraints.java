@@ -38,6 +38,8 @@ public class Constraints {
 
     int noiseHeight;
 
+    long seed = -1;
+
     public int getMapWidth() {
         return mapWidth;
     }
@@ -114,5 +116,13 @@ public class Constraints {
             this.difficulty = 1;
         else
             this.difficulty = difficulty;
+    }
+
+    public long getSeed() {
+        return seed;
+    }
+
+    public void setSeed(long seed) {
+        this.seed = seed;
     }
 }

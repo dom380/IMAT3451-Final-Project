@@ -14,8 +14,8 @@ public class Vector2D {
     }
 
     public Vector2D(int x, int y) {
-        this.x = (double)x;
-        this.y = (double)y;
+        this.x = (double) x;
+        this.y = (double) y;
     }
 
     public Vector2D(Vector2D other) {
@@ -66,5 +66,15 @@ public class Vector2D {
 
     public void setY(Double y) {
         this.y = y;
+    }
+
+    public void setXY(Double x, Double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public void setXY(int x, int y) {
+        this.x = (double) x;
+        this.y = (double) y;
     }
 }

@@ -152,4 +152,8 @@ public class Grid {
     public boolean isMoveDiag() {
         return moveDiag;
     }
+
+    public Node getNode(Double x, Double y) {
+        return getNode(x.intValue(),y.intValue());
+    }
 }

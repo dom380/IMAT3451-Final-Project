@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
@@ -23,7 +24,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
  * Very basic menu screen
- *
+ * <p>
  * Created by Dom on 18/11/2016.
  */
 
@@ -36,13 +37,13 @@ public class MainMenuScreen implements Screen {
     private TextureAtlas atlas;
     protected Skin skin;
 
-    public MainMenuScreen(MyGdxGame game){
+    public MainMenuScreen(MyGdxGame game) {
         this.game = game;
         camera = new OrthographicCamera();
-        camera.setToOrtho(false,800,480);
+        camera.setToOrtho(false, 800, 480);
         atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
-        skin = new Skin(Gdx.files.internal("uiskin.json"),atlas);
-        viewport = new StretchViewport(800,480);
+        skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
+        viewport = new StretchViewport(800, 480);
         viewport.apply();
         camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
         camera.update();
@@ -61,11 +62,11 @@ public class MainMenuScreen implements Screen {
         mainTable.setFillParent(true);
         //Set alignment of contents in the table.
         mainTable.center();
-        Label difficultyLabel = new Label("Difficulty",skin);
+        Label difficultyLabel = new Label("Difficulty", skin);
         final Label difficultyValue = new Label("1.0", skin);
         mainTable.add(difficultyLabel);
-        final Slider difficultySlider = new Slider(1.0f,10.0f,1.0f,false,skin);
-        difficultySlider.addListener(new ChangeListener(){
+        final Slider difficultySlider = new Slider(1.0f, 10.0f, 1.0f, false, skin);
+        difficultySlider.addListener(new ChangeListener() {
 
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -76,10 +77,10 @@ public class MainMenuScreen implements Screen {
         mainTable.add(difficultyValue);
         mainTable.row();
         Label noiseWidthLabel = new Label("Noise Width:", skin);
-        final TextField noiseWidthField = new TextField("",skin);
+        final TextField noiseWidthField = new TextField("", skin);
         noiseWidthField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
         Label noiseHeightLabel = new Label("Noise Height:", skin);
-        final TextField noiseHeightField = new TextField("",skin);
+        final TextField noiseHeightField = new TextField("", skin);
         noiseHeightField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
         mainTable.add(noiseWidthLabel);
         mainTable.add(noiseWidthField);
@@ -89,19 +90,29 @@ public class MainMenuScreen implements Screen {
         mainTable.row();
 
         //Add buttons to table
+        final CheckBox debugButton = new CheckBox("Debug Seed", skin);
+//        debugButton.addListener(new ClickListener() {
+//            @Override
+//            public void clicked(InputEvent event, float x, float y) {
+//                debugButton.setChecked(!debugButton.isChecked());
+//            }
+//        });
         TextButton playButton = new TextButton("Generate Level", skin);
-        playButton.addListener(new ClickListener(){
+        playButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                int diff  = (int) difficultySlider.getValue();
+                int diff = (int) difficultySlider.getValue();
                 int noiseWidth = noiseWidthField.getText().isEmpty() ? 1 : Integer.parseInt(noiseWidthField.getText());
                 int noiseHeight = noiseHeightField.getText().isEmpty() ? 1 : Integer.parseInt(noiseHeightField.getText());
-                ((Game)Gdx.app.getApplicationListener()).setScreen(new LevelGenScreen(game, noiseWidth,noiseHeight,diff));
+                boolean debugEnabled = debugButton.isChecked();
+                ((Game) Gdx.app.getApplicationListener()).setScreen(new LevelGenScreen(game, noiseWidth, noiseHeight, diff, debugEnabled));
 
             }
         });
         mainTable.row();
         mainTable.add(playButton);
+        mainTable.row();
+        mainTable.add(debugButton);
         mainTable.row();
         //Add table to stage
         stage.addActor(mainTable);
