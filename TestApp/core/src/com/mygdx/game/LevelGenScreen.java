@@ -15,6 +15,7 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 import com.badlogic.gdx.math.Vector2;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import dmu.project.levelgen.Constraints;
@@ -22,6 +23,7 @@ import dmu.project.levelgen.GAPopulationGen;
 import dmu.project.levelgen.HeightMap;
 import dmu.project.levelgen.Tile;
 import dmu.project.levelgen.TileState;
+import dmu.project.utils.RestClient;
 
 /**
  * Implementation of the LibGDX Screen class.
@@ -41,6 +43,7 @@ public class LevelGenScreen implements Screen {
     private int noiseWidth, noiseHeight, difficulty, tileWidth = 16, tileHeight = 16;
     private final static long debugSeed = -2656433763347937011L;
     private boolean debugEnabled;
+
     public LevelGenScreen(MyGdxGame game) {
         this(game, 1, 1, 5, false);
     }
@@ -70,8 +73,8 @@ public class LevelGenScreen implements Screen {
         map = new TiledMap();
         int width = 80;
         int height = 50;
-        float scaleX = (float)width / (Gdx.graphics.getWidth() / tileWidth);
-        float scaleY = (float)height / (Gdx.graphics.getHeight() / tileWidth);
+        float scaleX = (float) width / (Gdx.graphics.getWidth() / tileWidth);
+        float scaleY = (float) height / (Gdx.graphics.getHeight() / tileWidth);
         //Set level constraints
         Constraints constraints = new Constraints();
         constraints.setPopulationSize(100);
@@ -82,18 +85,34 @@ public class LevelGenScreen implements Screen {
         constraints.setNoiseHeight(noiseHeight);
         constraints.setObjectivesEnabled(true);
         constraints.setDifficulty(difficulty);
-        if(debugEnabled)
+        if (debugEnabled)
             constraints.setSeed(debugSeed);
         //Generate Level
         GAPopulationGen populationGen = new GAPopulationGen(constraints);
         List<Tile> mapObjects = populationGen.populate();
-        int count = 0;
-        for (Tile tile : mapObjects) {
-            if (tile.tileState == TileState.ENEMY)
-                count++;
-        }
+//        int count = 0;
+//        for (Tile tile : mapObjects) {
+//            if (tile.tileState == TileState.ENEMY)
+//                count++;
+//        }
+
+//        double[] latLong = game.getLocationService().getLatLong();
+        //if (latLong != null) {
+//            try {
+//                RestClient restClient = new RestClient("http://api.openweathermap.org/data/2.5/weather");
+//                restClient.addParam("lat", String.valueOf(latLong[0]));
+//                restClient.addParam("lon", String.valueOf(latLong[1]));
+//                restClient.addParam("units", "metric");
+//                restClient.addParam("appid", "2c2e5d04d5f1c71108c7d2e4719a04fb");
+//
+//                restClient.execute(RestClient.RequestMethod.GET);
+//                String response = restClient.response;
+//
+//            } catch (UnsupportedEncodingException e) {
+//                e.printStackTrace();
+//            }
+       // }
         //Load textures
-//        tileTexture = new Texture(Gdx.files.internal("gradientFinal.png"));
         tileTexture = new Texture(Gdx.files.internal("16gradientv2.png"));
         tileTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         spriteTexture = new Texture(Gdx.files.internal("sprites.png"));
@@ -157,7 +176,7 @@ public class LevelGenScreen implements Screen {
         map.getLayers().add(spriteLayer);
         renderer = new OrthogonalTiledMapRenderer(map);
         renderer.setView((OrthographicCamera) camera);
-        CameraController2D cameraInputController = new CameraController2D((OrthographicCamera) camera, Math.min(scaleX,scaleY), scaleX, scaleY);
+        CameraController2D cameraInputController = new CameraController2D((OrthographicCamera) camera, Math.min(scaleX, scaleY), scaleX, scaleY);
         Gdx.input.setInputProcessor(new GestureDetector(cameraInputController));
         return true;
     }

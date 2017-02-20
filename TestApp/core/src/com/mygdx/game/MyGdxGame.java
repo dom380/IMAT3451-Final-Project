@@ -5,26 +5,35 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class MyGdxGame extends Game {
-	SpriteBatch batch;
-	BitmapFont font;
-	MainMenuScreen mainMenuScreen;
+    SpriteBatch batch;
+    private BitmapFont font;
+    private MainMenuScreen mainMenuScreen;
+    private LocationService locationService;
 
-	@Override
-	public void create() {
-		batch = new SpriteBatch();
-		font = new BitmapFont();
-		mainMenuScreen = new MainMenuScreen(this);
-		this.setScreen(mainMenuScreen);
-	}
+    MyGdxGame(LocationService locationService) {
+        this.locationService = locationService;
+    }
 
-	public void render () {
-		super.render();
-	}
+    @Override
+    public void create() {
+        batch = new SpriteBatch();
+        font = new BitmapFont();
+        mainMenuScreen = new MainMenuScreen(this);
+        this.setScreen(mainMenuScreen);
+    }
 
-	public void dispose () {
-		batch.dispose();
-		font.dispose();
-		mainMenuScreen.dispose();
-		this.getScreen().dispose();
-	}
+    public LocationService getLocationService() {
+        return locationService;
+    }
+
+    public void render() {
+        super.render();
+    }
+
+    public void dispose() {
+        batch.dispose();
+        font.dispose();
+        mainMenuScreen.dispose();
+        this.getScreen().dispose();
+    }
 }

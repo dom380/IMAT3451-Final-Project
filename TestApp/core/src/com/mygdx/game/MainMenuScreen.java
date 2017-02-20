@@ -91,12 +91,6 @@ public class MainMenuScreen implements Screen {
 
         //Add buttons to table
         final CheckBox debugButton = new CheckBox("Debug Seed", skin);
-//        debugButton.addListener(new ClickListener() {
-//            @Override
-//            public void clicked(InputEvent event, float x, float y) {
-//                debugButton.setChecked(!debugButton.isChecked());
-//            }
-//        });
         TextButton playButton = new TextButton("Generate Level", skin);
         playButton.addListener(new ClickListener() {
             @Override

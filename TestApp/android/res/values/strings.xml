@@ -2,5 +2,7 @@
 <resources>
 
     <string name="app_name">IMAT3451-LevelGen</string>
-
+    <string name="location_explanation">
+        The game uses your location when generating levels. It is never stored.
+    </string>
 </resources>
