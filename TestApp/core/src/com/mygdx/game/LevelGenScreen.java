@@ -6,24 +6,19 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.input.GestureDetector;
-import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
-import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
-import com.badlogic.gdx.math.Vector2;
+import com.mygdx.game.WeatherAPI.WeatherClient;
+import com.mygdx.game.WeatherAPI.WeatherResponse;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import dmu.project.levelgen.Constraints;
 import dmu.project.levelgen.GAPopulationGen;
-import dmu.project.levelgen.HeightMap;
 import dmu.project.levelgen.Tile;
-import dmu.project.levelgen.TileState;
-import dmu.project.utils.RestClient;
 
 /**
  * Implementation of the LibGDX Screen class.
@@ -36,13 +31,12 @@ public class LevelGenScreen implements Screen {
 
     private MyGdxGame game;
     private Camera camera;
-    private Texture tileTexture;
-    private Texture spriteTexture;
-    private TiledMap map;
+    private MapBuilder.Map map;
     private TiledMapRenderer renderer;
     private int noiseWidth, noiseHeight, difficulty, tileWidth = 16, tileHeight = 16;
     private final static long debugSeed = -2656433763347937011L;
     private boolean debugEnabled;
+    private SpriteBatch batch = new SpriteBatch();
 
     public LevelGenScreen(MyGdxGame game) {
         this(game, 1, 1, 5, false);
@@ -62,15 +56,8 @@ public class LevelGenScreen implements Screen {
         init();
     }
 
-    public LevelGenScreen(MyGdxGame game, final Camera camera) {
-        this.game = game;
-        this.camera = camera;
-        camera.update();
-        init();
-    }
 
     private boolean init() {
-        map = new TiledMap();
         int width = 80;
         int height = 50;
         float scaleX = (float) width / (Gdx.graphics.getWidth() / tileWidth);
@@ -95,86 +82,13 @@ public class LevelGenScreen implements Screen {
 //            if (tile.tileState == TileState.ENEMY)
 //                count++;
 //        }
-
-//        double[] latLong = game.getLocationService().getLatLong();
-        //if (latLong != null) {
-//            try {
-//                RestClient restClient = new RestClient("http://api.openweathermap.org/data/2.5/weather");
-//                restClient.addParam("lat", String.valueOf(latLong[0]));
-//                restClient.addParam("lon", String.valueOf(latLong[1]));
-//                restClient.addParam("units", "metric");
-//                restClient.addParam("appid", "2c2e5d04d5f1c71108c7d2e4719a04fb");
-//
-//                restClient.execute(RestClient.RequestMethod.GET);
-//                String response = restClient.response;
-//
-//            } catch (UnsupportedEncodingException e) {
-//                e.printStackTrace();
-//            }
-       // }
-        //Load textures
-        tileTexture = new Texture(Gdx.files.internal("16gradientv2.png"));
-        tileTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-        spriteTexture = new Texture(Gdx.files.internal("sprites.png"));
-        spriteTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-        TextureRegion[][] splitTiles = TextureRegion.split(tileTexture, tileWidth, tileHeight);
-        TextureRegion[][] splitSprites = TextureRegion.split(spriteTexture, 16, 16);
-        //Construct TileMap.
-        HeightMap heightMap = populationGen.getHeightMap();
-        TiledMapTileLayer layer = new TiledMapTileLayer(width, height, tileWidth, tileHeight);
-        TiledMapTileLayer spriteLayer = new TiledMapTileLayer(width, height, tileWidth, tileHeight);
-        for (int x = 0; x < width; x++) { //Set each tile to the correct sprite based on elevation.
-            for (int y = 0; y < height; y++) {
-                TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
-                int tx, ty;
-                double scalar;
-                if (heightMap.elevation[x][y] < 0.25) {
-                    tx = 0;
-                    scalar = heightMap.elevation[x][y] / 0.25;
-                } else if (heightMap.elevation[x][y] < 0.35) {
-                    tx = 1;
-                    scalar = (heightMap.elevation[x][y] - 0.24) / (0.35 - 0.25);
-                } else if (heightMap.elevation[x][y] < 0.55) {
-                    tx = 2;
-                    scalar = (heightMap.elevation[x][y] - 0.34) / (0.55 - 0.35);
-                } else {
-                    tx = 3;
-                    scalar = (heightMap.elevation[x][y] - 0.54) / (1.0 - 0.55);
-                }
-                ty = (int) (64 * heightMap.elevation[x][y] * scalar);
-                if (ty > 63) {
-                    ty = 63;
-                }
-                cell.setTile(new StaticTiledMapTile(splitTiles[tx][ty]));
-                layer.setCell(x, y, cell);
-            }
-        }
-        for (Tile tile : mapObjects) { //For each level object set correct sprite.
-            int tx = 0, ty = 0;
-            switch (tile.tileState) {
-                case START:
-                    tx = 4;
-                    break;
-                case OBJECTIVE:
-                    tx = 1;
-                    break;
-                case ITEM:
-                    tx = 0;
-                    break;
-                case OBSTACLE:
-                    tx = 3;
-                    break;
-                case ENEMY:
-                    tx = 2;
-                    break;
-            }
-            TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
-            cell.setTile(new StaticTiledMapTile(splitSprites[ty][tx]));
-            spriteLayer.setCell(tile.position[0], tile.position[1], cell);
-        }
-        map.getLayers().add(layer);
-        map.getLayers().add(spriteLayer);
-        renderer = new OrthogonalTiledMapRenderer(map);
+        WeatherClient weatherClient = new WeatherClient(game.apiUrl, game.apiKey);//Todo find a better way of getting this string from android resources
+        WeatherResponse weather = null;
+        double[] latLong = game.getLocationService().getLatLong();
+        if (latLong != null)
+            weather = weatherClient.getWeather(latLong[0], latLong[1]);
+        map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, populationGen.getHeightMap(), mapObjects, weather);
+        renderer = new OrthogonalTiledMapRenderer(this.map.tiledMap);
         renderer.setView((OrthographicCamera) camera);
         CameraController2D cameraInputController = new CameraController2D((OrthographicCamera) camera, Math.min(scaleX, scaleY), scaleX, scaleY);
         Gdx.input.setInputProcessor(new GestureDetector(cameraInputController));
@@ -193,6 +107,13 @@ public class LevelGenScreen implements Screen {
         camera.update();
         renderer.setView((OrthographicCamera) camera);
         renderer.render();
+        if (map.particleEffect != null) {
+            map.particleEffect.update(delta);
+            batch.setProjectionMatrix(camera.combined);
+            batch.begin();
+            map.particleEffect.draw(batch);
+            batch.end();
+        }
     }
 
     @Override
@@ -219,7 +140,6 @@ public class LevelGenScreen implements Screen {
 
     @Override
     public void dispose() {
-        tileTexture.dispose();
         map.dispose();
     }
 }

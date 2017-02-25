@@ -52,7 +52,7 @@ public class RestClient {
         headers.add(new BasicNameValuePair(name, value));
     }
 
-    public void execute(RequestMethod method) throws UnsupportedEncodingException {
+    public void execute(RequestMethod method) throws IOException {
         switch (method) {
             case GET: {
                 //add parameters
@@ -97,7 +97,7 @@ public class RestClient {
         }
     }
 
-    private void executeRequest(HttpUriRequest request) {
+    private void executeRequest(HttpUriRequest request) throws IOException {
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
             HttpResponse httpResponse = client.execute(request);
             responseCode = httpResponse.getStatusLine().getStatusCode();
@@ -111,7 +111,7 @@ public class RestClient {
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw e;
         }
     }
 }

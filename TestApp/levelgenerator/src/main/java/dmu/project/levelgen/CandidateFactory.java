@@ -101,9 +101,9 @@ public class CandidateFactory {
     private int addItems(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
         int numOfEntity;
         if (difficulty < 4) {
-            numOfEntity = rng.nextInt(freeTiles / 4);
+            numOfEntity = rng.nextInt(freeTiles / 6);
         } else {
-            numOfEntity = rng.nextInt(freeTiles / 6); //Higher difficulty = less items
+            numOfEntity = rng.nextInt(freeTiles / 8); //Higher difficulty = less items
         }
         addTiles(tileSet, TileState.ITEM, numOfEntity, freeTiles, usedTiles);
         return numOfEntity;
@@ -113,15 +113,6 @@ public class CandidateFactory {
         int x, y;
         int numOfEntity = rng.nextInt(freeTiles / 2);
         addTiles(tileSet, TileState.OBSTACLE, numOfEntity, freeTiles, usedTiles);
-//        for (int i = 0; i < numOfEntity; ++i) { //Add obstacles
-//            do {
-//                x = rng.nextInt(width);
-//                y = rng.nextInt(height);
-//            }
-//            while (heightMap.elevation[x][y] < heightMap.waterLevel || heightMap.elevation[x][y] >= 0.65); //keep looking for a value above water level
-//            tileSet.add(new Tile(TileState.OBSTACLE, x, y));
-//            freeTiles -= 1;
-//        }
         return numOfEntity;
     }
 
@@ -130,7 +121,7 @@ public class CandidateFactory {
         for (int i = 0; i < numOfEntity; ++i) {
             Vector2D position;
             do {
-                x = rng.nextInt(width - 2) + 2;
+                x = rng.nextInt(width - 2) + 2; //Avoid the edges
                 y = rng.nextInt(height - 2) + 2;
                 position = new Vector2D(x, y);
             }

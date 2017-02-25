@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="LOCATION_PERMISSION_REQUST">1472</integer>
+    <integer name="LOCATION_PERMISSION_REQUEST">1472</integer>
+    <integer name="INTERNET_PERMISSION_REQUEST">1356</integer>
 </resources>

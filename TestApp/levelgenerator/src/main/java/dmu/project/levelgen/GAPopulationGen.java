@@ -76,7 +76,7 @@ public class GAPopulationGen implements PopulationGenerator {
     public List<Tile> populate() {
         int width = constraints.mapWidth;
         int height = constraints.mapHeight;
-        heightMap = levelGen.generateLevel(width, height, 0.25f); //Generate the base terrain.
+        heightMap = levelGen.generateLevel(width, height, 0.25); //Generate the base terrain.
         if (constraints.seed > 0) {
             candidateFactory = new CandidateFactory(heightMap, width - 2, height - 2, constraints.objectivesEnabled, constraints.seed);
         } else {
@@ -140,7 +140,8 @@ public class GAPopulationGen implements PopulationGenerator {
      */
     private float testFitness(List<MapCandidate> population) {
         //int wellPlacedEnemies;
-        float highestFitness = 0;
+        float highestFitness = 0.0f;
+        float avgFitness = 0.0f;
         int[] startPos = new int[2];
         Stopwatch timer = Stopwatch.createStarted();
         for (MapCandidate map : population) { //For each MapCandidate in population.
@@ -201,7 +202,9 @@ public class GAPopulationGen implements PopulationGenerator {
             fitness += pathFitness.fitness;
             map.fitness = fitness;
             if (map.fitness > highestFitness) highestFitness = map.fitness;
+            avgFitness += fitness;
         }
+        avgFitness /= population.size();
         timer.elapsed(TimeUnit.SECONDS);
         timer.stop();
         return highestFitness;

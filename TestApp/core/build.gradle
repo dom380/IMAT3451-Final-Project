@@ -9,4 +9,5 @@ eclipse.project {
 
 dependencies {
     compile project(':levelgenerator')
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.8.6'
 }

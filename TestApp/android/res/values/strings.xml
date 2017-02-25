@@ -5,4 +5,6 @@
     <string name="location_explanation">
         The game uses your location when generating levels. It is never stored.
     </string>
+    <string name="weather_api_url">http://api.openweathermap.org/data/2.5/weather</string>
+    <string name="weather_api_key">2c2e5d04d5f1c71108c7d2e4719a04fb</string>
 </resources>

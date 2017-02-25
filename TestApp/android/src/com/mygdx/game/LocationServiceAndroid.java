@@ -70,8 +70,11 @@ public class LocationServiceAndroid implements LocationService, GoogleApiClient.
         }
         if (lastLocation != null)
             return new double[]{lastLocation.getLatitude(), lastLocation.getLongitude()};
-        else
-            return null;
+        else {
+            //noinspection MissingPermission
+            lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient); //WHY ARE YOU ALWAYS NULL????
+            return lastLocation != null ? new double[]{lastLocation.getLatitude(), lastLocation.getLongitude()} : null;
+        }
 
     }
 
@@ -89,15 +92,18 @@ public class LocationServiceAndroid implements LocationService, GoogleApiClient.
     public void onConnected(@Nullable Bundle bundle) {
         LocationRequest request = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setInterval(10000)
-                .setFastestInterval(2000);
+                .setInterval(10000) //10sec
+                .setFastestInterval(2000); //2 sec
         if (ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(launcher.getActivity(), launcher.getString(R.string.location_explanation))) {
                 //Check to see if we should explain the request
             } else {
-                //Request location permissions
-                ActivityCompat.requestPermissions(launcher.getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, launcher.getResources().getInteger(R.integer.LOCATION_PERMISSION_REQUST));
+                //Request permissions
+                ActivityCompat.requestPermissions(launcher.getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, launcher.getResources().getInteger(R.integer.LOCATION_PERMISSION_REQUEST));
+                ActivityCompat.requestPermissions(launcher.getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, launcher.getResources().getInteger(R.integer.LOCATION_PERMISSION_REQUEST));
+                ActivityCompat.requestPermissions(launcher.getActivity(), new String[]{Manifest.permission.INTERNET}, launcher.getResources().getInteger(R.integer.INTERNET_PERMISSION_REQUEST));
             }
             return;
         }

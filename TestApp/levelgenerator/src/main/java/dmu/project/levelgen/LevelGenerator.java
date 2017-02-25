@@ -17,7 +17,7 @@ public interface LevelGenerator {
      * @param waterLevel a value between 0..1 that represents the water level for the generated map.
      * @return A 2D width by height array of height values representing the terrain.
      */
-    HeightMap generateLevel(int width, int height, float waterLevel);
+    HeightMap generateLevel(int width, int height, double waterLevel);
 
 }
 

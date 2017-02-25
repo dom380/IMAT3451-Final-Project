@@ -24,7 +24,7 @@ public class GameFragment extends AndroidFragmentApplication implements GoogleAp
         config.useAccelerometer = false;
         config.useGyroscope = false;
         locationService = new LocationServiceAndroid(this);
-        return initializeForView(new MyGdxGame(locationService), config);
+        return initializeForView(new MyGdxGame(locationService, getResources().getString(R.string.weather_api_url), getResources().getString(R.string.weather_api_key)), config);
     }
 
     @Override
@@ -35,7 +35,7 @@ public class GameFragment extends AndroidFragmentApplication implements GoogleAp
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
-            case R.integer.LOCATION_PERMISSION_REQUST : {
+            case R.integer.LOCATION_PERMISSION_REQUEST : {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     locationService.enable();
                 } else {

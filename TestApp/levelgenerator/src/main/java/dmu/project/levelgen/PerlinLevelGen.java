@@ -61,7 +61,7 @@ public class PerlinLevelGen implements LevelGenerator {
      * @return A 2D width by height array of height values representing the terrain.
      */
     @Override
-    public HeightMap generateLevel(int width, int height, float waterLevel) {
+    public HeightMap generateLevel(int width, int height, double waterLevel) {
         double[][] noise = new double[width][height];
         //double[][] elevation = new double[width][height];
         HeightMap heightMap = new HeightMap(width, height, true, waterLevel);

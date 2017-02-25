@@ -9,9 +9,13 @@ public class MyGdxGame extends Game {
     private BitmapFont font;
     private MainMenuScreen mainMenuScreen;
     private LocationService locationService;
+    String apiUrl;
+    String apiKey;
 
-    MyGdxGame(LocationService locationService) {
+    MyGdxGame(LocationService locationService, String apiUrl, String apiKey) {
         this.locationService = locationService;
+        this.apiUrl = apiUrl;
+        this.apiKey = apiKey;
     }
 
     @Override

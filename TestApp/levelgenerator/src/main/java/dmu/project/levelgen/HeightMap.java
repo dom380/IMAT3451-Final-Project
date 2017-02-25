@@ -7,7 +7,7 @@ import dmu.project.utils.Grid;
  */
 
 public class HeightMap {
-    public HeightMap(int xMax, int yMax, boolean moveDiagonal, float waterLevel){
+    public HeightMap(int xMax, int yMax, boolean moveDiagonal, double waterLevel){
         aboveWaterValues = 0;
         this.waterLevel = waterLevel;
         grid = new Grid(xMax, yMax, moveDiagonal);
@@ -15,5 +15,5 @@ public class HeightMap {
     public int aboveWaterValues;
     public double[][] elevation;
     public Grid grid;
-    public float waterLevel;
+    public double waterLevel;
 }
