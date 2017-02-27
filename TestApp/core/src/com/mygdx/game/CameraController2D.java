@@ -56,7 +56,7 @@ public class CameraController2D implements GestureDetector.GestureListener {
     public boolean touchDown(float x, float y, int pointer, int button) {
         lastTouch.set(x, y);
         initialScale = camera.zoom;
-        return true;
+        return false;
     }
 
     @Override
@@ -79,7 +79,7 @@ public class CameraController2D implements GestureDetector.GestureListener {
 
         camera.translate(-deltaX, deltaY, 0);
         constrainCamera();
-        return true;
+        return false;
     }
 
     @Override

@@ -157,6 +157,7 @@ public class MapBuilder {
 
     private static TiledMapTileLayer addSprites(int width, int height, int tileWidth, int tileHeight, List<Tile> mapObjects, TextureRegion[] splitSprites) {
         TiledMapTileLayer spriteLayer = new TiledMapTileLayer(width, height, tileWidth, tileHeight);
+        int enemyCount = 0;
         for (Tile tile : mapObjects) { //For each level object set correct sprite.
             int tx = 0, ty = 0;
             switch (tile.tileState) {
@@ -174,12 +175,14 @@ public class MapBuilder {
                     break;
                 case ENEMY:
                     tx = 2;
+                    enemyCount++;
                     break;
             }
             TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
             cell.setTile(new StaticTiledMapTile(splitSprites[tx]));
             spriteLayer.setCell(tile.position[0], tile.position[1], cell);
         }
+        enemyCount = enemyCount -1;
         return spriteLayer;
     }
 }

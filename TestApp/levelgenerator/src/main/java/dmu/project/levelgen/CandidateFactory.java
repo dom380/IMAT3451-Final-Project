@@ -57,18 +57,18 @@ public class CandidateFactory {
         List<Tile> tileSet = new ArrayList<>();
         Set<Vector2D> usedTiles = new LinkedHashSet<>();
         addTiles(tileSet, TileState.START, 1, 1, usedTiles);
-        int freeTiles = rng.nextInt((heightMap.aboveWaterValues / 5) - 1) + 100; //This probably should be tweaked as well
-        if (difficulty < 7) { //Order affects difficulty slightly
+        int freeTiles = Math.max(rng.nextInt((heightMap.aboveWaterValues / 5) - 1), 200); //This probably should be tweaked as well
+//        if (difficulty < 7) { //Order affects difficulty slightly
+//            freeTiles -= addObjectives(tileSet, difficulty, freeTiles, usedTiles);
+//            freeTiles -= addObstacles(tileSet, difficulty, freeTiles, usedTiles);
+//            freeTiles -= addEnemies(tileSet, difficulty, freeTiles, usedTiles);
+//            addItems(tileSet, difficulty, freeTiles, usedTiles);
+//        } else {
             freeTiles -= addObjectives(tileSet, difficulty, freeTiles, usedTiles);
-            freeTiles -= addObstacles(tileSet, difficulty, freeTiles, usedTiles);
-            freeTiles -= addEnemies(tileSet, difficulty, freeTiles, usedTiles);
-            addItems(tileSet, difficulty, freeTiles, usedTiles);
-        } else {
-            freeTiles -= addObjectives(tileSet, difficulty, freeTiles, usedTiles);
             freeTiles -= addEnemies(tileSet, difficulty, freeTiles, usedTiles);
             freeTiles -= addObstacles(tileSet, difficulty, freeTiles, usedTiles);
             addItems(tileSet, difficulty, freeTiles, usedTiles);
-        }
+//        }
         return new MapCandidate(tileSet);
     }
 
@@ -89,11 +89,12 @@ public class CandidateFactory {
 
     private int addEnemies(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
         int numOfEntity;
-        if (difficulty < 4) {
-            numOfEntity = rng.nextInt((freeTiles / 4) - (freeTiles / 6)) + (freeTiles / 6); //Add enemies
-        } else {
-            numOfEntity = rng.nextInt(freeTiles / 2 - (freeTiles / 4)) + (freeTiles / 4);
-        }
+//        if (difficulty < 4) {
+//            numOfEntity = rng.nextInt((freeTiles / 4) - (freeTiles / 6)) + (freeTiles / 6); //Add enemies
+//        } else {
+//            numOfEntity = rng.nextInt((freeTiles / 2) - (freeTiles / 4)) + (freeTiles / 4);
+//        }
+        numOfEntity = difficulty * 10;
         addTiles(tileSet, TileState.ENEMY, numOfEntity, freeTiles, usedTiles);
         return numOfEntity;
     }
@@ -116,7 +117,7 @@ public class CandidateFactory {
         return numOfEntity;
     }
 
-    private void addTiles(List<Tile> tileSet, TileState tileState, int numOfEntity, int freeTiles, Set<Vector2D> usedTiles) {
+    public void addTiles(List<Tile> tileSet, TileState tileState, int numOfEntity, int freeTiles, Set<Vector2D> usedTiles) {
         int x, y;
         for (int i = 0; i < numOfEntity; ++i) {
             Vector2D position;

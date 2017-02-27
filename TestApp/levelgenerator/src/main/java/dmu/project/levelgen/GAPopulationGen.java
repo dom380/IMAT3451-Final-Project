@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -73,7 +74,7 @@ public class GAPopulationGen implements PopulationGenerator {
      * @return List of Tiles representing the level.
      */
     @Override
-    public List<Tile> populate() {
+    public List<MapCandidate> populate() {
         int width = constraints.mapWidth;
         int height = constraints.mapHeight;
         heightMap = levelGen.generateLevel(width, height, 0.25); //Generate the base terrain.
@@ -83,29 +84,34 @@ public class GAPopulationGen implements PopulationGenerator {
             candidateFactory = new CandidateFactory(heightMap, width - 2, height - 2, constraints.objectivesEnabled);
         }
         List<MapCandidate> population = initPopulation(constraints.populationSize, heightMap);
+        Stopwatch timer = Stopwatch.createStarted();
         int maxGen = constraints.getMaxGenerations();
         int sameFitnessCount = 0;
-        float highestFitness = 0, initFitness = 0, previousFitness = 0;
+        float avgFitness = 0, initFitness = 0, previousFitness = 0;
         boolean reachedMaxFit = false;
         for (int currentGen = 0; currentGen < maxGen; currentGen++) { //For each generation
-            highestFitness = testFitness(population);
+            avgFitness = testFitness(population);
             if (currentGen == 0) {
-                initFitness = highestFitness; //Get the initial population's fitness for debug purposes.
+                initFitness = avgFitness; //Get the initial population's fitness for debug purposes.
             }
-            if (highestFitness > 0.9f) { //If sufficient fitness reached then exit.
+            if (avgFitness > 0.9f) { //If sufficient fitness reached then exit.
                 reachedMaxFit = true;
                 break;
             }
-            if (Math.abs(highestFitness - previousFitness) < 0.0001) { //Keep track of the number of generations with no meaningful fitness increase.
+            if(timer.elapsed(TimeUnit.SECONDS) > 30){ //We've been running too long, give up. //TODO make configurable?
+                reachedMaxFit = false;
+                break;
+            }
+            if (Math.abs(avgFitness - previousFitness) < 0.001) { //Keep track of the number of generations with no meaningful fitness increase.
                 sameFitnessCount++;
             }
             if (sameFitnessCount > 10) // TODO: 07/12/2016 Move to constraint or config.
                 break; //If no fitness improvement for the last x generations exit
-            previousFitness = highestFitness;
+            previousFitness = avgFitness;
             population = getNewGen(population); //Perform crossover and mutation to get next generation.
         }
         if (!reachedMaxFit)
-            highestFitness = testFitness(population); //get fitness of final generation.
+            avgFitness = testFitness(population); //get fitness of final generation.
 
         Collections.sort(population, Collections.reverseOrder(new Comparator<MapCandidate>() {
             @Override
@@ -113,8 +119,9 @@ public class GAPopulationGen implements PopulationGenerator {
                 return map1.fitness.compareTo(map2.fitness);
             }
         }));
-
-        return population.get(0).tileSet; //Return the most fit map
+        timer.elapsed(TimeUnit.SECONDS);
+        timer.stop();
+        return population; //Return the last generation, ordered by fitness descending.
     }
 
     @Override
@@ -136,12 +143,13 @@ public class GAPopulationGen implements PopulationGenerator {
      * Fitness function to test current population's fitness.
      *
      * @param population List of MapCandidates to test.
-     * @return Highest fitness found.
+     * @return Average fitness of population (ignoring maps that fail constraints)
      */
     private float testFitness(List<MapCandidate> population) {
         //int wellPlacedEnemies;
         float highestFitness = 0.0f;
         float avgFitness = 0.0f;
+        float numOfMaps = population.size();
         int[] startPos = new int[2];
         Stopwatch timer = Stopwatch.createStarted();
         for (MapCandidate map : population) { //For each MapCandidate in population.
@@ -178,6 +186,7 @@ public class GAPopulationGen implements PopulationGenerator {
             */
             if (!hasStart) { //If we don't have a start position (which shouldn't happen) get rid of this candidate.
                 map.fitness = 0.0f;
+                numOfMaps--;
                 continue;
             }
             Float fitness = 1.0f;
@@ -185,6 +194,7 @@ public class GAPopulationGen implements PopulationGenerator {
                 fitness -= 0.05f * poorPlacedEnemies;//((float) poorPlacedEnemies / (float) enemyCount) * 2.0f;
             } else {
                 map.fitness = 0.0f;
+                numOfMaps--;
                 continue;
             }
             if (itemCount == 0) { //Mark down maps with no items as that's less interesting.
@@ -197,6 +207,7 @@ public class GAPopulationGen implements PopulationGenerator {
             PathFitness pathFitness = testPathFitness(startPos, objectiveBucket, obstacleBucket);
             if (!pathFitness.goodPaths) { //If we can't reach every objective set fitness to 0
                 map.fitness = 0.0f;
+                numOfMaps--;
                 continue;
             }
             fitness += pathFitness.fitness;
@@ -204,10 +215,10 @@ public class GAPopulationGen implements PopulationGenerator {
             if (map.fitness > highestFitness) highestFitness = map.fitness;
             avgFitness += fitness;
         }
-        avgFitness /= population.size();
+        avgFitness /= numOfMaps;
         timer.elapsed(TimeUnit.SECONDS);
         timer.stop();
-        return highestFitness;
+        return avgFitness;
     }
 
     /**
@@ -219,21 +230,21 @@ public class GAPopulationGen implements PopulationGenerator {
      */
     private List<MapCandidate> getNewGen(List<MapCandidate> currentPop) {
         List<MapCandidate> newGeneration = new ArrayList<>();
-        int tournamentSize = 3;
+        int tournamentSize = 4;
         int populationSize = currentPop.size();
-        MapCandidate fittest = null, secondFitness = null;
+        MapCandidate currentFittest = null, secondFitness = null;
         while (newGeneration.size() < populationSize) { //While not enough candidates in next gen
             for (int i = 0; i < tournamentSize; ++i) { //Select random candidates for tournament
                 MapCandidate mapCandidate = currentPop.get(rng.nextInt(populationSize));
-                if ((fittest == null) || (mapCandidate.fitness > fittest.fitness)) {
-                    secondFitness = fittest;
-                    fittest = mapCandidate;
+                if ((currentFittest == null) || (mapCandidate.fitness > currentFittest.fitness)) {
+                    secondFitness = currentFittest;
+                    currentFittest = mapCandidate;
                 } else if (secondFitness == null || mapCandidate.fitness > secondFitness.fitness) {
                     secondFitness = mapCandidate;
                 }
             }
-            newGeneration.addAll(crossover(fittest, secondFitness)); //Crossover the two fittest candidates from tournament.
-            fittest = null;
+            newGeneration.addAll(crossover(currentFittest, secondFitness)); //Crossover the two fittest candidates from tournament.
+            currentFittest = null;
             secondFitness = null;
         }
         return newGeneration;
@@ -290,9 +301,15 @@ public class GAPopulationGen implements PopulationGenerator {
         double chance = rng.nextDouble();
         if (chance <= 0.33) { // 1 in 3 chance to mutate
             chance = rng.nextDouble();
-            if (chance <= 0.5) // 50/50 chance to add, or change tile
-                map.tileSet.add(new Tile(randomState.random(), rng.nextInt(constraints.mapWidth), rng.nextInt(constraints.mapHeight)));
-            else
+            if (chance <= 0.5) { // 50/50 chance to add, or change tile
+                int x, y;
+                do {
+                    x = rng.nextInt(constraints.mapWidth - 2) + 2; //Avoid the edges
+                    y = rng.nextInt(constraints.mapHeight - 2) + 2;
+                }
+                while (heightMap.elevation[x][y] < heightMap.waterLevel);
+                map.tileSet.add(new Tile(randomState.random(), x, y));
+            } else
                 map.tileSet.get(rng.nextInt(map.tileSet.size())).tileState = randomState.random();
 
         }
@@ -330,17 +347,21 @@ public class GAPopulationGen implements PopulationGenerator {
     private PathFitness testPathFitness(int[] startPos, List<Tile> objectiveBucket, List<Tile> obstacleBucket) {
         List<Node> cleaningList = new ArrayList<>();
         List<Node> obstacles = new ArrayList<>();
+        Node startNode = heightMap.grid.getNode(startPos[0], startPos[1]);
         float fitness = 0.0f;
         boolean goodPaths = true;
         for (Tile tile : obstacleBucket) { //mark each obstacle tile as not walkable on grid.
             Node node = heightMap.grid.getNode(tile.position[0], tile.position[1]);
             node.walkable = false;
             obstacles.add(node);
+            if (node.position.equals(startNode)) {
+                fitness -= 1.0f;
+            }
         }
         //Test start position is reasonable
-        int startTiles = heightMap.grid.getNeighbours(heightMap.grid.getNode(startPos[0], startPos[1])).size();
-        if(startTiles < 8) { //If not all nodes immediately surround the start are free, mark down map.
-            fitness -= 0.025f * (8-startTiles);
+        int startTiles = heightMap.grid.getNeighbours(startNode).size();
+        if (startTiles < 8) { //If not all nodes immediately surround the start are free, mark down map.
+            fitness -= 0.05f * (8 - startTiles);
         }
         int listSize = objectiveBucket.size();
         for (int i = 0; i < listSize; ++i) { //Test for path to each objective.

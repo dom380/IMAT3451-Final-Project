@@ -21,7 +21,7 @@ public class TempGATest {
         constraints.populationSize = 100;
         Stopwatch stopwatch = Stopwatch.createStarted();
         GAPopulationGen gen = new GAPopulationGen(constraints);
-        List<Tile> tiles = gen.populate();
+        List<MapCandidate> mapCandidates = gen.populate();
         stopwatch.stop();
         long elapsed = stopwatch.elapsed(TimeUnit.SECONDS);
         elapsed = 0;

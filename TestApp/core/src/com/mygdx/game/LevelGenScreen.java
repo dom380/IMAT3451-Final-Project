@@ -1,13 +1,10 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.ParticleEffect;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -18,6 +15,8 @@ import java.util.List;
 
 import dmu.project.levelgen.Constraints;
 import dmu.project.levelgen.GAPopulationGen;
+import dmu.project.levelgen.HeightMap;
+import dmu.project.levelgen.MapCandidate;
 import dmu.project.levelgen.Tile;
 
 /**
@@ -28,15 +27,18 @@ import dmu.project.levelgen.Tile;
  */
 
 public class LevelGenScreen implements Screen {
-
-    private MyGdxGame game;
-    private Camera camera;
+    private static final int width = 80, height = 50;
+    private final MyGdxGame game;
+    private OrthographicCamera camera;
     private MapBuilder.Map map;
     private TiledMapRenderer renderer;
     private int noiseWidth, noiseHeight, difficulty, tileWidth = 16, tileHeight = 16;
     private final static long debugSeed = -2656433763347937011L;
     private boolean debugEnabled;
-    private SpriteBatch batch = new SpriteBatch();
+    private GameUI ui;
+    private List<MapCandidate> mapCandidates;
+    private HeightMap heightMap;
+    private WeatherResponse weather = null;
 
     public LevelGenScreen(MyGdxGame game) {
         this(game, 1, 1, 5, false);
@@ -48,6 +50,7 @@ public class LevelGenScreen implements Screen {
         this.noiseHeight = noiseHeight;
         this.difficulty = difficulty;
         this.debugEnabled = debugEnabled;
+        ui = new GameUI(game, this);
         camera = new OrthographicCamera();
         camera.viewportWidth = Gdx.graphics.getWidth();
         camera.viewportHeight = Gdx.graphics.getHeight();
@@ -58,8 +61,7 @@ public class LevelGenScreen implements Screen {
 
 
     private boolean init() {
-        int width = 80;
-        int height = 50;
+
         float scaleX = (float) width / (Gdx.graphics.getWidth() / tileWidth);
         float scaleY = (float) height / (Gdx.graphics.getHeight() / tileWidth);
         //Set level constraints
@@ -76,23 +78,28 @@ public class LevelGenScreen implements Screen {
             constraints.setSeed(debugSeed);
         //Generate Level
         GAPopulationGen populationGen = new GAPopulationGen(constraints);
-        List<Tile> mapObjects = populationGen.populate();
-//        int count = 0;
-//        for (Tile tile : mapObjects) {
-//            if (tile.tileState == TileState.ENEMY)
-//                count++;
-//        }
+        mapCandidates = populationGen.populate();
         WeatherClient weatherClient = new WeatherClient(game.apiUrl, game.apiKey);//Todo find a better way of getting this string from android resources
-        WeatherResponse weather = null;
+
         double[] latLong = game.getLocationService().getLatLong();
         if (latLong != null)
             weather = weatherClient.getWeather(latLong[0], latLong[1]);
-        map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, populationGen.getHeightMap(), mapObjects, weather);
+        heightMap = populationGen.getHeightMap();
+        map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, mapCandidates.get(0).tileSet, weather);
         renderer = new OrthogonalTiledMapRenderer(this.map.tiledMap);
-        renderer.setView((OrthographicCamera) camera);
-        CameraController2D cameraInputController = new CameraController2D((OrthographicCamera) camera, Math.min(scaleX, scaleY), scaleX, scaleY);
-        Gdx.input.setInputProcessor(new GestureDetector(cameraInputController));
+        renderer.setView(camera);
+        CameraController2D cameraInputController = new CameraController2D(camera, Math.min(scaleX, scaleY), scaleX, scaleY);
+        InputMultiplexer inputMultiplexer = new InputMultiplexer();
+        inputMultiplexer.addProcessor(new GestureDetector(cameraInputController));
+        inputMultiplexer.addProcessor(ui.getStage());
+        Gdx.input.setInputProcessor(inputMultiplexer);
         return true;
+    }
+
+    public void switchMap(List<Tile> tileList) {
+        map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, tileList, weather);
+        renderer = new OrthogonalTiledMapRenderer(this.map.tiledMap); //Can't find a better way of changing the map
+        renderer.setView(camera);
     }
 
     @Override
@@ -104,16 +111,18 @@ public class LevelGenScreen implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(100f / 255f, 100f / 255f, 250f / 255f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        //viewport.apply();
         camera.update();
-        renderer.setView((OrthographicCamera) camera);
+        renderer.setView(camera);
         renderer.render();
         if (map.particleEffect != null) {
             map.particleEffect.update(delta);
-            batch.setProjectionMatrix(camera.combined);
-            batch.begin();
-            map.particleEffect.draw(batch);
-            batch.end();
+            game.batch.setProjectionMatrix(camera.combined);
+            game.batch.begin();
+            map.particleEffect.draw(game.batch);
+            game.batch.end();
         }
+        ui.draw();
     }
 
     @Override
@@ -121,6 +130,7 @@ public class LevelGenScreen implements Screen {
         camera.viewportWidth = width;
         camera.viewportHeight = height;
         camera.update();
+        ui.resize(width, height);
     }
 
     @Override
@@ -141,5 +151,10 @@ public class LevelGenScreen implements Screen {
     @Override
     public void dispose() {
         map.dispose();
+        ui.dispose();
+    }
+
+    public List<MapCandidate> getMapCandidates() {
+        return mapCandidates;
     }
 }

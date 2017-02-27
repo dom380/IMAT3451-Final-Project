@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface PopulationGenerator {
 
-    List<Tile> populate();
+    List<MapCandidate> populate();
 
     /**
      * Read in level generation constraints from specified xml file.

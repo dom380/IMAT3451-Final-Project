@@ -26,6 +26,14 @@ public class MyGdxGame extends Game {
         this.setScreen(mainMenuScreen);
     }
 
+    public void returnToMenu() {
+        if (this.getScreen() != null)
+            this.getScreen().dispose();
+
+        mainMenuScreen = new MainMenuScreen(this);
+        this.setScreen(mainMenuScreen);
+    }
+
     public LocationService getLocationService() {
         return locationService;
     }
