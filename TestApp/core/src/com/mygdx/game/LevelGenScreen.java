@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+import com.badlogic.gdx.utils.ObjectMap;
 import com.google.common.base.Stopwatch;
 import com.mygdx.game.WeatherAPI.WeatherClient;
 import com.mygdx.game.WeatherAPI.WeatherResponse;
@@ -29,7 +30,7 @@ import dmu.project.levelgen.Tile;
  */
 
 public class LevelGenScreen implements Screen {
-    private static final int width = 80, height = 50;
+    private static int width = 80, height = 50;
     private final MyGdxGame game;
     private OrthographicCamera camera;
     private MapBuilder.Map map;
@@ -43,41 +44,28 @@ public class LevelGenScreen implements Screen {
     private WeatherResponse weather = null;
     private InputMultiplexer inputMultiplexer = new InputMultiplexer();
 
-    public LevelGenScreen(MyGdxGame game) {
-        this(game, 1, 1, 5, false);
-    }
-
     public LevelGenScreen(MyGdxGame game, int noiseWidth, int noiseHeight, int difficulty, boolean debugEnabled) {
         this.game = game;
         this.noiseWidth = noiseWidth;
         this.noiseHeight = noiseHeight;
         this.difficulty = difficulty;
         this.debugEnabled = debugEnabled;
-        camera = new OrthographicCamera();
-        camera.viewportWidth = Gdx.graphics.getWidth();
-        camera.viewportHeight = Gdx.graphics.getHeight();
-        camera.position.set(camera.viewportWidth / 2.f, camera.viewportHeight / 2.f, 0);
-        camera.update();
+        width = game.properties.get("constraints.mapWidth") != null ? Integer.parseInt(game.properties.get("constraints.mapWidth")) : 80;
+        height = game.properties.get("constraints.mapHeight") != null ? Integer.parseInt(game.properties.get("constraints.mapHeight")) : 50;
+        this.camera = new OrthographicCamera();
+        this.camera.viewportWidth = Gdx.graphics.getWidth();
+        this.camera.viewportHeight = Gdx.graphics.getHeight();
+        this.camera.position.set(camera.viewportWidth / 2.f, camera.viewportHeight / 2.f, 0);
+        this.camera.update();
         init();
     }
 
 
     private boolean init() {
-
         float scaleX = (float) width / (Gdx.graphics.getWidth() / tileWidth);
         float scaleY = (float) height / (Gdx.graphics.getHeight() / tileWidth);
         //Set level constraints
-        Constraints constraints = new Constraints();
-        constraints.setPopulationSize(100);
-        constraints.setMaxGenerations(50);
-        constraints.setMapHeight(height);
-        constraints.setMapWidth(width);
-        constraints.setNoiseWidth(noiseWidth);
-        constraints.setNoiseHeight(noiseHeight);
-        constraints.setObjectivesEnabled(true);
-        constraints.setDifficulty(difficulty);
-        if (debugEnabled)
-            constraints.setSeed(debugSeed);
+        Constraints constraints = readConstraints(game.properties);
         //Generate Level
         GAPopulationGen populationGen = new GAPopulationGen(constraints);
         mapCandidates = populationGen.populate();
@@ -96,7 +84,25 @@ public class LevelGenScreen implements Screen {
         return true;
     }
 
-    public void switchMap(List<Tile> tileList) {
+    private Constraints readConstraints(ObjectMap<String, String> properties) {
+        Constraints constraints = new Constraints();
+        String value = properties.get("constraints.populationSize", "100");
+        constraints.setPopulationSize(Integer.valueOf(value));
+        value = properties.get("constraints.maxGenerations", "50");
+        constraints.setMaxGenerations(Integer.valueOf(value));
+        constraints.setMapHeight(height);
+        constraints.setMapWidth(width);
+        constraints.setNoiseWidth(noiseWidth);
+        constraints.setNoiseHeight(noiseHeight);
+        value = properties.get("constraints.objectivesEnabled", "true");
+        constraints.setObjectivesEnabled(Boolean.parseBoolean(value));
+        constraints.setDifficulty(difficulty);
+        if (debugEnabled)
+            constraints.setSeed(debugSeed);
+        return constraints;
+    }
+
+    void switchMap(List<Tile> tileList) {
         map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, tileList, weather);
         renderer = new OrthogonalTiledMapRenderer(this.map.tiledMap); //Can't find a better way of changing the map
         renderer.setView(camera);

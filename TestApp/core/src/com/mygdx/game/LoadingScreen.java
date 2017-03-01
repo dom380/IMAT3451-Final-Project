@@ -46,7 +46,7 @@ public class LoadingScreen implements Screen {
         viewport = new StretchViewport(800, 480, camera);
         viewport.apply();
         batch = game.batch;
-        textureAtlas = new TextureAtlas(Gdx.files.internal("loadingRing.atlas"));
+        textureAtlas = new TextureAtlas(Gdx.files.internal("sprites/loadingRing.atlas"));
         anim = new Animation(0.06f, textureAtlas.getRegions());
         anim.setPlayMode(PlayMode.LOOP);
         task = asyncExecutor.submit(new AsyncTask<LevelGenScreen>() {

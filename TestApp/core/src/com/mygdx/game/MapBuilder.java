@@ -22,7 +22,7 @@ public class MapBuilder {
 
     public static Map buildMap(int width, int height, int tileWidth, int tileHeight, HeightMap heightMap, List<Tile> mapObjects, WeatherResponse weatherResponse) {
         Map map = new Map();
-        map.spriteTexture = new Texture(Gdx.files.internal("spritesv2.png"));
+        map.spriteTexture = new Texture(Gdx.files.internal("sprites/spritesv2.png"));
         map.spriteTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         if (weatherResponse != null) {
             float temp = weatherResponse.getMain().getTemp();
@@ -63,7 +63,7 @@ public class MapBuilder {
         map.particleEffect = new ParticleEffect();
         map.particleEffect.load(Gdx.files.internal("effects/snow_particle.p"), Gdx.files.internal("effects"));
         map.particleEffect.setPosition(0, Gdx.graphics.getHeight() + 10);
-        map.tileTexture = new Texture(Gdx.files.internal("iceGradient.png"));
+        map.tileTexture = new Texture(Gdx.files.internal("sprites/iceGradient.png"));
         map.tileTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
 
         TextureRegion[][] splitTiles = TextureRegion.split(map.tileTexture, tileWidth, tileHeight);
@@ -115,7 +115,7 @@ public class MapBuilder {
 
     private static Map buildGrassMap(Map map, int width, int height, int tileWidth, int tileHeight, HeightMap heightMap, List<Tile> mapObjects) {
 
-        map.tileTexture = new Texture(Gdx.files.internal("grassGradient.png"));
+        map.tileTexture = new Texture(Gdx.files.internal("sprites/grassGradient.png"));
         map.tileTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
 
         TextureRegion[][] splitTiles = TextureRegion.split(map.tileTexture, tileWidth, tileHeight);

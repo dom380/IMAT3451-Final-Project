@@ -29,8 +29,8 @@ public class GameUI {
 
     public GameUI(final MyGdxGame game, final LevelGenScreen screen) {
         camera = new OrthographicCamera();
-        atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
-        skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
+        atlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
+        skin = new Skin(Gdx.files.internal("sprites/uiskin.json"), atlas);
         viewport = new StretchViewport(800, 480, camera);
         viewport.apply();
         batch = game.batch;

@@ -32,17 +32,17 @@ public class MainMenuScreen implements Screen {
 
     private final MyGdxGame game;
     private OrthographicCamera camera;
-    protected Stage stage;
+    private Stage stage;
     private Viewport viewport;
     private TextureAtlas atlas;
-    protected Skin skin;
+    private Skin skin;
 
     public MainMenuScreen(MyGdxGame game) {
         this.game = game;
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 800, 480);
-        atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
-        skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
+        atlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
+        skin = new Skin(Gdx.files.internal("sprites/uiskin.json"), atlas);
         viewport = new StretchViewport(800, 480);
         viewport.apply();
         camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
@@ -148,5 +148,6 @@ public class MainMenuScreen implements Screen {
     public void dispose() {
         stage.dispose();
         skin.dispose();
+        atlas.dispose();
     }
 }

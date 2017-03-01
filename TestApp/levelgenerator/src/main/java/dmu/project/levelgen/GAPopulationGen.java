@@ -30,7 +30,6 @@ public class GAPopulationGen implements PopulationGenerator {
     private Constraints constraints;
     private LevelGenerator levelGen;
     private static Random rng = new Random();
-    private int numTiles;
     private HeightMap heightMap;
     private CandidateFactory candidateFactory;
 
