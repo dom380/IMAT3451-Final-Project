@@ -1,8 +1,17 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.ObjectMap;
+import com.badlogic.gdx.utils.PropertiesUtils;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Properties;
 
 public class MyGdxGame extends Game {
     SpriteBatch batch;
@@ -12,10 +21,18 @@ public class MyGdxGame extends Game {
     String apiUrl;
     String apiKey;
 
+    ObjectMap<String, String> properties = new ObjectMap<>();
+
     MyGdxGame(LocationService locationService, String apiUrl, String apiKey) {
         this.locationService = locationService;
         this.apiUrl = apiUrl;
         this.apiKey = apiKey;
+        try {
+            PropertiesUtils.load(properties, Gdx.files.internal("config.properties").reader());
+        } catch (IOException e) {
+            Gdx.app.log("Error", e.getMessage());
+
+        }
     }
 
     @Override
@@ -32,6 +49,12 @@ public class MyGdxGame extends Game {
 
         mainMenuScreen = new MainMenuScreen(this);
         this.setScreen(mainMenuScreen);
+    }
+
+    public void switchScreen(Screen screen){
+        if (this.getScreen() != null)
+            this.getScreen().dispose();
+        this.setScreen(screen);
     }
 
     public LocationService getLocationService() {

@@ -25,11 +25,9 @@ public class GameUI {
     private TextureAtlas atlas;
     private Skin skin;
     private SpriteBatch batch;
-    private LevelGenScreen screen;
     private int currentIndx = 0;
 
     public GameUI(final MyGdxGame game, final LevelGenScreen screen) {
-        this.screen = screen;
         camera = new OrthographicCamera();
         atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
         skin = new Skin(Gdx.files.internal("uiskin.json"), atlas);
@@ -48,7 +46,7 @@ public class GameUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 currentIndx = currentIndx != 0 ? currentIndx - 1 : 9;
-                mapLabel.setText("Map "+(currentIndx+1)+"/10");
+                mapLabel.setText("Map " + (currentIndx + 1) + "/10");
                 screen.switchMap(screen.getMapCandidates().get(currentIndx).tileSet);
             }
         });
@@ -57,24 +55,24 @@ public class GameUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 currentIndx = currentIndx != 9 ? currentIndx + 1 : 0;
-                mapLabel.setText("Map "+(currentIndx+1)+"/10");
+                mapLabel.setText("Map " + (currentIndx + 1) + "/10");
                 screen.switchMap(screen.getMapCandidates().get(currentIndx).tileSet);
             }
         });
 //        nextButton.pad(0.0f,5.0f,0.0f,0.0f);
         TextButton menuButton = new TextButton("Main Menu", skin);
-        menuButton.addListener(new ClickListener(){
+        menuButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 game.returnToMenu();
             }
         });
-        table.add(menuButton).pad(0.0f,5.0f,0.0f,0.0f);
-        table.add(previousButton).pad(0.0f,5.0f,0.0f,0.0f);
+        table.add(menuButton).pad(0.0f, 5.0f, 0.0f, 0.0f);
+        table.add(previousButton).pad(0.0f, 5.0f, 0.0f, 0.0f);
         table.add();
-        table.add(nextButton).pad(0.0f,5.0f,0.0f,0.0f);
+        table.add(nextButton).pad(0.0f, 5.0f, 0.0f, 0.0f);
         table.add();
-        table.add(mapLabel).pad(0.0f,5.0f,0.0f,0.0f);
+        table.add(mapLabel).pad(0.0f, 5.0f, 0.0f, 0.0f);
         stage.addActor(table);
     }
 
@@ -84,6 +82,8 @@ public class GameUI {
 
     public void dispose() {
         stage.dispose();
+        atlas.dispose();
+        skin.dispose();
     }
 
     public void resize(int width, int height) {

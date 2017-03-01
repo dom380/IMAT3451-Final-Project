@@ -99,7 +99,7 @@ public class MainMenuScreen implements Screen {
                 int noiseWidth = noiseWidthField.getText().isEmpty() ? 1 : Integer.parseInt(noiseWidthField.getText());
                 int noiseHeight = noiseHeightField.getText().isEmpty() ? 1 : Integer.parseInt(noiseHeightField.getText());
                 boolean debugEnabled = debugButton.isChecked();
-                ((Game) Gdx.app.getApplicationListener()).setScreen(new LevelGenScreen(game, noiseWidth, noiseHeight, diff, debugEnabled));
+                ((Game) Gdx.app.getApplicationListener()).setScreen(new LoadingScreen(game, noiseWidth, noiseHeight, diff, debugEnabled));
 
             }
         });

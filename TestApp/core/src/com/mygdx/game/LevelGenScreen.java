@@ -8,10 +8,12 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
+import com.google.common.base.Stopwatch;
 import com.mygdx.game.WeatherAPI.WeatherClient;
 import com.mygdx.game.WeatherAPI.WeatherResponse;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import dmu.project.levelgen.Constraints;
 import dmu.project.levelgen.GAPopulationGen;
@@ -39,6 +41,7 @@ public class LevelGenScreen implements Screen {
     private List<MapCandidate> mapCandidates;
     private HeightMap heightMap;
     private WeatherResponse weather = null;
+    private InputMultiplexer inputMultiplexer = new InputMultiplexer();
 
     public LevelGenScreen(MyGdxGame game) {
         this(game, 1, 1, 5, false);
@@ -50,7 +53,6 @@ public class LevelGenScreen implements Screen {
         this.noiseHeight = noiseHeight;
         this.difficulty = difficulty;
         this.debugEnabled = debugEnabled;
-        ui = new GameUI(game, this);
         camera = new OrthographicCamera();
         camera.viewportWidth = Gdx.graphics.getWidth();
         camera.viewportHeight = Gdx.graphics.getHeight();
@@ -80,19 +82,17 @@ public class LevelGenScreen implements Screen {
         GAPopulationGen populationGen = new GAPopulationGen(constraints);
         mapCandidates = populationGen.populate();
         WeatherClient weatherClient = new WeatherClient(game.apiUrl, game.apiKey);//Todo find a better way of getting this string from android resources
-
+        Stopwatch timer = Stopwatch.createStarted();
         double[] latLong = game.getLocationService().getLatLong();
         if (latLong != null)
             weather = weatherClient.getWeather(latLong[0], latLong[1]);
         heightMap = populationGen.getHeightMap();
         map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, mapCandidates.get(0).tileSet, weather);
-        renderer = new OrthogonalTiledMapRenderer(this.map.tiledMap);
-        renderer.setView(camera);
         CameraController2D cameraInputController = new CameraController2D(camera, Math.min(scaleX, scaleY), scaleX, scaleY);
-        InputMultiplexer inputMultiplexer = new InputMultiplexer();
         inputMultiplexer.addProcessor(new GestureDetector(cameraInputController));
-        inputMultiplexer.addProcessor(ui.getStage());
         Gdx.input.setInputProcessor(inputMultiplexer);
+        timer.elapsed(TimeUnit.MILLISECONDS);
+        timer.stop();
         return true;
     }
 
@@ -104,12 +104,14 @@ public class LevelGenScreen implements Screen {
 
     @Override
     public void show() {
-
+        ui = new GameUI(game, this);
+        inputMultiplexer.addProcessor(ui.getStage());
+        switchMap(mapCandidates.get(0).tileSet);
     }
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(100f / 255f, 100f / 255f, 250f / 255f, 1f);
+        Gdx.gl.glClearColor(0.4f, 0.4f, 0.98f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         //viewport.apply();
         camera.update();

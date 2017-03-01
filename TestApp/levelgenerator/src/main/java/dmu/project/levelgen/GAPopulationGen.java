@@ -98,7 +98,7 @@ public class GAPopulationGen implements PopulationGenerator {
                 reachedMaxFit = true;
                 break;
             }
-            if(timer.elapsed(TimeUnit.SECONDS) > 30){ //We've been running too long, give up. //TODO make configurable?
+            if(timer.elapsed(TimeUnit.SECONDS) > 25){ //We've been running too long, give up. //TODO make configurable?
                 reachedMaxFit = false;
                 break;
             }
