@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.maps.MapObjects;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
@@ -94,7 +95,6 @@ public class MapBuilder {
                 layer.setCell(x, y, cell);
             }
         }
-
         map.tiledMap.getLayers().add(layer);
         map.tiledMap.getLayers().add(spriteLayer);
         return map;

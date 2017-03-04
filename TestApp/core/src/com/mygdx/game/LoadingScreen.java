@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -32,6 +33,10 @@ public class LoadingScreen implements Screen {
     private float deltaTime = 0.0f;
     private Animation anim;
     private TextureAtlas textureAtlas;
+    private TextureAtlas uiAtlas;
+    private Skin skin;
+    private Stage stage;
+
     AsyncExecutor asyncExecutor = new AsyncExecutor(10);
 
     AsyncResult<LevelGenScreen> task;
@@ -42,13 +47,28 @@ public class LoadingScreen implements Screen {
 
     public LoadingScreen(final MyGdxGame game, final int noiseWidth, final int noiseHeight, final int difficulty, final boolean debugEnabled) {
         this.game = game;
+        batch = game.batch;
         camera = new OrthographicCamera();
         viewport = new StretchViewport(800, 480, camera);
         viewport.apply();
-        batch = game.batch;
         textureAtlas = new TextureAtlas(Gdx.files.internal("sprites/loadingRing.atlas"));
+        uiAtlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
+        skin = new Skin(Gdx.files.internal("sprites/uiskin.json"), uiAtlas);
+
         anim = new Animation(0.06f, textureAtlas.getRegions());
         anim.setPlayMode(PlayMode.LOOP);
+
+        Label label = new Label("Generating level...", skin);
+        Table table = new Table();
+        table.setFillParent(true);
+        table.center();
+        table.padBottom(50.0f);
+        table.add(label).padBottom(50.0f);
+        table.row();
+        table.add(new AnimActor(anim, true)).padTop(50.0f);
+        stage = new Stage(viewport, batch);
+        stage.addActor(table);
+
         task = asyncExecutor.submit(new AsyncTask<LevelGenScreen>() {
             public LevelGenScreen call() {
                 return asyncMethod(game, noiseWidth, noiseHeight, difficulty, debugEnabled);
@@ -58,6 +78,7 @@ public class LoadingScreen implements Screen {
 
     @Override
     public void show() {
+
     }
 
     @Override
@@ -65,12 +86,9 @@ public class LoadingScreen implements Screen {
         Gdx.gl.glClearColor(.1f, .12f, .16f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         if (!task.isDone()) {
-            deltaTime += delta;
-            TextureRegion keyFrame = anim.getKeyFrame(deltaTime);
-            batch.begin();
-            batch.setProjectionMatrix(viewport.getCamera().combined);
-            batch.draw(keyFrame, -keyFrame.getRegionWidth()/2, -keyFrame.getRegionHeight()/2);
-            batch.end();
+
+            stage.act(delta);
+            stage.draw();
         } else {
             game.switchScreen(task.get());
         }
@@ -99,5 +117,7 @@ public class LoadingScreen implements Screen {
     @Override
     public void dispose() {
         textureAtlas.dispose();
+        uiAtlas.dispose();
+        stage.dispose();
     }
 }

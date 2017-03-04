@@ -6,7 +6,6 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.input.GestureDetector;
-import com.badlogic.gdx.maps.tiled.TiledMapRenderer;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.utils.ObjectMap;
 import com.google.common.base.Stopwatch;
@@ -34,15 +33,17 @@ public class LevelGenScreen implements Screen {
     private final MyGdxGame game;
     private OrthographicCamera camera;
     private MapBuilder.Map map;
-    private TiledMapRenderer renderer;
+    private OrthogonalTiledMapRenderer renderer = null;
     private int noiseWidth, noiseHeight, difficulty, tileWidth = 16, tileHeight = 16;
     private final static long debugSeed = -2656433763347937011L;
     private boolean debugEnabled;
-    private GameUI ui;
+    private LevelSelectUI ui;
     private List<MapCandidate> mapCandidates;
     private HeightMap heightMap;
     private WeatherResponse weather = null;
     private InputMultiplexer inputMultiplexer = new InputMultiplexer();
+    private Player player;
+    private Controller controller;
 
     public LevelGenScreen(MyGdxGame game, int noiseWidth, int noiseHeight, int difficulty, boolean debugEnabled) {
         this.game = game;
@@ -104,15 +105,21 @@ public class LevelGenScreen implements Screen {
 
     void switchMap(List<Tile> tileList) {
         map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, tileList, weather);
-        renderer = new OrthogonalTiledMapRenderer(this.map.tiledMap); //Can't find a better way of changing the map
+        if (renderer != null)
+            renderer.setMap(map.tiledMap);
+        else
+            renderer = new OrthogonalTiledMapRenderer(this.map.tiledMap, game.batch);
         renderer.setView(camera);
     }
 
     @Override
     public void show() {
-        ui = new GameUI(game, this);
+        ui = new LevelSelectUI(game, this);
         inputMultiplexer.addProcessor(ui.getStage());
         switchMap(mapCandidates.get(0).tileSet);
+        player = new Player(game.batch, heightMap.grid);
+        controller = new Controller(game.batch, player);
+        inputMultiplexer.addProcessor(controller.getStage());
     }
 
     @Override
@@ -123,6 +130,9 @@ public class LevelGenScreen implements Screen {
         camera.update();
         renderer.setView(camera);
         renderer.render();
+        controller.draw(delta);
+        player.update(delta);
+        player.render(delta, camera);
         if (map.particleEffect != null) {
             map.particleEffect.update(delta);
             game.batch.setProjectionMatrix(camera.combined);
@@ -139,6 +149,7 @@ public class LevelGenScreen implements Screen {
         camera.viewportHeight = height;
         camera.update();
         ui.resize(width, height);
+        controller.resize(width, height);
     }
 
     @Override
@@ -160,6 +171,7 @@ public class LevelGenScreen implements Screen {
     public void dispose() {
         map.dispose();
         ui.dispose();
+        player.dispose();
     }
 
     public List<MapCandidate> getMapCandidates() {

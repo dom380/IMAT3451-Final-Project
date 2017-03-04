@@ -2,6 +2,7 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -10,7 +11,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -18,7 +21,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
  * Created by Dom on 27/02/2017.
  */
 
-public class GameUI {
+public class LevelSelectUI {
     private OrthographicCamera camera;
     private Stage stage;
     private Viewport viewport;
@@ -27,7 +30,8 @@ public class GameUI {
     private SpriteBatch batch;
     private int currentIndx = 0;
 
-    public GameUI(final MyGdxGame game, final LevelGenScreen screen) {
+
+    public LevelSelectUI(final MyGdxGame game, final LevelGenScreen screen) {
         camera = new OrthographicCamera();
         atlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
         skin = new Skin(Gdx.files.internal("sprites/uiskin.json"), atlas);
@@ -40,6 +44,7 @@ public class GameUI {
         table.setFillParent(true);
         table.left().bottom();
         table.pad(0.0f, 0.0f, 5.0f, 0.0f);
+
         final Label mapLabel = new Label("Map 1/10", skin);
         TextButton previousButton = new TextButton("Previous Map", skin);
         previousButton.addListener(new ClickListener() {

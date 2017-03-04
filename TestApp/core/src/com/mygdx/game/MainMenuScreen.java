@@ -47,7 +47,6 @@ public class MainMenuScreen implements Screen {
         viewport.apply();
         camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
         camera.update();
-
         stage = new Stage(viewport, game.batch);
 
         //Stage should controll input:
@@ -116,7 +115,6 @@ public class MainMenuScreen implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(.1f, .12f, .16f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
 
         stage.act();
         stage.draw();
