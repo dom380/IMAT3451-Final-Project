@@ -1,17 +1,22 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -26,7 +31,7 @@ public class Controller {
     private TextureAtlas atlas;
     private Skin skin;
     private SpriteBatch batch;
-    private Skin touchpadSkin;
+    private Skin touchpadSkin, buttonSkin;
     private Player player;
 
     public Controller(SpriteBatch batch, final Player player) {
@@ -51,9 +56,9 @@ public class Controller {
         touchpadStyle.background.setMinHeight(50);
         touchpadStyle.background.setMinWidth(50);
         touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
-        touchpadStyle.knob.setMinHeight(35);
-        touchpadStyle.knob.setMinWidth(35);
-        Touchpad touchpad = new Touchpad(10, touchpadStyle);
+        touchpadStyle.knob.setMinHeight(40);
+        touchpadStyle.knob.setMinWidth(40);
+        Touchpad touchpad = new Touchpad(5, touchpadStyle);
         touchpad.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -79,11 +84,47 @@ public class Controller {
                     dy = -1.0f;
                     dx = 0.0f;
                 }
-
+                //todo fix this
+//                if((dx < 0.5 && dy < 0.5) && ( dx > -0.5 && dy > -0.5)){ //If Inbetween -0.5 and 0.5, just change direction, don't move.
+//                    player.setDirection(new Vector2(dx,dy));
+//                    return;
+//                }
                 player.setMoving(new Vector2(dx, dy));
             }
         });
         table.add(touchpad).width(75).height(75).pad(0.0f, 0.0f, 5.0f, 0.0f).fill();
+        table.add();
+
+        buttonSkin = new Skin();
+        buttonSkin.add("AButton", new Texture(Gdx.files.internal("controller/AButton.png")));
+        buttonSkin.add("AButton_Pressed", new Texture(Gdx.files.internal("controller/AButton_Pressed.png")));
+        buttonSkin.add("BButton", new Texture(Gdx.files.internal("controller/BButton.png")));
+        buttonSkin.add("BButton_Pressed", new Texture(Gdx.files.internal("controller/BButton_Pressed.png")));
+
+        Button.ButtonStyle AButtonStyle = new Button.ButtonStyle();
+        AButtonStyle.up = buttonSkin.getDrawable("AButton");
+        AButtonStyle.down = buttonSkin.getDrawable("AButton_Pressed");
+        Button aButton = new Button(AButtonStyle);
+        aButton.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                player.attack();
+            }
+        });
+        table.add(aButton).right();
+
+        Button.ButtonStyle BButtonStyle = new Button.ButtonStyle();
+        BButtonStyle.up = buttonSkin.getDrawable("BButton");
+        BButtonStyle.down = buttonSkin.getDrawable("BButton_Pressed");
+        Button bButton = new Button(BButtonStyle);
+        bButton.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                player.interact();
+            }
+        });
+        table.add(bButton).right();
+
         stage.addActor(table);
     }
 
@@ -98,6 +139,7 @@ public class Controller {
         skin.dispose();
         touchpadSkin.dispose();
     }
+
 
     public void resize(int width, int height) {
         viewport.update(width, height);

@@ -109,6 +109,8 @@ public class LevelGenScreen implements Screen {
             renderer.setMap(map.tiledMap);
         else
             renderer = new OrthogonalTiledMapRenderer(this.map.tiledMap, game.batch);
+        if(player!=null)
+            player.setTileList(tileList);
         renderer.setView(camera);
     }
 
@@ -117,7 +119,7 @@ public class LevelGenScreen implements Screen {
         ui = new LevelSelectUI(game, this);
         inputMultiplexer.addProcessor(ui.getStage());
         switchMap(mapCandidates.get(0).tileSet);
-        player = new Player(game.batch, heightMap.grid);
+        player = new Player(game.batch, heightMap.grid, mapCandidates.get(0).tileSet);
         controller = new Controller(game.batch, player);
         inputMultiplexer.addProcessor(controller.getStage());
     }
