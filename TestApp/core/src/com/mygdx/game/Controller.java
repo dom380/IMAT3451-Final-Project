@@ -24,7 +24,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
  * Created by Dom on 03/03/2017.
  */
 
-public class Controller {
+public class Controller extends InputAdapter {
     private OrthographicCamera camera;
     private Stage stage;
     private Viewport viewport;
@@ -45,7 +45,7 @@ public class Controller {
         stage = new Stage(viewport, batch);
         Table table = new Table();
         table.setFillParent(true);
-        table.left().center();
+        table.bottom();
         table.pad(0.0f, 0.0f, 5.0f, 0.0f);
 
         touchpadSkin = new Skin();
@@ -84,16 +84,10 @@ public class Controller {
                     dy = -1.0f;
                     dx = 0.0f;
                 }
-                //todo fix this
-//                if((dx < 0.5 && dy < 0.5) && ( dx > -0.5 && dy > -0.5)){ //If Inbetween -0.5 and 0.5, just change direction, don't move.
-//                    player.setDirection(new Vector2(dx,dy));
-//                    return;
-//                }
                 player.setMoving(new Vector2(dx, dy));
             }
         });
-        table.add(touchpad).width(75).height(75).pad(0.0f, 0.0f, 5.0f, 0.0f).fill();
-        table.add();
+        table.add(touchpad).width(75).height(75).pad(0.0f, 10.0f, 5.0f, 0.0f).fill().left().expandX();
 
         buttonSkin = new Skin();
         buttonSkin.add("AButton", new Texture(Gdx.files.internal("controller/AButton.png")));
@@ -123,7 +117,7 @@ public class Controller {
                 player.interact();
             }
         });
-        table.add(bButton).right();
+        table.add(bButton).right().padRight(10.0f).padLeft(10.0f);
 
         stage.addActor(table);
     }
@@ -149,4 +143,43 @@ public class Controller {
         return stage;
     }
 
+
+    @Override
+    public boolean keyDown(int keycode) {
+        switch (keycode){
+            case Input.Keys.UP:
+                player.setMoving(new Vector2(0, 1));
+                return true;
+            case Input.Keys.LEFT:
+                player.setMoving(new Vector2(-1, 0));
+                return true;
+            case Input.Keys.DOWN:
+                player.setMoving(new Vector2(0, -1));
+                return true;
+            case Input.Keys.RIGHT:
+                player.setMoving(new Vector2(1, 0));
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        switch (keycode){
+            case Input.Keys.UP:
+            case Input.Keys.LEFT:
+            case Input.Keys.DOWN:
+            case Input.Keys.RIGHT:
+                player.setMoving(null);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public boolean keyTyped(char character) {
+        return super.keyTyped(character);
+    }
 }

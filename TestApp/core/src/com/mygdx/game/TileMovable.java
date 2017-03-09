@@ -6,10 +6,14 @@ import com.badlogic.gdx.math.Vector2;
  * Created by Dom on 04/03/2017.
  */
 
-public abstract class Movable {
-    protected Vector2 position, velocity, last;
+public abstract class TileMovable {
 
-    public Movable(Vector2 position, Vector2 velocity) {
+    protected Vector2 position, velocity, last, direction;
+    protected static float TILE_WIDTH = 16.0f;
+    protected static float TILE_HEIGHT = 16.0f;
+    protected GridMovement gridMovement;
+
+    public TileMovable(Vector2 position, Vector2 velocity) {
         this.position = position;
         this.velocity = velocity;
         this.last = position.cpy();
@@ -36,4 +40,6 @@ public abstract class Movable {
     public void setVelocity(Vector2 velocity) {
         this.velocity = velocity;
     }
+
+
 }

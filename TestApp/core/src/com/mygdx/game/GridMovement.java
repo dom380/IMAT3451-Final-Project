@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
 import dmu.project.utils.Grid;
@@ -11,13 +12,13 @@ import dmu.project.utils.Grid;
 public class GridMovement {
 
     private Vector2 direction, lastMove, destination, lastTile, speed;
-    private Movable entity;
+    private TileMovable entity;
     private Grid grid;
     private static final float TILE_WIDTH = 16;
     private static final float TILE_HEIGHT = 16;
 
-    public GridMovement(Movable movable, Grid grid) {
-        entity = movable;
+    public GridMovement(TileMovable tileMovable, Grid grid) {
+        entity = tileMovable;
         this.grid = grid;
     }
 
@@ -46,7 +47,6 @@ public class GridMovement {
         else if (!isMoving() && direction != null && (canMoveDirectionFromCurrentTile(direction))) {
             startMoving(direction);
         }
-
         lastTile = destination;
         lastMove = direction;
     }
@@ -129,9 +129,8 @@ public class GridMovement {
         direction = null;
     }
 
-    private void snapToTile(int x, int y) {
-        entity.position.x = x * TILE_WIDTH;
-        entity.position.y = y * TILE_HEIGHT;
+    protected void snapToTile(int x, int y) {
+        entity.position.set(x * TILE_WIDTH, y * TILE_HEIGHT);
     }
 
     private boolean justReachedDestination() {
@@ -178,4 +177,15 @@ public class GridMovement {
             entity.velocity.y = speed.y;
     }
 
+    public Grid getGrid() {
+        return grid;
+    }
+
+    public Vector2 getDestination() {
+        return destination;
+    }
+
+    public void setDestination(Vector2 destination) {
+        this.destination = destination;
+    }
 }

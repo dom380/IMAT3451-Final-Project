@@ -91,16 +91,6 @@ public class PerlinLevelGen implements LevelGenerator {
                 }
             }
         }
-//        double maxElevation = 0, minElevation = 0;
-//        for (int y = 0; y < height; ++y) {
-//            for (int x = 0; x < width; ++x) {
-//                double noiseVal = noise[(x*noiseWidth/width)][(y*noiseHeight/height)];
-//                if(noiseVal > maxElevation) maxElevation = noiseVal;
-//                if(noiseVal < minElevation) minElevation = noiseVal;
-//                elevation[x][y] = noiseVal;
-//            }
-//        }
-
         heightMap.elevation = noise;
         return heightMap;
     }

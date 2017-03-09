@@ -72,12 +72,22 @@ public class LevelSelectUI {
                 game.returnToMenu();
             }
         });
+
+        TextButton playButton = new TextButton("Play", skin);
+        playButton.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                screen.playMap(screen.getMapCandidates().get(currentIndx).tileSet);
+            }
+        });
         table.add(menuButton).pad(0.0f, 5.0f, 0.0f, 0.0f);
         table.add(previousButton).pad(0.0f, 5.0f, 0.0f, 0.0f);
         table.add();
         table.add(nextButton).pad(0.0f, 5.0f, 0.0f, 0.0f);
         table.add();
         table.add(mapLabel).pad(0.0f, 5.0f, 0.0f, 0.0f);
+        table.add();
+        table.add(playButton).right().padRight(25.0f).padLeft(25.0f).expandX();
         stage.addActor(table);
     }
 
