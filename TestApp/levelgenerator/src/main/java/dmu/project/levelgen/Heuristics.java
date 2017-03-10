@@ -23,6 +23,7 @@ public class Heuristics {
         return (dX < dY) ? F * dX + dY : F * dY + dX;
 
     }
+
     /**
      * Calculate the Diagonal  Distance between two positions.
      *
@@ -40,6 +41,13 @@ public class Heuristics {
     public static double manhatDist(Vector2D pos1, Vector2D pos2) {
         double dX = Math.abs(pos1.getX() - pos2.getX());
         double dY = Math.abs(pos1.getY() - pos2.getY());
+        return (dX + dY);
+    }
+
+
+    public static double manhatDist(double x1, double y1, double x2, double y2) {
+        double dX = Math.abs(x1 - x2);
+        double dY = Math.abs(y1 - y2);
         return (dX + dY);
     }
 

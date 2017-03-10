@@ -51,8 +51,10 @@ public class Grid {
         }
     }
 
-
-    public List<Vector2D> getNeighbours(Node node) {
+    public List<Vector2D> getNeighbours(Node node){
+        return getNeighbours(node, moveDiag);
+    }
+    public List<Vector2D> getNeighbours(Node node, boolean moveDiag) {
         List<Vector2D> neighbours = new ArrayList<>();
         if (moveDiag) {
             for (Vector2D dir : eightDir) {

@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import dmu.project.utils.Grid;
 import dmu.project.utils.LIFOEntry;
 import dmu.project.utils.Node;
+import dmu.project.utils.PathFinder;
 import dmu.project.utils.Vector2D;
 
 /**
@@ -97,7 +98,7 @@ public class GAPopulationGen implements PopulationGenerator {
                 reachedMaxFit = true;
                 break;
             }
-            if(timer.elapsed(TimeUnit.SECONDS) > 25){ //We've been running too long, give up. //TODO make configurable?
+            if (timer.elapsed(TimeUnit.SECONDS) > 25) { //We've been running too long, give up. //TODO make configurable?
                 reachedMaxFit = false;
                 break;
             }
@@ -178,11 +179,6 @@ public class GAPopulationGen implements PopulationGenerator {
                         break;
                 }
             }
-            /*TODO - New fitness test! NEED TUNING
-            * Check num of enemies near start pos - Too many too close lower fitness
-            * Check dist to objectives - too close lower, too far low? (maybe depend of difficulty?)
-            * maybe enemy placement?
-            */
             if (!hasStart) { //If we don't have a start position (which shouldn't happen) get rid of this candidate.
                 map.fitness = 0.0f;
                 numOfMaps--;
@@ -344,7 +340,6 @@ public class GAPopulationGen implements PopulationGenerator {
     }
 
     private PathFitness testPathFitness(int[] startPos, List<Tile> objectiveBucket, List<Tile> obstacleBucket) {
-        List<Node> cleaningList = new ArrayList<>();
         List<Node> obstacles = new ArrayList<>();
         Node startNode = heightMap.grid.getNode(startPos[0], startPos[1]);
         float fitness = 0.0f;
@@ -368,11 +363,10 @@ public class GAPopulationGen implements PopulationGenerator {
             if (Heuristics.diagonalDist(objective.position, startPos) < 20 || Heuristics.diagonalDist(objective.position, startPos) > 300) { //TODO tune this because it's probs garbage
                 fitness -= 0.075f;
             }
-            if (!checkPath(startPos, objective.position, heightMap.grid, cleaningList)) {
+            if (!PathFinder.checkPathExists(startPos, objective.position, heightMap.grid)) {
                 goodPaths = false;
                 break;
             }
-            clearNodes(cleaningList); //Reset node visited in search and empty the list.
             for (int j = i + 1; j < listSize; ++j) { //Now check how close the objects are to each other.
                 if (Heuristics.diagonalDist(objective.position, objectiveBucket.get(j).position) < 15) {
                     fitness -= 0.05f;
@@ -380,189 +374,10 @@ public class GAPopulationGen implements PopulationGenerator {
             }
 
         }
-        clearNodes(cleaningList);
-        clearNodes(obstacles);
+        PathFinder.clearNodes(obstacles);
         return new PathFitness(goodPaths, fitness);
     }
 
-    private boolean checkPath(int[] start, int[] goal, Grid grid, List<Node> cleaningList) {
-        boolean goodPath = false;
-        LIFOEntry.resetCount();
-//        final Map<Vector2D, Vector2D> cameFrom = new HashMap<>();
-        final Queue<LIFOEntry<Node>> frontier = new PriorityQueue<>();
-        Node startNode = grid.getNode(start[0], start[1]);
-        Node goalNode = grid.getNode(goal[0], goal[1]);
-        final Set<Node> closedSet = new HashSet<>();
-        Stopwatch stopwatch = Stopwatch.createStarted();
-        //A* Search
-//        frontier.add(new LIFOEntry<Node>(startNode));
-//        startNode.fScore = diagonalDist(start, goal);
-//        while (!frontier.isEmpty()) {
-//            LIFOEntry entry = frontier.poll();
-//            Node current = (Node) entry.getEntry();
-//            if (current.position.equals(goalNode.position)) {
-//                goodPath = true;
-//                break;
-//            }
-//            closedSet.add(current);
-//            List<Vector2D> neighbours = grid.getNeighbours(current, tileSet);
-//            for (Vector2D neighbourPos : neighbours) {
-//                Node neighbour = grid.getNode(neighbourPos.getX().intValue(),neighbourPos.getY().intValue());
-//                if (closedSet.contains(neighbour)) {
-//                    continue;
-//                }
-//                double gScore = current.gScore != -1 ? (current.gScore + realDist(current.position, neighbour.position)) : (realDist(current.position, neighbour.position));
-//                if (gScore >= neighbour.gScore && neighbour.gScore != -1)
-//                    continue; //This isn't a better path than one found before.
-//                neighbour.updateScore(gScore, diagonalDist(neighbour.position, goalNode.position), current);
-//                if (!frontier.contains(neighbour)) {
-//                    frontier.add(new LIFOEntry<Node>(neighbour));
-//                }
-//                //cameFrom.put(neighbour.position, current.position);
-//
-//            }
-//            if (frontier.isEmpty()) {
-//                goodPath = false;
-//                break; //No path found
-//            }
-//        }
-//        long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
-//        stopwatch.stop();
-//        goodPath = false;
-//        LIFOEntry.resetCount();
-//        closedSet.clear();
-//        frontier.clear();
-//        grid.reset();
-//        stopwatch.reset();
-        //stopwatch.start();
-        frontier.add(new LIFOEntry<Node>(startNode));
-        cleaningList.add(startNode);
-        boolean moveDiag = grid.isMoveDiag();
-        //JPS
-        while (!frontier.isEmpty()) {
-            LIFOEntry<Node> entry = frontier.poll();
-            Node current = entry.getEntry();
-            if (current.position.equals(goalNode.position)) {
-                stopwatch.stop();
-                goodPath = true;
-                break;
-            }
-            closedSet.add(current);
-            List<Vector2D> neighbours = grid.getNeighboursPrune(current);
-            for (Vector2D neighbourPos : neighbours) {
-                Node jumpNode = jump(grid, neighbourPos, current, goalNode, moveDiag);
-                if (jumpNode != null && !closedSet.contains(jumpNode)) {
-                    Node neighbour = grid.getNode(neighbourPos.getX().intValue(), neighbourPos.getY().intValue());
-                    double gScore = current.gScore != -1 ? (current.gScore + Heuristics.realDist(current.position, neighbour.position)) : (Heuristics.realDist(current.position, neighbour.position));
-                    if (gScore >= neighbour.gScore && neighbour.gScore != -1)
-                        continue; //This isn't a better path than on found before.
-                    cleaningList.add(jumpNode);
-                    if (moveDiag) {
-                        jumpNode.updateScore(gScore, Heuristics.diagonalDist(jumpNode.position, goalNode.position), null);
-                    } else {
-                        jumpNode.updateScore(gScore, Heuristics.manhatDist(jumpNode.position, goalNode.position), current);
-                    }
-                    LIFOEntry<Node> jumpEntry = new LIFOEntry<Node>(jumpNode);
-                    if (!frontier.contains(jumpEntry))
-                        frontier.add(jumpEntry);
-//                    cameFrom.put(jumpNode.position, current.position);
-                }
-            }
-        }
-//        //BFS of map to check if path exists between two points.
-//        while (!frontier.isEmpty()) {
-//            LIFOEntry entry = frontier.poll();
-//            Node current = (Node) entry.getEntry();
-//            if (current.position.equals(goalNode.position)) {
-//                goodPath = true;
-//                break;
-//            }
-//
-//            List<Node> neighbours = grid.getNeighbours(current, tileSet);
-//            for (Node neighbour : neighbours) {
-//                if (!cameFrom.containsKey(neighbour.position)) {
-//                    frontier.add(new LIFOEntry<Node>(neighbour));
-//                    cameFrom.put(neighbour.position, current.position);
-//                }
-//            }
-//        }
-        if (stopwatch.isRunning()) {
-            long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
-            stopwatch.stop();
-        }
-        return goodPath;
-    }
-
-    private Node jump(Grid grid, Vector2D nodePos, Node parent, Node goal, boolean moveDiag) {
-        int x = nodePos.getX().intValue(), y = nodePos.getY().intValue();
-        if (!grid.walkable(x, y)) { //If space isn't walkable return null
-            return null;
-        }
-        Node node = grid.getNode(x, y);
-        node.parent = parent;
-        if (node.position.equals(goal.position)) { //If end point, return it. Search over.
-            return node;
-        }
-        //get the normalized direction of travel
-        int px = parent.position.getX().intValue(), py = parent.position.getY().intValue();
-        int dx = (x - px) / Math.max(Math.abs(x - px), 1);
-        int dy = (y - py) / Math.max(Math.abs(y - py), 1);
-
-        if (dx != 0 && dy != 0) { //If x and y have changed we're moving diagonally. Check for forced neighbours
-            if ((grid.walkable(x - dx, y + dy) && !grid.walkable(x - dx, y)) || //we are moving diagonally, don't check the parent, or our next diagonal step, but the other diagonals
-                    (grid.walkable(x + dx, y - dy) && !grid.walkable(x, y - dy))) {  //if we find a forced neighbor here, we are on a jump point, and we return the current position
-                return node;
-            }
-            //Moving diagonally so have to check for vertical and horizontal jump points
-            if (jump(grid, new Vector2D(x + dx, y), node, goal, moveDiag) != null || jump(grid, new Vector2D(x, y + dy), node, goal, moveDiag) != null) {
-                return node;
-            }
-        } else { //Check horizontal and vertical
-            if (dx != 0) { //Moving in X
-                if (moveDiag) { //And we allow diagonal movement
-                    if ((grid.walkable(x + dx, y + 1) && !grid.walkable(x, y + 1)) || //check the diagonal nodes for forced neighbours
-                            (grid.walkable(x + dx, y - 1) && !grid.walkable(x, y - 1))) {
-                        return node;
-                    }
-                } else { //Diagonal moves not allowed.
-                    if (grid.walkable(x + 1, y) || grid.walkable(x - 1, y)) { // if left or right free
-                        return node;                                                            // return node as we're on a jump point
-                    }
-                }
-            } else { //Moving in Y
-                if (moveDiag) { //If diagonal movement allowed.
-                    if ((grid.walkable(x + 1, y + dy) && !grid.walkable(x + 1, y)) ||
-                            (grid.walkable(x - 1, y + dy) && !grid.walkable(x - 1, y))) {
-                        return node;
-                    }
-                } else {
-                    if (grid.walkable(x, y + 1) || grid.walkable(x, y - 1)) {
-                        return node;
-                    }
-                }
-            }
-        }
-        if (moveDiag) {
-            if (grid.walkable(x + dx, y) || grid.walkable(x, y + dy)) {
-                return jump(grid, new Vector2D(x + dx, y + dy), node, goal, true); //Haven't found a forced neighbour or goal yet, jump to next diagonal in current direction.
-            } else { //Blocked from going diagonally
-                return null;
-            }
-        }
-        return null;//Couldn't jump anywhere.
-    }
-
-    void clearNodes(List<Node> nodes) {
-        if (nodes.isEmpty()) return;
-        for (Node node : nodes) {
-            node.fScore = -1;
-            node.gScore = -1;
-            node.hScore = -1;
-            node.parent = null;
-            node.walkable = true;
-        }
-        nodes.clear();
-    }
 
     /**
      * Utility class to randomly select an Enum value.

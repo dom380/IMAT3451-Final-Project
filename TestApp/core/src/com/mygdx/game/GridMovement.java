@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
@@ -23,28 +24,29 @@ public class GridMovement {
     }
 
     public void update(float delta) {
+        boolean isMoving = isMoving(), reachedDest = justReachedDestination();
         // Stop if at destination
-        if (isMoving() && justReachedDestination() && direction == null) {
+        if (isMoving && reachedDest && direction == null) {
             stopMoving();
         }
         // Stop moving on collision
-        else if (isMoving() && justReachedDestination() && direction != null && !canMoveDirectionFromTile(destination.x, destination.y, direction)) {
+        else if (isMoving && reachedDest && direction != null && !canMoveDirectionFromTile(destination.x, destination.y, direction)) {
             stopMoving();
         }
         // Dest reached, but control still pressed so continue
-        else if (isMoving() && justReachedDestination() && direction != null && (canMoveDirectionFromTile(destination.x, destination.y, direction)) && direction == lastMove) {
+        else if (isMoving && reachedDest && direction != null && (canMoveDirectionFromTile(destination.x, destination.y, direction)) && direction.epsilonEquals(lastMove, 0.001f)) {
             continueMovingFromDestination();
         }
         // Dest reached but changing direction
-        else if (isMoving() && justReachedDestination() && direction != null && (canMoveDirectionFromTile(destination.x, destination.y, direction)) && direction != lastMove) {
+        else if (isMoving  && direction != null && (canMoveDirectionFromTile(destination.x, destination.y, direction)) && !direction.epsilonEquals(lastMove, 0.001f)) {
             changeDirectionAndContinueMoving(direction);
         }
         // Dest not reached, continue
-        else if (isMoving() && !justReachedDestination()) {
+        else if (isMoving && !reachedDest) {
             continueMovingToDestination();
         }
         // Not moving, start moving
-        else if (!isMoving() && direction != null && (canMoveDirectionFromCurrentTile(direction))) {
+        else if (!isMoving && direction != null && (canMoveDirectionFromCurrentTile(direction))) {
             startMoving(direction);
         }
         lastTile = destination;
@@ -73,7 +75,7 @@ public class GridMovement {
     }
 
     void setDirection(Vector2 direction) {
-        this.direction = direction;
+        this.direction = direction != null ? direction.cpy() : null;
     }
 
     private Vector2 getCurrentTile() {
@@ -133,7 +135,8 @@ public class GridMovement {
         entity.position.set(x * TILE_WIDTH, y * TILE_HEIGHT);
     }
 
-    private boolean justReachedDestination() {
+    protected boolean justReachedDestination() {
+        if (destination == null) return false;
         float destinationX = destination.x * TILE_WIDTH;
         float destinationY = destination.y * TILE_HEIGHT;
         return (entity.position.x >= destinationX && entity.last.x < destinationX) ||

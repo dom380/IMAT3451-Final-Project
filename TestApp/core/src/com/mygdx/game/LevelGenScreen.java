@@ -1,10 +1,8 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.FPSLogger;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -43,7 +41,7 @@ public class LevelGenScreen implements Screen {
     private OrthogonalTiledMapRenderer renderer = null;
     private int noiseWidth, noiseHeight, difficulty, tileWidth = 16, tileHeight = 16;
     private final static long debugSeed = -2656433763347937011L;
-    private boolean debugEnabled, playing = false;
+    private boolean debugEnabled;
     private LevelSelectUI ui;
     private List<MapCandidate> mapCandidates;
     private HeightMap heightMap;
@@ -53,8 +51,10 @@ public class LevelGenScreen implements Screen {
     private Controller controller;
     private GestureDetector mapCameraController;
     private float scaleX, scaleY;
-    private FPSLogger fpsLogger = new FPSLogger();
     private List<Enemy> enemies = new ArrayList<>();
+    private GameState state = GameState.LEVEL_SELECT;
+    private Stopwatch timer;
+    private int mapIndex = 0;
     GameUI gameUI;
 
     public LevelGenScreen(MyGdxGame game, int noiseWidth, int noiseHeight, int difficulty, boolean debugEnabled) {
@@ -66,10 +66,7 @@ public class LevelGenScreen implements Screen {
         width = game.properties.get("constraints.mapWidth") != null ? Integer.parseInt(game.properties.get("constraints.mapWidth")) : 80;
         height = game.properties.get("constraints.mapHeight") != null ? Integer.parseInt(game.properties.get("constraints.mapHeight")) : 50;
         this.camera = new OrthographicCamera();
-        this.camera.viewportWidth = Gdx.graphics.getWidth();
-        this.camera.viewportHeight = Gdx.graphics.getHeight();
-        this.camera.position.set(camera.viewportWidth / 2.f, camera.viewportHeight / 2.f, 0);
-        this.camera.update();
+        resetCamera();
         init();
     }
 
@@ -113,7 +110,10 @@ public class LevelGenScreen implements Screen {
         return constraints;
     }
 
-    void switchMap(List<Tile> tileList) {
+    void switchMap(int index) {
+        if (index > 9) index = 9;
+        List<Tile> tileList = getMapCandidates().get(index).tileSet;
+        mapIndex = index;
         map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, tileList, weather);
         if (renderer != null)
             renderer.setMap(map.tiledMap);
@@ -124,10 +124,24 @@ public class LevelGenScreen implements Screen {
         renderer.setView(camera);
     }
 
-    void playMap(List<Tile> tileList) {
-        playing = true;
+    void switchNextMap() {
+        mapIndex = mapIndex != 9 ? mapIndex + 1 : 0;
+        List<Tile> tileList = getMapCandidates().get(mapIndex).tileSet;
+        map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, tileList, weather);
+        if (renderer != null)
+            renderer.setMap(map.tiledMap);
+        else
+            renderer = new OrthogonalTiledMapRenderer(this.map.tiledMap, game.batch);
+        if (player != null)
+            player.setTileList(tileList);
+        renderer.setView(camera);
+    }
+
+    void playMap() {
+        state = GameState.PLAYING;
         int objectiveCount = 0;
         TextureAtlas enemyAtlas = new TextureAtlas(Gdx.files.internal("sprites/enemy.atlas"));
+        List<Tile> tileList = getMapCandidates().get(mapIndex).tileSet;
         for (Tile tile : tileList) {
             switch (tile.tileState) {
                 case START:
@@ -155,16 +169,17 @@ public class LevelGenScreen implements Screen {
         inputMultiplexer.removeProcessor(mapCameraController);
         inputMultiplexer.addProcessor(controller.getStage());
         inputMultiplexer.addProcessor(controller);
+        if (gameUI != null) inputMultiplexer.removeProcessor(gameUI.getStage());
         camera.zoom = 0.25f;
         player.setMap(map);
-        gameUI = new GameUI(game.batch, objectiveCount, player.getHP());
+        gameUI = new GameUI(game, this, game.batch, objectiveCount, player.getHP());
     }
 
     @Override
     public void show() {
         ui = new LevelSelectUI(game, this);
         inputMultiplexer.addProcessor(ui.getStage());
-        switchMap(mapCandidates.get(0).tileSet);
+        switchMap(mapIndex);
         player = new Player(this, game.batch, heightMap.grid, mapCandidates.get(0).tileSet, map, 10);
         controller = new Controller(game.batch, player);
     }
@@ -176,23 +191,6 @@ public class LevelGenScreen implements Screen {
         camera.update();
         renderer.setView(camera);
         renderer.render();
-        if (playing) {
-            camera.position.set(player.position.x, player.position.y, 0);
-            fixCamBounds();
-            player.update(delta, enemies);
-            player.render(delta, camera);
-            Iterator<Enemy> enemyIterator = enemies.iterator();
-            while (enemyIterator.hasNext()) {
-                Enemy next = enemyIterator.next();
-                next.update(delta);
-                next.render(delta, camera);
-
-            }
-            controller.draw(delta);
-            gameUI.draw();
-        } else {
-            ui.draw();
-        }
         if (map.particleEffect != null) {
             map.particleEffect.update(delta);
             game.batch.setProjectionMatrix(camera.combined);
@@ -200,7 +198,68 @@ public class LevelGenScreen implements Screen {
             map.particleEffect.draw(game.batch);
             game.batch.end();
         }
-        fpsLogger.log();
+        if (delta > 0.01667) delta = 0.0166f;
+        switch (state) {
+            case PLAYING: {
+                if (player.getHP() <= 0) {
+                    state = GameState.DEAD;
+                    inputMultiplexer.removeProcessor(controller.getStage());
+                    inputMultiplexer.removeProcessor(controller);
+                    gameUI.setGameOverText("You died.");
+                    timer = Stopwatch.createStarted();
+                }
+                if (gameUI.getNumOfObjectives() <= 0) {
+                    state = GameState.LEVEL_COMPLETE;
+                    gameUI.setGameOverText("You win!");
+                    gameUI.switchToWinUI();
+                    inputMultiplexer.removeProcessor(controller.getStage());
+                    inputMultiplexer.removeProcessor(controller);
+                    inputMultiplexer.addProcessor(gameUI.getStage());
+                }
+                camera.position.set(player.position.x, player.position.y, 0);
+                fixCamBounds();
+                player.update(delta, enemies);
+                Iterator<Enemy> enemyIterator = enemies.iterator();
+                while (enemyIterator.hasNext()) {
+                    Enemy next = enemyIterator.next();
+                    next.update(delta, player);
+                    next.render(delta, camera);
+                }
+                player.render(delta, camera);
+                controller.draw(delta);
+                gameUI.draw();
+                break;
+            }
+            case LEVEL_SELECT:
+                ui.draw();
+                break;
+            case DEAD: {
+                if (timer.elapsed(TimeUnit.SECONDS) > 6) {
+                    timer.stop();
+                    timer.reset();
+                    state = GameState.LEVEL_SELECT;
+                    resetCamera();
+                    mapCameraController = new GestureDetector(new CameraController2D(camera, Math.min(scaleX, scaleY), scaleX, scaleY));
+                    inputMultiplexer.addProcessor(mapCameraController);
+                    show();
+                }
+                for (Enemy enemy : enemies) {
+                    enemy.render(delta, camera);
+                }
+                //player.render(delta, camera);
+                controller.draw(delta);
+                gameUI.draw();
+                break;
+            }
+            case LEVEL_COMPLETE:
+                for (Enemy enemy : enemies) {
+                    enemy.render(delta, camera);
+                }
+                player.render(delta, camera);
+                //controller.draw(delta);
+                gameUI.draw();
+                break;
+        }
     }
 
 
@@ -217,6 +276,15 @@ public class LevelGenScreen implements Screen {
         else if (camera.position.y + (camera.viewportHeight * camera.zoom) / 2 > scrollLimitY)
             camera.position.y = scrollLimitY - (camera.viewportHeight * camera.zoom) / 2;
         camera.update();
+    }
+
+    private void resetCamera() {
+        if (camera != null) {
+            this.camera.viewportWidth = Gdx.graphics.getWidth();
+            this.camera.viewportHeight = Gdx.graphics.getHeight();
+            this.camera.position.set(camera.viewportWidth / 2.f, camera.viewportHeight / 2.f, 0);
+            this.camera.update();
+        }
     }
 
 
@@ -247,13 +315,24 @@ public class LevelGenScreen implements Screen {
 
     @Override
     public void dispose() {
-        map.dispose();
-        ui.dispose();
-        player.dispose();
-        gameUI.dispose();
+        if (map != null) map.dispose();
+        if (ui != null) ui.dispose();
+        if (player != null) player.dispose();
+        if (gameUI != null) gameUI.dispose();
     }
 
     public List<MapCandidate> getMapCandidates() {
         return mapCandidates;
+    }
+
+    public int getMapIndex() {
+        return mapIndex;
+    }
+
+    private enum GameState {
+        PLAYING,
+        LEVEL_SELECT,
+        DEAD,
+        LEVEL_COMPLETE
     }
 }

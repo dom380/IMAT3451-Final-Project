@@ -28,7 +28,6 @@ public class LevelSelectUI {
     private TextureAtlas atlas;
     private Skin skin;
     private SpriteBatch batch;
-    private int currentIndx = 0;
 
 
     public LevelSelectUI(final MyGdxGame game, final LevelGenScreen screen) {
@@ -50,18 +49,16 @@ public class LevelSelectUI {
         previousButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                currentIndx = currentIndx != 0 ? currentIndx - 1 : 9;
-                mapLabel.setText("Map " + (currentIndx + 1) + "/10");
-                screen.switchMap(screen.getMapCandidates().get(currentIndx).tileSet);
+                mapLabel.setText("Map " + screen.getMapIndex() + "/10");
+                screen.switchNextMap();
             }
         });
         TextButton nextButton = new TextButton("Next Map", skin);
         nextButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                currentIndx = currentIndx != 9 ? currentIndx + 1 : 0;
-                mapLabel.setText("Map " + (currentIndx + 1) + "/10");
-                screen.switchMap(screen.getMapCandidates().get(currentIndx).tileSet);
+                mapLabel.setText("Map " + screen.getMapIndex() + "/10");
+                screen.switchNextMap();
             }
         });
 //        nextButton.pad(0.0f,5.0f,0.0f,0.0f);
@@ -77,7 +74,7 @@ public class LevelSelectUI {
         playButton.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                screen.playMap(screen.getMapCandidates().get(currentIndx).tileSet);
+                screen.playMap();
             }
         });
         table.add(menuButton).pad(0.0f, 5.0f, 0.0f, 0.0f);
