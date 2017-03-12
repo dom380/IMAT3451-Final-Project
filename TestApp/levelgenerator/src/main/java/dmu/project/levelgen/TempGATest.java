@@ -5,6 +5,8 @@ import com.google.common.base.Stopwatch;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import dmu.project.levelgen.exceptions.LevelGenerationException;
+
 /**
  * Temporary test class. To be removed.
  *
@@ -12,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class TempGATest {
-    public static void main(String[] args){
+    public static void main(String[] args) throws LevelGenerationException {
         Constraints constraints = new Constraints();
         constraints.length = 500;
         constraints.maxGenerations = 1000;

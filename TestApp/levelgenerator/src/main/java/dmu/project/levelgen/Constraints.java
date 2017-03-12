@@ -10,33 +10,33 @@ public class Constraints {
     /**
      * Width of map
      */
-    int mapWidth;
+    int mapWidth = 50;
     /**
      * height of the map
      */
-    int mapHeight;
+    int mapHeight = 80;
     /**
      * Target length of the path between start and end points of the level.
      */
-    float length;
+    float length = 0.0f;
     /**
      * Number of candidates within each generation
      */
-    int populationSize;
+    int populationSize = 100;
     /**
      * Maximum number of generations to be evaluated before returning.
      */
-    int maxGenerations;
+    int maxGenerations = 50;
 
-    boolean objectivesEnabled;
+    boolean objectivesEnabled = true;
     /**
      *  A value between 1-10 representing how difficult the generated level should be.
      */
-    int difficulty;
+    int difficulty = 5;
 
-    int noiseWidth;
+    int noiseWidth = 4;
 
-    int noiseHeight;
+    int noiseHeight = 4;
 
     long seed = -1;
 

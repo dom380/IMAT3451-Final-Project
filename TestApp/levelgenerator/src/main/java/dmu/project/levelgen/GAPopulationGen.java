@@ -1,24 +1,27 @@
 package dmu.project.levelgen;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Stopwatch;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import dmu.project.utils.Grid;
-import dmu.project.utils.LIFOEntry;
+import dmu.project.levelgen.exceptions.LevelConstraintsException;
+import dmu.project.levelgen.exceptions.LevelGenerationException;
 import dmu.project.utils.Node;
 import dmu.project.utils.PathFinder;
-import dmu.project.utils.Vector2D;
 
 /**
  * Implementation of the PopulationGenerator interface that uses a Genetic Algorithm.
@@ -38,8 +41,15 @@ public class GAPopulationGen implements PopulationGenerator {
      * Default constructor.
      */
     public GAPopulationGen() {
-        levelGen = new PerlinLevelGen(5, 5, 8, 0.5);
-        constraints = new Constraints(); //todo set up default values
+        constraints = new Constraints();
+        if (constraints.seed != -1) {
+            long seed = constraints.seed;
+            levelGen = new PerlinLevelGen(seed, constraints.noiseWidth, constraints.noiseHeight, 8, 0.5);
+            rng = new Random(seed);
+            randomState = new RandomEnum<>(TileState.class, seed);
+        } else {
+            levelGen = new PerlinLevelGen(constraints.noiseWidth, constraints.noiseHeight, 8, 0.5);
+        }
     }
 
     /**
@@ -74,7 +84,7 @@ public class GAPopulationGen implements PopulationGenerator {
      * @return List of Tiles representing the level.
      */
     @Override
-    public List<MapCandidate> populate() {
+    public List<MapCandidate> populate() throws LevelGenerationException {
         int width = constraints.mapWidth;
         int height = constraints.mapHeight;
         heightMap = levelGen.generateLevel(width, height, 0.25); //Generate the base terrain.
@@ -125,8 +135,20 @@ public class GAPopulationGen implements PopulationGenerator {
     }
 
     @Override
-    public void readConstraints(String filePath) {
-        // TODO: 30/11/2016 use Jackson deserialiser for this
+    public void readConstraints(File file) throws LevelConstraintsException {
+        Constraints constraints = null;
+        try {
+            XmlMapper mapper = new XmlMapper();
+            constraints = mapper.readValue(IOUtils.toByteArray(new FileInputStream(file)), Constraints.class);
+        } catch (JsonParseException | JsonMappingException e) {
+            throw new LevelConstraintsException("Invalid constraints file", e);
+        } catch (IOException e) {
+            throw new LevelConstraintsException("Constraints file not found", e);
+        } finally {
+            if (constraints != null) {
+                this.constraints = constraints;
+            }
+        }
     }
 
     /**
@@ -304,8 +326,15 @@ public class GAPopulationGen implements PopulationGenerator {
                 }
                 while (heightMap.elevation[x][y] < heightMap.waterLevel);
                 map.tileSet.add(new Tile(randomState.random(), x, y));
-            } else
-                map.tileSet.get(rng.nextInt(map.tileSet.size())).tileState = randomState.random();
+            } else {
+                TileState randomTileState;
+                int randomIndex = rng.nextInt(map.tileSet.size());
+                do {
+                    randomTileState = randomState.random();
+                }
+                while (map.tileSet.get(randomIndex).tileState == randomTileState);
+                map.tileSet.get(randomIndex).tileState = randomTileState;
+            }
 
         }
         return map;
@@ -378,6 +407,14 @@ public class GAPopulationGen implements PopulationGenerator {
         return new PathFitness(goodPaths, fitness);
     }
 
+    public Constraints getConstraints() {
+        return constraints;
+    }
+
+    //Package access method for testing.
+    void setCandidateFactory(CandidateFactory candidateFactory) {
+        this.candidateFactory = candidateFactory;
+    }
 
     /**
      * Utility class to randomly select an Enum value.

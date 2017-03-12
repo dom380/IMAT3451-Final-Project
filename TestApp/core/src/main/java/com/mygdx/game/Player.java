@@ -45,7 +45,7 @@ public class Player extends TileMovable {
         this.screen = screen;
         spriteBatch = batch;
         textureAtlas = new TextureAtlas(Gdx.files.internal("sprites/pc.atlas"));
-        attackAtlas = new TextureAtlas(Gdx.files.internal("attack2.atlas"));
+        attackAtlas = new TextureAtlas(Gdx.files.internal("sprites/attack2.atlas"));
         idle = new Animation(0.33f, textureAtlas.findRegions("erika_idle"));
         idle.setPlayMode(Animation.PlayMode.LOOP);
         run = new Animation(0.15f, textureAtlas.findRegions("erika_run"));

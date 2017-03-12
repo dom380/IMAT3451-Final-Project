@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Constraints>
+    <mapWidth>1</mapWidth>
+    <mapHeight>1</mapHeight>
+    <length>0.0</length>
+    <populationSize>100</populationSize>
+    <maxGenerations>100</maxGenerations>
+    <objectivesEnabled>true</objectivesEnabled>
+    <difficulty>5</difficulty>
+    <noiseWidth>3</noiseWidth>
+    <noiseHeight>3</noiseHeight>
+    <seed>12324634631</seed>
+</Constraints>

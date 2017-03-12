@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Constraints>
+    <populationSize>100</populationSize>
+    <maxGenerations>50</maxGenerations>
+    <objectivesEnabled>true</objectivesEnabled>
+    <difficulty>5</difficulty>
+    <noiseWidth>4</noiseWidth>
+    <noiseHeight>4</noiseHeight>
+</Constraints>

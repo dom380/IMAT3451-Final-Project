@@ -2,6 +2,7 @@ package dmu.project.levelgen;
 
 import java.util.Random;
 
+import dmu.project.levelgen.exceptions.LevelGenerationException;
 import dmu.project.noise.OpenSimplexNoise;
 import dmu.project.utils.Node;
 import dmu.project.utils.Vector2D;
@@ -61,9 +62,9 @@ public class PerlinLevelGen implements LevelGenerator {
      * @return A 2D width by height array of height values representing the terrain.
      */
     @Override
-    public HeightMap generateLevel(int width, int height, double waterLevel) {
+    public HeightMap generateLevel(int width, int height, double waterLevel) throws LevelGenerationException {
+        if(width <= 0 || height <= 0 || waterLevel < 0) throw new LevelGenerationException("Invalid parameters for heightmap generation");
         double[][] noise = new double[width][height];
-        //double[][] elevation = new double[width][height];
         HeightMap heightMap = new HeightMap(width, height, true, waterLevel);
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {

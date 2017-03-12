@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import dmu.project.levelgen.Constraints;
 import dmu.project.levelgen.GAPopulationGen;
 import dmu.project.levelgen.HeightMap;
+import dmu.project.levelgen.exceptions.LevelGenerationException;
 import dmu.project.levelgen.MapCandidate;
 import dmu.project.levelgen.Tile;
 
@@ -78,7 +79,12 @@ public class LevelGenScreen implements Screen {
         Constraints constraints = readConstraints(game.properties);
         //Generate Level
         GAPopulationGen populationGen = new GAPopulationGen(constraints);
-        mapCandidates = populationGen.populate();
+        try {
+            mapCandidates = populationGen.populate();
+        } catch (LevelGenerationException e) {
+            Gdx.app.error("Level Creation", "Unrecoverable exception thrown.", e);
+            game.returnToMenu(); //Go back to main menu.
+        }
         WeatherClient weatherClient = new WeatherClient(game.apiUrl, game.apiKey);//Todo find a better way of getting this string from android resources
         double[] latLong = game.getLocationService().getLatLong();
         if (latLong != null)
@@ -111,7 +117,8 @@ public class LevelGenScreen implements Screen {
     }
 
     void switchMap(int index) {
-        if (index > 9) index = 9;
+        if (index > 9 || index >= mapCandidates.size())
+            index = Math.min(9, mapCandidates.size() - 1);
         List<Tile> tileList = getMapCandidates().get(index).tileSet;
         mapIndex = index;
         map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, tileList, weather);
@@ -125,7 +132,7 @@ public class LevelGenScreen implements Screen {
     }
 
     void switchNextMap() {
-        mapIndex = mapIndex != 9 ? mapIndex + 1 : 0;
+        mapIndex = mapIndex != 9 || mapIndex < mapCandidates.size() - 1 ? mapIndex + 1 : 0;
         List<Tile> tileList = getMapCandidates().get(mapIndex).tileSet;
         map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, tileList, weather);
         if (renderer != null)

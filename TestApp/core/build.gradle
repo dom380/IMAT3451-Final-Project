@@ -2,7 +2,16 @@ apply plugin: "java"
 sourceCompatibility = "1.7"
 targetCompatibility = "1.7"
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-sourceSets.main.java.srcDirs = ["src/"]
+sourceSets {
+    main {
+
+        output.resourcesDir = "build/classes/main"
+    }
+    test {
+        output.resourcesDir = "build/classes/test"
+    }
+}
+
 eclipse.project {
     name = appName + "-core"
 }
@@ -10,4 +19,11 @@ eclipse.project {
 dependencies {
     compile project(':levelgenerator')
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.8.6'
+    testCompile group: 'org.powermock', name: 'powermock-api-mockito', version: '1.6.6'
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+    testCompile 'org.powermock:powermock-core:1.6.1',
+                'org.powermock:powermock-module-junit4:1.6.1',
+                'org.powermock:powermock-api-mockito:1.6.1'
+
 }

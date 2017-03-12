@@ -2,18 +2,22 @@ package dmu.project.levelgen;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
+import dmu.project.levelgen.exceptions.LevelGenerationException;
 
 /**
  * Created by Dom on 07/03/2017.
  */
-
+@RunWith(JUnit4.class)
 public class PerlinLevelGenTest {
 
     private final static long seed = -2656433763347937011L;
     private final static double delta = 0.001;
 
     @Test
-    public void perlinNoiseTest() {
+    public void perlinNoiseTest() throws LevelGenerationException {
         int originX = 0, originY = 0, noiseWidth = 1, noiseHeight = 1, octaves = 8, width = 512, height = 512;
         float persistance = 0.5f, waterLevel = 0.25f;
         PerlinLevelGen levelGen = new PerlinLevelGen(seed, originX, originY, noiseWidth, noiseHeight, octaves, persistance);
@@ -24,7 +28,7 @@ public class PerlinLevelGenTest {
     }
 
     @Test
-    public void perlinNoiseTest_repeatSameSeed() {
+    public void perlinNoiseTest_repeatSameSeed() throws LevelGenerationException {
         int originX = 0, originY = 0, noiseWidth = 1, noiseHeight = 1, octaves = 8, width = 256, height = 256;
         float persistance = 0.5f, waterLevel = 0.25f;
         PerlinLevelGen levelGen = new PerlinLevelGen(seed, originX, originY, noiseWidth, noiseHeight, octaves, persistance);
@@ -49,13 +53,13 @@ public class PerlinLevelGenTest {
     }
 
     @Test
-    public void perlinNoiseTest_repeatSameSeedLoads() {
+    public void perlinNoiseTest_repeatSameSeedLoads() throws LevelGenerationException {
         for (int i = 0; i < 100; i++)
             perlinNoiseTest_repeatSameSeed();
     }
 
     @Test
-    public void perlinNoiseTest_tiled() {
+    public void perlinNoiseTest_tiled() throws LevelGenerationException {
         int originX = 0, originY = 0, noiseWidth = 2, noiseHeight = 2, octaves = 8, width = 256, height = 256;
         float persistance = 0.5f, waterLevel = 0.25f;
         PerlinLevelGen levelGen = new PerlinLevelGen(seed, originX, originY, noiseWidth, noiseHeight, octaves, persistance);
@@ -92,7 +96,7 @@ public class PerlinLevelGenTest {
         int offset = 128;
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                double elevation1 = heightMap.elevation[i+offset][j];
+                double elevation1 = heightMap.elevation[i + offset][j];
                 double elevation2 = heightMap3.elevation[i][j];
                 Assert.assertEquals("Elevation should match. At index" + i + "," + j, elevation1, elevation2, delta);
             }
@@ -107,7 +111,7 @@ public class PerlinLevelGenTest {
         testElevationRange(width, height, heightMap4.elevation);
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                double elevation1 = heightMap.elevation[i+offset][j+offset];
+                double elevation1 = heightMap.elevation[i + offset][j + offset];
                 double elevation2 = heightMap4.elevation[i][j];
                 Assert.assertEquals("Elevation should match. At index" + i + "," + j, elevation1, elevation2, delta);
             }
@@ -122,11 +126,53 @@ public class PerlinLevelGenTest {
         testElevationRange(width, height, heightMap5.elevation);
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                double elevation1 = heightMap.elevation[i][j+offset];
+                double elevation1 = heightMap.elevation[i][j + offset];
                 double elevation2 = heightMap5.elevation[i][j];
                 Assert.assertEquals("Elevation should match. At index" + i + "," + j, elevation1, elevation2, delta);
             }
         }
+    }
+
+    @Test
+    public void testCorrectException() {
+        int originX = 0, originY = 0, noiseWidth = -1, noiseHeight = -1, octaves = 8, width = -1, height = -1;
+        float persistance = 0.5f, waterLevel = 0.25f;
+        PerlinLevelGen levelGen = new PerlinLevelGen(seed, originX, originY, noiseWidth, noiseHeight, octaves, persistance);
+        boolean exceptionThrown = false;
+        try {
+            levelGen.generateLevel(width, height, waterLevel);
+        } catch (LevelGenerationException e) {
+            exceptionThrown = true;
+        }
+        Assert.assertTrue("LevelGenerationException should have been thrown.", exceptionThrown);
+        width = 0;
+        height = 1;
+        exceptionThrown = false;
+        try {
+            levelGen.generateLevel(width, height, waterLevel);
+        } catch (LevelGenerationException e) {
+            exceptionThrown = true;
+        }
+        Assert.assertTrue("LevelGenerationException should have been thrown.", exceptionThrown);
+        width = 1;
+        height = 0;
+        exceptionThrown = false;
+        try {
+            levelGen.generateLevel(width, height, waterLevel);
+        } catch (LevelGenerationException e) {
+            exceptionThrown = true;
+        }
+        Assert.assertTrue("LevelGenerationException should have been thrown.", exceptionThrown);
+        width = 1;
+        height = 1;
+        waterLevel = -1.0f;
+        exceptionThrown = false;
+        try {
+            levelGen.generateLevel(width, height, waterLevel);
+        } catch (LevelGenerationException e) {
+            exceptionThrown = true;
+        }
+        Assert.assertTrue("LevelGenerationException should have been thrown.", exceptionThrown);
     }
 
 

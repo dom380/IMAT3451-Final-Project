@@ -47,10 +47,10 @@ public class WeatherClient {
             client.addParam("lat", String.valueOf(latitude));
             client.addParam("lon", String.valueOf(longitude));
             client.addParam("units", "metric");
-            client.addParam("appid", "2c2e5d04d5f1c71108c7d2e4719a04fb");
+            client.addParam("appid", apiKey);
 
             client.execute(RestClient.RequestMethod.GET);
-            response = client.response;
+            response = client.getResponse();
         } catch (Exception e) {
             e.printStackTrace();
             response = "{\"coord\":{\"lon\":-0.13,\"lat\":51.51},\"weather\":[{\"id\":300,\"main\":\"Drizzle\",\"description\":\"light intensity drizzle\",\"icon\":\"09d\"}],\"base\":\"stations\",\"main\":{\"temp\":12.25,\"pressure\":1008,\"humidity\":82,\"temp_min\":11,\"temp_max\":13},\"visibility\":10000,\"wind\":{\"speed\":7.2,\"deg\":250},\"clouds\":{\"all\":90},\"dt\":1487760600,\"sys\":{\"type\":1,\"id\":5091,\"message\":0.036,\"country\":\"GB\",\"sunrise\":1487746753,\"sunset\":1487784566},\"id\":2643743,\"name\":\"London\",\"cod\":200}";

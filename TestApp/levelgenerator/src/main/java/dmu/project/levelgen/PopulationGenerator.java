@@ -1,6 +1,10 @@
 package dmu.project.levelgen;
 
+import java.io.File;
 import java.util.List;
+
+import dmu.project.levelgen.exceptions.LevelConstraintsException;
+import dmu.project.levelgen.exceptions.LevelGenerationException;
 
 /**
  * Interface for the PopulationGenerator. Classes that implement this interface are responsible
@@ -11,14 +15,14 @@ import java.util.List;
 
 public interface PopulationGenerator {
 
-    List<MapCandidate> populate();
+    List<MapCandidate> populate() throws LevelGenerationException;
 
     /**
      * Read in level generation constraints from specified xml file.
      *
-     * @param filePath File path to the constraints file.
+     * @param file Java File object representing the constraints xml file.
      */
-    void readConstraints(String filePath);
+    void readConstraints(File file) throws LevelConstraintsException;
 
     /**
      * Setter for the Constraints object.

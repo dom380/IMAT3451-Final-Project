@@ -56,20 +56,7 @@ public class RestClient {
         switch (method) {
             case GET: {
                 //add parameters
-                String combinedParams = "";
-                if (!params.isEmpty()) {
-                    combinedParams += "?";
-                    for (NameValuePair p : params) {
-                        String paramString = p.getName() + "=" + URLEncoder.encode(p.getValue(), "UTF-8");
-                        if (combinedParams.length() > 1) {
-                            combinedParams += "&" + paramString;
-                        } else {
-                            combinedParams += paramString;
-                        }
-                    }
-                }
-
-                HttpGet request = new HttpGet(baseURL + combinedParams);
+                HttpGet request = buildRequest(params);
 
                 //add headers
                 for (NameValuePair h : headers) {
@@ -97,7 +84,7 @@ public class RestClient {
         }
     }
 
-    private void executeRequest(HttpUriRequest request) throws IOException {
+    public void executeRequest(HttpUriRequest request) throws IOException {
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
             HttpResponse httpResponse = client.execute(request);
             responseCode = httpResponse.getStatusLine().getStatusCode();
@@ -113,5 +100,33 @@ public class RestClient {
         } catch (IOException e) {
             throw e;
         }
+    }
+
+    private HttpGet buildRequest(List<NameValuePair> params) throws UnsupportedEncodingException {
+        String combinedParams = "";
+        if (!params.isEmpty()) {
+            combinedParams += "?";
+            for (NameValuePair p : params) {
+                String paramString = p.getName() + "=" + URLEncoder.encode(p.getValue(), "UTF-8");
+                if (combinedParams.length() > 1) {
+                    combinedParams += "&" + paramString;
+                } else {
+                    combinedParams += paramString;
+                }
+            }
+        }
+        return new HttpGet(baseURL + combinedParams);
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public int getResponseCode() {
+        return responseCode;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }

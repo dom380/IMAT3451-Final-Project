@@ -1,5 +1,7 @@
 package dmu.project.levelgen;
 
+import dmu.project.levelgen.exceptions.LevelGenerationException;
+
 /**
  * Interface for the base terrain generator.
  * Classes that implement this interface are responsible for generating the level heightmap.
@@ -17,7 +19,7 @@ public interface LevelGenerator {
      * @param waterLevel a value between 0..1 that represents the water level for the generated map.
      * @return A 2D width by height array of height values representing the terrain.
      */
-    HeightMap generateLevel(int width, int height, double waterLevel);
+    HeightMap generateLevel(int width, int height, double waterLevel) throws LevelGenerationException;
 
 }
 
