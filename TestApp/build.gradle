@@ -74,6 +74,7 @@ project(":android") {
         natives "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-x86_64"
         compile 'com.google.android.gms:play-services-location:9.8.0'
         compile 'com.android.support:multidex:1.0.0'
+        compile "com.android.support:support-v4:24.1.1"
     }
 }
 
