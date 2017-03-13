@@ -17,6 +17,8 @@ import com.google.android.gms.location.LocationServices;
 
 /**
  * Created by Dom on 20/02/2017.
+ *
+ * Implementation of LocationService using Google Play Services.
  */
 
 public class LocationServiceAndroid implements LocationService, GoogleApiClient.ConnectionCallbacks, LocationListener {
@@ -26,14 +28,19 @@ public class LocationServiceAndroid implements LocationService, GoogleApiClient.
     private boolean isAvailable, connected = false, enabled;
     private Location lastLocation;
 
+    /**
+     * Constructor.
+     *
+     * @param activity Fragment Activity containing our game.
+     */
     LocationServiceAndroid(GameFragment activity) {
         this.launcher = activity;
         enabled = true;
         GoogleApiAvailability instance = GoogleApiAvailability.getInstance();
         int playServicesAvailable = instance.isGooglePlayServicesAvailable(launcher.getContext());
-        if (playServicesAvailable == ConnectionResult.SUCCESS) {
+        if (playServicesAvailable == ConnectionResult.SUCCESS) { //If we have access to Google Play Services
             isAvailable = true;
-            this.mGoogleApiClient = new GoogleApiClient.Builder(activity.getContext())
+            this.mGoogleApiClient = new GoogleApiClient.Builder(activity.getContext()) //Create a self managing client
                     .enableAutoManage(launcher.getActivity(), launcher)
                     .addConnectionCallbacks(this)
                     .addApi(LocationServices.API)
@@ -72,7 +79,7 @@ public class LocationServiceAndroid implements LocationService, GoogleApiClient.
             return new double[]{lastLocation.getLatitude(), lastLocation.getLongitude()};
         else {
             //noinspection MissingPermission
-            lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient); //WHY ARE YOU ALWAYS NULL????
+            lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             return lastLocation != null ? new double[]{lastLocation.getLatitude(), lastLocation.getLongitude()} : null;
         }
 
@@ -92,8 +99,8 @@ public class LocationServiceAndroid implements LocationService, GoogleApiClient.
     public void onConnected(@Nullable Bundle bundle) {
         LocationRequest request = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setInterval(10000) //10sec
-                .setFastestInterval(2000); //2 sec
+                .setInterval(30000) //30sec
+                .setFastestInterval(10000); //19 sec
         if (ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {

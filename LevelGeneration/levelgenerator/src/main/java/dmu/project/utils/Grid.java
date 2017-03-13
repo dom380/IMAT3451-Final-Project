@@ -6,6 +6,7 @@ import java.util.List;
 
 /**
  * Created by Dom on 25/01/2017.
+ * Class representing the map as a grid for path finding.
  */
 
 public class Grid {
@@ -14,6 +15,13 @@ public class Grid {
     private int xMax, yMax;
     private boolean moveDiag;
 
+    /**
+     * Constructor.
+     *
+     * @param xMax         Number of nodes in the X direction.
+     * @param yMax         Number of nodes in the Y direction.
+     * @param moveDiagonal True if the grid allows diagonal movement.
+     */
     public Grid(int xMax, int yMax, boolean moveDiagonal) {
         grid = new Node[xMax][yMax];
         this.xMax = xMax;
@@ -21,14 +29,35 @@ public class Grid {
         this.moveDiag = moveDiagonal;
     }
 
+    /**
+     * Adds a node to the grid at the specified position.
+     *
+     * @param x    The X coordinate of the node.
+     * @param y    The Y coordinate of the node.
+     * @param node The node to add.
+     */
     public void addNode(int x, int y, Node node) {
         grid[x][y] = node;
     }
 
+    /**
+     * Retrieves the node at the specified coordinate.
+     *
+     * @param x The X coordinate of the node.
+     * @param y The Y coordinate of the node.
+     * @return The node at that position.
+     */
     public Node getNode(int x, int y) {
         return grid[x][y];
     }
 
+    /**
+     * Checks if that node is free to move to.
+     *
+     * @param x The X coordinate of the node.
+     * @param y The Y coordinate of the node.
+     * @return True if the node can be moved to.
+     */
     public boolean walkable(int x, int y) {
         if ((x < 0) || (x >= xMax)) {
             int check = 1;
@@ -40,6 +69,9 @@ public class Grid {
         return grid[x][y].walkable;
     }
 
+    /**
+     * Resets every node in the grid.
+     */
     public void reset() {
         for (int i = 0; i < xMax; i++) {
             for (int j = 0; j < yMax; j++) {
@@ -51,9 +83,23 @@ public class Grid {
         }
     }
 
-    public List<Vector2D> getNeighbours(Node node){
+    /**
+     * Returns a list of the positions of the free neighbours of the specified node.
+     *
+     * @param node The node to retrieve the neighbours of.
+     * @return A list of the positions of the free neighbours of the specified node.
+     */
+    public List<Vector2D> getNeighbours(Node node) {
         return getNeighbours(node, moveDiag);
     }
+
+    /**
+     * Returns a list of the positions of the free neighbours of the specified node
+     *
+     * @param node     The node to retrieve the neighbours of.
+     * @param moveDiag If true will also check the corner neighbours.
+     * @return A list of the positions of the free neighbours of the specified node.
+     */
     public List<Vector2D> getNeighbours(Node node, boolean moveDiag) {
         List<Vector2D> neighbours = new ArrayList<>();
         if (moveDiag) {
@@ -75,6 +121,13 @@ public class Grid {
         }
     }
 
+    /**
+     * Used for Jump Point Search. Returns all free neighbours in the current direction of travel
+     * relative to the node's parent. If the node has no parent return all free nodes.
+     *
+     * @param node The node to retrieve the neighbours of.
+     * @return A list of the positions of the free neighbours of the specified node.
+     */
     public List<Vector2D> getNeighboursPrune(Node node) {
         if (node.parent == null) {
             return getNeighbours(node);
@@ -133,6 +186,13 @@ public class Grid {
         }
     }
 
+    /////////////////////////////
+    //Private Utility Methods //
+    ////////////////////////////
+
+    /**
+     * Array of Vector2Ds for 8 directions.
+     */
     private ArrayList<Vector2D> eightDir = new ArrayList<>(Arrays.asList(
             new Vector2D(-1.0, 0.0),
             new Vector2D(-1.0, 1.0),
@@ -144,6 +204,9 @@ public class Grid {
             new Vector2D(-1.0, -1.0)
     ));
 
+    /**
+     * Array of Vector2Ds for 4 directions.
+     */
     private ArrayList<Vector2D> fourDir = new ArrayList<>(Arrays.asList(
             new Vector2D(-1.0, 0.0),
             new Vector2D(0.0, 1.0),
@@ -151,11 +214,21 @@ public class Grid {
             new Vector2D(0.0, -1.0)
     ));
 
+    /**
+     * @return True if diagonal movement enabled.
+     */
     public boolean isMoveDiag() {
         return moveDiag;
     }
 
+    /**
+     * Returns the node at the specified position.
+     *
+     * @param x The X coordinate of the node.
+     * @param y The Y coordinate of the node.
+     * @return The node at the requested coordinates/
+     */
     public Node getNode(Double x, Double y) {
-        return getNode(x.intValue(),y.intValue());
+        return getNode(x.intValue(), y.intValue());
     }
 }

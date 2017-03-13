@@ -22,9 +22,9 @@ import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
- * Very basic menu screen
- * <p>
  * Created by Dom on 18/11/2016.
+ *
+ * Class implementing the LibGDX Screen interface.
  */
 
 public class MainMenuScreen implements Screen {
@@ -36,6 +36,10 @@ public class MainMenuScreen implements Screen {
     private TextureAtlas atlas;
     private Skin skin;
 
+    /**
+     * Constructor.
+     * @param game The main game object.
+     */
     public MainMenuScreen(MyGdxGame game) {
         this.game = game;
         camera = new OrthographicCamera();
@@ -52,6 +56,10 @@ public class MainMenuScreen implements Screen {
         Gdx.input.setInputProcessor(stage);
     }
 
+    /**
+     * Called when screen first shown.
+     * Creates the Menu UI.
+     */
     @Override
     public void show() {
         //Create Table

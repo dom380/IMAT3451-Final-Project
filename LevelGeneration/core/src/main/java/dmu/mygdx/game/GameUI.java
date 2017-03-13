@@ -16,6 +16,8 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
  * Created by Dom on 08/03/2017.
+ *
+ * Class that handles the Game's UI.
  */
 
 public class GameUI {
@@ -30,6 +32,14 @@ public class GameUI {
     private Label beaconLabel, hpLabel, gameOverLabel;
     private int numOfObjectives, hp;
 
+    /**
+     * Constructor.
+     * @param game The main game.
+     * @param screen The game screen.
+     * @param batch The sprite batch to render the UI with.
+     * @param numOfObjectives The number of objects.
+     * @param playerHP The player's maximum HP.
+     */
     public GameUI(MyGdxGame game, LevelGenScreen screen, SpriteBatch batch, int numOfObjectives, int playerHP) {
         this.game = game;
         this.screen = screen;
@@ -61,38 +71,67 @@ public class GameUI {
         stage.addActor(table);
     }
 
+    /**
+     * Render the UI.
+     */
     public void draw() {
         stage.draw();
     }
 
+    /**
+     * Clean up assets.
+     */
     public void dispose() {
         stage.dispose();
         atlas.dispose();
         skin.dispose();
     }
 
+    /**
+     * Resize the UI. Called on screen resize event.
+     * @param width The new width of the screen.
+     * @param height The new height of the screen.
+     */
     public void resize(int width, int height) {
         viewport.update(width, height);
     }
 
+    /**
+     * Updates the remaining objectives text.
+     */
     public void updateObjectiveCount() {
         numOfObjectives--;
         beaconLabel.setText("Beacons to light: " + numOfObjectives);
     }
 
+    /**
+     * Updates the Player's HP text.
+     *
+     * @param amount The amount to change the value by.
+     */
     public void updateHP(int amount) {
         hp += amount;
         hpLabel.setText("HP: " + hp);
     }
 
+    /**
+     * Sets the game over text to display.
+     * @param text Text to display.
+     */
     public void setGameOverText(String text) {
         gameOverLabel.setText(text);
     }
 
+    /**
+     * @return Returns the number of objectives.
+     */
     public int getNumOfObjectives() {
         return numOfObjectives;
     }
 
+    /**
+     * Changes the UI to the level complete version.
+     */
     public void switchToWinUI(){
         stage = new Stage(viewport, batch);
 
@@ -123,6 +162,9 @@ public class GameUI {
         stage.addActor(table);
     }
 
+    /**
+     * @return returns the scene2D stage holding the UI elements.
+     */
     public Stage getStage() {
         return stage;
     }

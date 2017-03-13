@@ -6,6 +6,7 @@ import dmu.project.utils.Grid;
 
 /**
  * Created by Dom on 04/03/2017.
+ * Class to handle smooth grid based movement.
  */
 
 public class GridMovement {
@@ -16,11 +17,21 @@ public class GridMovement {
     private static final float TILE_WIDTH = 16;
     private static final float TILE_HEIGHT = 16;
 
+    /**
+     * Constructor.
+     *
+     * @param tileMovable The entity to control the movement of.
+     * @param grid The grid to move on.
+     */
     public GridMovement(TileMovable tileMovable, Grid grid) {
         entity = tileMovable;
         this.grid = grid;
     }
 
+    /**
+     * Update method called every frame. Updates the entities movement.
+     * @param delta time step.
+     */
     public void update(float delta) {
         boolean isMoving = isMoving(), reachedDest = justReachedDestination();
         // Stop if at destination
@@ -75,6 +86,10 @@ public class GridMovement {
     void setDirection(Vector2 direction) {
         this.direction = direction != null ? direction.cpy() : null;
     }
+
+    /////////////////////////////
+    //Private Utility Methods //
+    ////////////////////////////
 
     private Vector2 getCurrentTile() {
         float tileX = entity.position.x / TILE_WIDTH;

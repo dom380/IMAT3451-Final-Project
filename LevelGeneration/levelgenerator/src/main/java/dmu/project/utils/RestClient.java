@@ -23,6 +23,7 @@ import cz.msebera.android.httpclient.protocol.HTTP;
 
 /**
  * Created by Dom on 20/02/2017.
+ * REST Client utility class.
  */
 
 public class RestClient {
@@ -38,20 +39,43 @@ public class RestClient {
         POST
     }
 
+    /**
+     * Constructor.
+     *
+     * @param baseURL The base URL to send the request to.
+     */
     public RestClient(String baseURL) {
         this.baseURL = baseURL;
         headers = new ArrayList<>();
         params = new ArrayList<>();
     }
 
+    /**
+     * Adds a name value pair to the parameter list.
+     *
+     * @param name
+     * @param value
+     */
     public void addParam(String name, String value) {
         params.add(new BasicNameValuePair(name, value));
     }
 
+    /**
+     * Adds a name value pair to the header list.
+     *
+     * @param name
+     * @param value
+     */
     public void addHeader(String name, String value) {
         headers.add(new BasicNameValuePair(name, value));
     }
 
+    /**
+     * Builds the URL from the preset parameters and heads then executes the REST request using the specified method.
+     *
+     * @param method The REST Method to use.
+     * @throws IOException
+     */
     public void execute(RequestMethod method) throws IOException {
         switch (method) {
             case GET: {
@@ -84,6 +108,12 @@ public class RestClient {
         }
     }
 
+    /**
+     * Performs the HTTP request
+     *
+     * @param request The request to send.
+     * @throws IOException
+     */
     public void executeRequest(HttpUriRequest request) throws IOException {
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
             HttpResponse httpResponse = client.execute(request);
@@ -102,6 +132,13 @@ public class RestClient {
         }
     }
 
+    /**
+     * Utility method to add the parameters to the URL.
+     *
+     * @param params The list of NameValuePairs to add.
+     * @return The HttpGet request.
+     * @throws UnsupportedEncodingException
+     */
     private HttpGet buildRequest(List<NameValuePair> params) throws UnsupportedEncodingException {
         String combinedParams = "";
         if (!params.isEmpty()) {

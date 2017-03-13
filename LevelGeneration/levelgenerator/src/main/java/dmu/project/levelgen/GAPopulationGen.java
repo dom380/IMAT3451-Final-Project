@@ -134,6 +134,12 @@ public class GAPopulationGen implements PopulationGenerator {
         return population; //Return the last generation, ordered by fitness descending.
     }
 
+    /**
+     * Reads the constraints from the specified file.
+     *
+     * @param file Java File object representing the constraints xml file.
+     * @throws LevelConstraintsException
+     */
     @Override
     public void readConstraints(File file) throws LevelConstraintsException {
         Constraints constraints = null;
@@ -168,7 +174,6 @@ public class GAPopulationGen implements PopulationGenerator {
      * @return Average fitness of population (ignoring maps that fail constraints)
      */
     private float testFitness(List<MapCandidate> population) {
-        //int wellPlacedEnemies;
         float highestFitness = 0.0f;
         float avgFitness = 0.0f;
         float numOfMaps = population.size();
@@ -389,7 +394,7 @@ public class GAPopulationGen implements PopulationGenerator {
         int listSize = objectiveBucket.size();
         for (int i = 0; i < listSize; ++i) { //Test for path to each objective.
             Tile objective = objectiveBucket.get(i);
-            if (Heuristics.diagonalDist(objective.position, startPos) < 20 || Heuristics.diagonalDist(objective.position, startPos) > 300) { //TODO tune this because it's probs garbage
+            if (Heuristics.diagonalDist(objective.position, startPos) < 20 || Heuristics.diagonalDist(objective.position, startPos) > constraints.length) {
                 fitness -= 0.075f;
             }
             if (!PathFinder.checkPathExists(startPos, objective.position, heightMap.grid)) {

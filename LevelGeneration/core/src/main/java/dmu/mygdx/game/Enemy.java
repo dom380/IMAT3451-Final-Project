@@ -15,6 +15,7 @@ import dmu.project.utils.Node;
 
 /**
  * Created by Dom on 08/03/2017.
+ * Class to handle the games enemies.
  */
 
 public class Enemy extends TileMovable {
@@ -25,8 +26,15 @@ public class Enemy extends TileMovable {
     private float animTime = 0.0f;
     private boolean flip = false;
     private List<Node> path = null;
-    private int pathIndex = 0;
+//    private int pathIndex = 0;
 
+    /**
+     * Constructor.
+     * @param batch The sprite batch to draw this enemy.
+     * @param grid The grid to move on.
+     * @param textureAtlas The texture atlas containing this enemies sprites.
+     * @param position The position of the enemy.
+     */
     public Enemy(SpriteBatch batch, Grid grid, TextureAtlas textureAtlas, Vector2 position) {
         super(position, new Vector2(0, 0));
         spriteBatch = batch;
@@ -44,9 +52,15 @@ public class Enemy extends TileMovable {
         direction = new Vector2(0.0f, 0.0f);
     }
 
+    /**
+     * Updates the enemies AI and movement.
+     *
+     * @param delta Time step.
+     * @param player The player, used for AI calculations.
+     */
     public void update(float delta, Player player) {
         super.update(delta);
-        //Crappy impl
+        //Just move to the player if near by.
         int playerX = (int) ((int) player.position.x / TILE_WIDTH), playerY = (int) (player.position.y / TILE_HEIGHT), x = (int) (position.x / TILE_WIDTH), y = (int) (position.y / TILE_HEIGHT);
         double dist = Heuristics.manhatDist(playerX, playerY, x, y);
         if (dist <= 10) {
@@ -61,7 +75,7 @@ public class Enemy extends TileMovable {
         } else {
             gridMovement.setDirection(null);
         }
-        //Path finding impl. Doesn't work D:
+        //Path finding impl. Doesn't work
 //        if (path == null && dist < 10) { //If we're not already following a path and hte player is near find path to them.
 //            path = PathFinder.findPathAStar(new int[]{x, y}, new int[]{playerX, playerY}, gridMovement.getGrid());
 //        }
@@ -95,6 +109,11 @@ public class Enemy extends TileMovable {
         gridMovement.update(delta);
     }
 
+    /**
+     * Render the enemy sprite.
+     * @param delta time step.
+     * @param camera the scene's camera.
+     */
     public void render(float delta, Camera camera) {
         animTime += delta;
         //set animation

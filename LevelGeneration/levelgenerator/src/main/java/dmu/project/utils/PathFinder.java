@@ -17,10 +17,20 @@ import dmu.project.levelgen.Heuristics;
 
 /**
  * Created by Dom on 10/03/2017.
+ * <p>
+ * Utility class to perform Path Finding
  */
 
 public class PathFinder {
 
+    /**
+     * Checks if a path exists between the two positions using Jump Point Search.
+     *
+     * @param start The start position as a 2 value array of ints.
+     * @param goal  The goal position as a 2 value array of ints.
+     * @param grid  The grid to search.
+     * @return True if a path exists.
+     */
     public static boolean checkPathExists(int[] start, int[] goal, Grid grid) {
         boolean goodPath = false;
         List<Node> cleaningList = new ArrayList<>();
@@ -71,7 +81,15 @@ public class PathFinder {
         return goodPath;
     }
 
-    public static List<Node> findPathJPS(int[] start, int[] goal, Grid grid){
+    /**
+     * Checks if a path exists between the two positions using Jump Point Search.
+     *
+     * @param start The start position as a 2 value array of ints.
+     * @param goal  The goal position as a 2 value array of ints.
+     * @param grid  The grid to search.
+     * @return The path if found. Null if no path found.
+     */
+    public static List<Node> findPathJPS(int[] start, int[] goal, Grid grid) {
         List<Node> cleaningList = new ArrayList<>();
         LIFOEntry.resetCount();
         final Queue<LIFOEntry<Node>> frontier = new PriorityQueue<>();
@@ -121,7 +139,15 @@ public class PathFinder {
         return null;
     }
 
-    public static List<Node> findPathAStar(int[] start, int[] goal, Grid grid){
+    /**
+     * Checks if a path exists between the two positions using A*
+     *
+     * @param start The start position as a 2 value array of ints.
+     * @param goal  The goal position as a 2 value array of ints.
+     * @param grid  The grid to search.
+     * @return The path if found. Null if no path found.
+     */
+    public static List<Node> findPathAStar(int[] start, int[] goal, Grid grid) {
         //A* Search
         Map<Node, Node> cameFrom = new HashMap<>();
         List<Node> cleaningList = new ArrayList<>();
@@ -148,7 +174,7 @@ public class PathFinder {
             closedSet.add(current);
             List<Vector2D> neighbours = grid.getNeighbours(current, false);
             for (Vector2D neighbourPos : neighbours) {
-                Node neighbour = grid.getNode(neighbourPos.getX().intValue(),neighbourPos.getY().intValue());
+                Node neighbour = grid.getNode(neighbourPos.getX().intValue(), neighbourPos.getY().intValue());
                 if (closedSet.contains(neighbour)) {
                     continue;
                 }
@@ -169,8 +195,19 @@ public class PathFinder {
         clearNodes(cleaningList);
         return null;
     }
+    /////////////////////////////
+    //Private Utility Methods //
+    ////////////////////////////
 
-    private static List<Node> rebuildPathJPS(Node current, Node start){
+
+    /**
+     * Rebuilds the path from a Jump point search.
+     *
+     * @param current The goal node.
+     * @param start   The start node.
+     * @return A list of nodes that make up the path
+     */
+    private static List<Node> rebuildPathJPS(Node current, Node start) {
         List<Node> path = new ArrayList<>();
         Vector2D position = start.position;
         while (true) {
@@ -185,7 +222,14 @@ public class PathFinder {
         }
     }
 
-    private static List<Node> rebuildPathAStar(Map<Node, Node> cameFrom, Node current, Node start){
+    /**
+     * Rebuilds the path from an A* search.
+     *
+     * @param current The goal node.
+     * @param start   The start node.
+     * @return A list of nodes that make up the path
+     */
+    private static List<Node> rebuildPathAStar(Map<Node, Node> cameFrom, Node current, Node start) {
         List<Node> path = new ArrayList<>();
         path.add(current);
         while (!cameFrom.get(current).equals(start)) {
@@ -196,6 +240,16 @@ public class PathFinder {
         return path;
     }
 
+    /**
+     * Utility method to perform the recursive jumps in Jump Point Search.
+     *
+     * @param grid     The grid to search.
+     * @param nodePos  The current nodes position.
+     * @param parent   The parent node.
+     * @param goal     The goal node.
+     * @param moveDiag True if can move diagonally.
+     * @return The jump point node or null if no jump point found.
+     */
     private static Node jump(Grid grid, Vector2D nodePos, Node parent, Node goal, boolean moveDiag) {
         int x = nodePos.getX().intValue(), y = nodePos.getY().intValue();
         if (!grid.walkable(x, y)) { //If space isn't walkable return null
@@ -256,6 +310,11 @@ public class PathFinder {
     }
 
 
+    /**
+     * Utility method to reset the list of nodes.
+     *
+     * @param nodes List of nodes to reset.
+     */
     public static void clearNodes(List<Node> nodes) {
         if (nodes.isEmpty()) return;
         for (Node node : nodes) {

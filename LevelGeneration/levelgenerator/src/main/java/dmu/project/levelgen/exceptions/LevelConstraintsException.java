@@ -2,6 +2,7 @@ package dmu.project.levelgen.exceptions;
 
 /**
  * Created by Dom on 11/03/2017.
+ * Exception to throw if level generation constraints are invalid.
  */
 
 public class LevelConstraintsException extends Exception {

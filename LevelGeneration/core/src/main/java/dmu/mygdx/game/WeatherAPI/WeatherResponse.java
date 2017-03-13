@@ -6,6 +6,8 @@ import java.util.List;
 
 /**
  * Created by Dom on 22/02/2017.
+ *
+ * Java mapping of OpenWeatherMap JSON response.
  */
 
 public class WeatherResponse {

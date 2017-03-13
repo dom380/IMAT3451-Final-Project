@@ -11,6 +11,9 @@ import com.badlogic.gdx.utils.PropertiesUtils;
 
 import java.io.IOException;
 
+/**
+ * The main game class.
+ */
 public class MyGdxGame extends Game {
     SpriteBatch batch;
     private BitmapFont font;
@@ -21,12 +24,22 @@ public class MyGdxGame extends Game {
 
     ObjectMap<String, String> properties = new ObjectMap<>();
 
+    /**
+     * Constructor.
+     *
+     * @param locationService Implementation of the location service.
+     * @param apiUrl          The Weather API URL.
+     * @param apiKey          The Weather API key.
+     */
     MyGdxGame(LocationService locationService, String apiUrl, String apiKey) {
         this.locationService = locationService;
         this.apiUrl = apiUrl;
         this.apiKey = apiKey;
     }
 
+    /**
+     * Initialisation method. Called on start up.
+     */
     @Override
     public void create() {
         batch = new SpriteBatch();
@@ -44,6 +57,9 @@ public class MyGdxGame extends Game {
         this.setScreen(mainMenuScreen);
     }
 
+    /**
+     * Disposes the current screen and switches to the main menu.
+     */
     public void returnToMenu() {
         if (this.getScreen() != null)
             this.getScreen().dispose();
@@ -52,12 +68,20 @@ public class MyGdxGame extends Game {
         this.setScreen(mainMenuScreen);
     }
 
+    /**
+     * Disposes the current screen and switches to the specified one.
+     *
+     * @param screen The screen to switch to.
+     */
     public void switchScreen(Screen screen) {
         if (this.getScreen() != null)
             this.getScreen().dispose();
         this.setScreen(screen);
     }
 
+    /**
+     * @return the location service.
+     */
     public LocationService getLocationService() {
         return locationService;
     }
@@ -73,6 +97,11 @@ public class MyGdxGame extends Game {
         this.getScreen().dispose();
     }
 
+    /**
+     * Sets the default level generation properties.
+     *
+     * @param properties The object to hold the properties.
+     */
     private void setDefaultProperties(ObjectMap<String, String> properties) {
         properties.put("constraints.populationSize", "100");
         properties.put("constraints.maxGenerations", "50");

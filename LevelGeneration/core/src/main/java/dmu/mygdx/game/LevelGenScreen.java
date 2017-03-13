@@ -58,6 +58,15 @@ public class LevelGenScreen implements Screen {
     private int mapIndex = 0, lastMapIndex = 0;
     GameUI gameUI;
 
+    /**
+     * Constructor
+     *
+     * @param game The main game object.
+     * @param noiseWidth The width of the noise sample grid for the Perlin level generator.
+     * @param noiseHeight The height of the noise sample grid for the Perlin level generator.
+     * @param difficulty The difficulty of the levels to generate.
+     * @param debugEnabled Whether to use the debug seed or not.
+     */
     public LevelGenScreen(MyGdxGame game, int noiseWidth, int noiseHeight, int difficulty, boolean debugEnabled) {
         this.game = game;
         this.noiseWidth = noiseWidth;
@@ -72,50 +81,10 @@ public class LevelGenScreen implements Screen {
     }
 
 
-    private boolean init() {
-        scaleX = (float) width / (Gdx.graphics.getWidth() / tileWidth);
-        scaleY = (float) height / (Gdx.graphics.getHeight() / tileWidth);
-        //Set level constraints
-        Constraints constraints = readConstraints(game.properties);
-        //Generate Level
-        GAPopulationGen populationGen = new GAPopulationGen(constraints);
-        try {
-            mapCandidates = populationGen.populate();
-        } catch (LevelGenerationException e) {
-            Gdx.app.error("Level Creation", "Unrecoverable exception thrown.", e);
-            game.returnToMenu(); //Go back to main menu.
-        }
-        WeatherClient weatherClient = new WeatherClient(game.apiUrl, game.apiKey);//Todo find a better way of getting this string from android resources
-        double[] latLong = game.getLocationService().getLatLong();
-        if (latLong != null)
-            weather = weatherClient.getWeather(latLong[0], latLong[1]);
-        heightMap = populationGen.getHeightMap();
-        map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, mapCandidates.get(0).tileSet, weather);
-        CameraController2D cameraInputController = new CameraController2D(camera, Math.min(scaleX, scaleY), scaleX, scaleY);
-        mapCameraController = new GestureDetector(cameraInputController);
-        inputMultiplexer.addProcessor(mapCameraController);
-        Gdx.input.setInputProcessor(inputMultiplexer);
-        return true;
-    }
-
-    private Constraints readConstraints(ObjectMap<String, String> properties) {
-        Constraints constraints = new Constraints();
-        String value = properties.get("constraints.populationSize", "100");
-        constraints.setPopulationSize(Integer.valueOf(value));
-        value = properties.get("constraints.maxGenerations", "50");
-        constraints.setMaxGenerations(Integer.valueOf(value));
-        constraints.setMapHeight(height);
-        constraints.setMapWidth(width);
-        constraints.setNoiseWidth(noiseWidth);
-        constraints.setNoiseHeight(noiseHeight);
-        value = properties.get("constraints.objectivesEnabled", "true");
-        constraints.setObjectivesEnabled(Boolean.parseBoolean(value));
-        constraints.setDifficulty(difficulty);
-        if (debugEnabled)
-            constraints.setSeed(debugSeed);
-        return constraints;
-    }
-
+    /**
+     * Switch the map with the specified index.
+     * @param index The index of the map to switch to.
+     */
     void switchMap(int index) {
         if (index > 9 || index >= mapCandidates.size())
             index = Math.min(9, mapCandidates.size() - 1);
@@ -132,6 +101,9 @@ public class LevelGenScreen implements Screen {
         renderer.setView(camera);
     }
 
+    /**
+     * Switch the next map.
+     */
     void switchNextMap() {
         int minIndex = Math.min(9, mapCandidates.size() - 1);
         lastMapIndex = mapIndex;
@@ -147,6 +119,9 @@ public class LevelGenScreen implements Screen {
         renderer.setView(camera);
     }
 
+    /**
+     * Switch the previous map.
+     */
     void switchPreviousMap() {
         int minIndex = Math.min(9, mapCandidates.size() - 1);
         lastMapIndex = mapIndex;
@@ -162,6 +137,9 @@ public class LevelGenScreen implements Screen {
         renderer.setView(camera);
     }
 
+    /**
+     * Method called when a level is selected. Starts the game play.
+     */
     void playMap() {
         state = GameState.PLAYING;
         int objectiveCount = 0;
@@ -204,13 +182,11 @@ public class LevelGenScreen implements Screen {
         inputMultiplexer.addProcessor(controller);
     }
 
-    void resetGrid(int lastMapIndex) {
-        List<Tile> tileList = getMapCandidates().get(lastMapIndex).tileSet;
-        for (Tile tile : tileList) {
-            heightMap.grid.getNode(tile.position[0], tile.position[1]).walkable = true;
-        }
-    }
 
+    /**
+     * Called when the screen is first shown.
+     * Construct the UI and Controller.
+     */
     @Override
     public void show() {
         ui = new LevelSelectUI(game, this);
@@ -220,21 +196,29 @@ public class LevelGenScreen implements Screen {
         controller = new Controller(game.batch, player);
     }
 
+    /**
+     * Update any logic and render the screen.
+     *
+     * @param delta Time step in seconds.
+     */
     @Override
     public void render(float delta) {
+        //Clear the buffer
         Gdx.gl.glClearColor(0.4f, 0.4f, 0.98f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        //Update the camera
         camera.update();
+        //Render the map
         renderer.setView(camera);
         renderer.render();
-        if (map.particleEffect != null) {
+        if (delta > 0.01667) delta = 0.0166f; //Limit the time step.
+        if (map.particleEffect != null) { //If there's an active particle effect, update and render it.
             map.particleEffect.update(delta);
             game.batch.setProjectionMatrix(camera.combined);
             game.batch.begin();
             map.particleEffect.draw(game.batch);
             game.batch.end();
         }
-        if (delta > 0.01667) delta = 0.0166f;
         switch (state) {
             case PLAYING: {
                 if (player.getHP() <= 0) {
@@ -282,7 +266,6 @@ public class LevelGenScreen implements Screen {
                 for (Enemy enemy : enemies) {
                     enemy.render(delta, camera);
                 }
-                //player.render(delta, camera);
                 controller.draw(delta);
                 gameUI.draw();
                 break;
@@ -292,37 +275,10 @@ public class LevelGenScreen implements Screen {
                     enemy.render(delta, camera);
                 }
                 player.render(delta, camera);
-                //controller.draw(delta);
                 gameUI.draw();
                 break;
         }
     }
-
-
-    private void fixCamBounds() {
-        float scrollLimitX = camera.viewportWidth * scaleX;
-        float scrollLimitY = camera.viewportHeight * scaleY;
-        //Constrain camera from scrolling outside of map
-        if (camera.position.x - (camera.viewportWidth * camera.zoom) / 2 < 0)
-            camera.position.x = (camera.viewportWidth * camera.zoom) / 2;
-        else if (camera.position.x + (camera.viewportWidth * camera.zoom) / 2 > scrollLimitX)
-            camera.position.x = scrollLimitX - (camera.viewportWidth * camera.zoom) / 2;
-        if (camera.position.y - (camera.viewportHeight * camera.zoom) / 2 < 0)
-            camera.position.y = (camera.viewportHeight * camera.zoom) / 2;
-        else if (camera.position.y + (camera.viewportHeight * camera.zoom) / 2 > scrollLimitY)
-            camera.position.y = scrollLimitY - (camera.viewportHeight * camera.zoom) / 2;
-        camera.update();
-    }
-
-    private void resetCamera() {
-        if (camera != null) {
-            this.camera.viewportWidth = Gdx.graphics.getWidth();
-            this.camera.viewportHeight = Gdx.graphics.getHeight();
-            this.camera.position.set(camera.viewportWidth / 2.f, camera.viewportHeight / 2.f, 0);
-            this.camera.update();
-        }
-    }
-
 
     @Override
     public void resize(int width, int height) {
@@ -355,6 +311,7 @@ public class LevelGenScreen implements Screen {
         if (ui != null) ui.dispose();
         if (player != null) player.dispose();
         if (gameUI != null) gameUI.dispose();
+        if(controller != null) controller.dispose();
     }
 
     public List<MapCandidate> getMapCandidates() {
@@ -365,6 +322,110 @@ public class LevelGenScreen implements Screen {
         return mapIndex;
     }
 
+    /////////////////////////////
+    //Private Utility Methods //
+    ////////////////////////////
+
+    /**
+     * Generates the level.
+     *
+     * @return true if successful.
+     */
+    private boolean init() {
+        scaleX = (float) width / (Gdx.graphics.getWidth() / tileWidth);
+        scaleY = (float) height / (Gdx.graphics.getHeight() / tileWidth);
+        //Set level constraints
+        Constraints constraints = readConstraints(game.properties);
+        //Generate Level
+        GAPopulationGen populationGen = new GAPopulationGen(constraints);
+        try {
+            mapCandidates = populationGen.populate();
+        } catch (LevelGenerationException e) {
+            Gdx.app.error("Level Creation", "Unrecoverable exception thrown.", e);
+            game.returnToMenu(); //Go back to main menu.
+        }
+        WeatherClient weatherClient = new WeatherClient(game.apiUrl, game.apiKey);
+        double[] latLong = game.getLocationService().getLatLong();
+        if (latLong != null)
+            weather = weatherClient.getWeather(latLong[0], latLong[1]);
+        heightMap = populationGen.getHeightMap();
+        map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, mapCandidates.get(0).tileSet, weather);
+        CameraController2D cameraInputController = new CameraController2D(camera, Math.min(scaleX, scaleY), scaleX, scaleY);
+        mapCameraController = new GestureDetector(cameraInputController);
+        inputMultiplexer.addProcessor(mapCameraController);
+        Gdx.input.setInputProcessor(inputMultiplexer);
+        return true;
+    }
+
+    /**
+     * Utility method to read the game's configuration.
+     *
+     * @param properties A map of name value pairs.
+     * @return Returns the constraints with the values from the properties.
+     */
+    private Constraints readConstraints(ObjectMap<String, String> properties) {
+        Constraints constraints = new Constraints();
+        String value = properties.get("constraints.populationSize", "100");
+        constraints.setPopulationSize(Integer.valueOf(value));
+        value = properties.get("constraints.maxGenerations", "50");
+        constraints.setMaxGenerations(Integer.valueOf(value));
+        constraints.setMapHeight(height);
+        constraints.setMapWidth(width);
+        constraints.setNoiseWidth(noiseWidth);
+        constraints.setNoiseHeight(noiseHeight);
+        value = properties.get("constraints.objectivesEnabled", "true");
+        constraints.setObjectivesEnabled(Boolean.parseBoolean(value));
+        constraints.setDifficulty(difficulty);
+        if (debugEnabled)
+            constraints.setSeed(debugSeed);
+        return constraints;
+    }
+
+    /**
+     * Utility method to constrain the camera to the scene.
+     */
+    private void fixCamBounds() {
+        float scrollLimitX = camera.viewportWidth * scaleX;
+        float scrollLimitY = camera.viewportHeight * scaleY;
+        //Constrain camera from scrolling outside of map
+        if (camera.position.x - (camera.viewportWidth * camera.zoom) / 2 < 0)
+            camera.position.x = (camera.viewportWidth * camera.zoom) / 2;
+        else if (camera.position.x + (camera.viewportWidth * camera.zoom) / 2 > scrollLimitX)
+            camera.position.x = scrollLimitX - (camera.viewportWidth * camera.zoom) / 2;
+        if (camera.position.y - (camera.viewportHeight * camera.zoom) / 2 < 0)
+            camera.position.y = (camera.viewportHeight * camera.zoom) / 2;
+        else if (camera.position.y + (camera.viewportHeight * camera.zoom) / 2 > scrollLimitY)
+            camera.position.y = scrollLimitY - (camera.viewportHeight * camera.zoom) / 2;
+        camera.update();
+    }
+
+    /**
+     * Utility method to reset the camera to default position.
+     */
+    private void resetCamera() {
+        if (camera != null) {
+            this.camera.viewportWidth = Gdx.graphics.getWidth();
+            this.camera.viewportHeight = Gdx.graphics.getHeight();
+            this.camera.position.set(camera.viewportWidth / 2.f, camera.viewportHeight / 2.f, 0);
+            this.camera.update();
+        }
+    }
+
+    /**
+     * Reset the game grid.
+     * @param lastMapIndex Index of the last map used.
+     */
+    private void resetGrid(int lastMapIndex) {
+        List<Tile> tileList = getMapCandidates().get(lastMapIndex).tileSet;
+        for (Tile tile : tileList) {
+            heightMap.grid.getNode(tile.position[0], tile.position[1]).walkable = true;
+        }
+    }
+
+
+    /**
+     * Enum specifying the game state.
+     */
     private enum GameState {
         PLAYING,
         LEVEL_SELECT,

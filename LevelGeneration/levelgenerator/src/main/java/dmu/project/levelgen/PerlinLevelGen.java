@@ -96,6 +96,10 @@ public class PerlinLevelGen implements LevelGenerator {
         return heightMap;
     }
 
+    /////////////////////////////
+    //Private Utility Methods //
+    ////////////////////////////
+
     /**
      * Method to call to the noise library.
      * OpenSimplexNoise returns values between -1..1 and are scaled to 0..1
@@ -109,6 +113,14 @@ public class PerlinLevelGen implements LevelGenerator {
         return (simplexNoise.eval(nx, ny) / 2.0) + 0.5;
     }
 
+    /**
+     * Creates a new Node.
+     *
+     * @param x The X coordinate of the node.
+     * @param y The Y coordinate of the node.
+     * @param aboveWater True if the node is above the water level.
+     * @return The created node.
+     */
     private Node createNode(int x, int y, boolean aboveWater){
         return new Node(new Vector2D(x,y),-1, aboveWater);
     }

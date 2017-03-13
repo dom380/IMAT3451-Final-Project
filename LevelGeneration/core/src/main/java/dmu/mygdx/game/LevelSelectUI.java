@@ -16,6 +16,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
  * Created by Dom on 27/02/2017.
+ * Class to handle the level selection UI.
  */
 
 public class LevelSelectUI {
@@ -27,6 +28,12 @@ public class LevelSelectUI {
     private SpriteBatch batch;
 
 
+    /**
+     * Constructor
+     *
+     * @param game The main game object.
+     * @param screen The current screen.
+     */
     public LevelSelectUI(final MyGdxGame game, final LevelGenScreen screen) {
         camera = new OrthographicCamera();
         atlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
@@ -58,7 +65,6 @@ public class LevelSelectUI {
                 mapLabel.setText("Map " + (screen.getMapIndex()+1) + "/10");
             }
         });
-//        nextButton.pad(0.0f,5.0f,0.0f,0.0f);
         TextButton menuButton = new TextButton("Main Menu", skin);
         menuButton.addListener(new ClickListener() {
             @Override
@@ -85,20 +91,34 @@ public class LevelSelectUI {
         stage.addActor(table);
     }
 
+    /**
+     * Render the UI.
+     */
     public void draw() {
         stage.draw();
     }
 
+    /**
+     * Dispose of the assets.
+     */
     public void dispose() {
         stage.dispose();
         atlas.dispose();
         skin.dispose();
     }
 
+    /**
+     * Resize the UI.
+     * @param width The new width of the screen.
+     * @param height The new height of the screen.
+     */
     public void resize(int width, int height) {
         viewport.update(width, height);
     }
 
+    /**
+     * @return Returns the scene2D stage holding the UI elements.
+     */
     public Stage getStage() {
         return stage;
     }

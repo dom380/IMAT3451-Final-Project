@@ -18,7 +18,7 @@ public class Constraints {
     /**
      * Target length of the path between start and end points of the level.
      */
-    float length = 0.0f;
+    float length = 300.0f;
     /**
      * Number of candidates within each generation
      */
@@ -39,6 +39,10 @@ public class Constraints {
     int noiseHeight = 4;
 
     long seed = -1;
+
+    /*
+        Getters and Setters
+     */
 
     public int getMapWidth() {
         return mapWidth;

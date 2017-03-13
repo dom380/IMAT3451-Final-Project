@@ -14,11 +14,24 @@ import dmu.project.levelgen.HeightMap;
 import dmu.project.levelgen.Tile;
 
 /**
- * Created by Dom on 25/02/2017.
+ * Created by Dom on 25/02/2017.#
+ * Utility class to aid in building the map tile set.
  */
 
 public class MapBuilder {
 
+    /**
+     * Builds the specified map.
+     *
+     * @param width           The width of the map.
+     * @param height          The height of the map.
+     * @param tileWidth       The width of each individual tile in pixels.
+     * @param tileHeight      The height of each individual tile in pixels.
+     * @param heightMap       The heightmap to use.
+     * @param mapObjects      The list of objects on the map.
+     * @param weatherResponse Optional, the current weather.
+     * @return The built map.
+     */
     public static Map buildMap(int width, int height, int tileWidth, int tileHeight, HeightMap heightMap, List<Tile> mapObjects, dmu.mygdx.game.WeatherAPI.WeatherResponse weatherResponse) {
         Map map = new Map();
         map.spriteTexture = new Texture(Gdx.files.internal("sprites/spritesv2.png"));
@@ -42,8 +55,11 @@ public class MapBuilder {
     }
 
 
+    /**
+     * Class representing the map.
+     */
     public static class Map {
-        public Map() {
+        public Map() { //Empty constructor
         }
 
         public Texture spriteTexture;
@@ -51,6 +67,9 @@ public class MapBuilder {
         public TiledMap tiledMap = new TiledMap();
         public ParticleEffect particleEffect;
 
+        /**
+         * Clean up resources.
+         */
         public void dispose() {
             spriteTexture.dispose();
             tileTexture.dispose();
@@ -58,6 +77,22 @@ public class MapBuilder {
         }
     }
 
+
+    /////////////////////////////
+    //Private Utility Methods //
+    ////////////////////////////
+
+    /**
+     * Builds the map using the snow tile set.
+     *
+     * @param width      The width of the map.
+     * @param height     The height of the map.
+     * @param tileWidth  The width of each individual tile in pixels.
+     * @param tileHeight The height of each individual tile in pixels.
+     * @param heightMap  The heightmap to use.
+     * @param mapObjects The list of objects on the map.
+     * @return The built map.
+     */
     private static Map buildSnowMap(Map map, int width, int height, int tileWidth, int tileHeight, HeightMap heightMap, List<Tile> mapObjects) {
         map.particleEffect = new ParticleEffect();
         map.particleEffect.load(Gdx.files.internal("effects/snow_particle.p"), Gdx.files.internal("effects"));
@@ -98,19 +133,51 @@ public class MapBuilder {
         return map;
     }
 
+    /**
+     * Builds the map using the swamp tile set.
+     *
+     * @param width      The width of the map.
+     * @param height     The height of the map.
+     * @param tileWidth  The width of each individual tile in pixels.
+     * @param tileHeight The height of each individual tile in pixels.
+     * @param heightMap  The heightmap to use.
+     * @param mapObjects The list of objects on the map.
+     * @return The built map.
+     */
     private static Map buildSwampMap(Map map, int width, int height, int tileWidth, int tileHeight, HeightMap heightMap, List<Tile> mapObjects) {
-        //todo
         map.particleEffect = new ParticleEffect();
         map.particleEffect.load(Gdx.files.internal("effects/rain_particle.p"), Gdx.files.internal("effects"));
         map.particleEffect.setPosition(0, Gdx.graphics.getHeight() + 10);
         return buildGrassMap(map, width, height, tileWidth, tileHeight, heightMap, mapObjects);
     }
 
+    /**
+     * Builds the map using the desert tile set.
+     *
+     * @param width      The width of the map.
+     * @param height     The height of the map.
+     * @param tileWidth  The width of each individual tile in pixels.
+     * @param tileHeight The height of each individual tile in pixels.
+     * @param heightMap  The heightmap to use.
+     * @param mapObjects The list of objects on the map.
+     * @return The built map.
+     */
     private static Map buildDesertMap(Map map, int width, int height, int tileWidth, int tileHeight, HeightMap heightMap, List<Tile> mapObjects) {
         //todo
         return buildGrassMap(map, width, height, tileWidth, tileHeight, heightMap, mapObjects);
     }
 
+    /**
+     * Builds the map using the grass lands tile set.
+     *
+     * @param width      The width of the map.
+     * @param height     The height of the map.
+     * @param tileWidth  The width of each individual tile in pixels.
+     * @param tileHeight The height of each individual tile in pixels.
+     * @param heightMap  The heightmap to use.
+     * @param mapObjects The list of objects on the map.
+     * @return The built map.
+     */
     private static Map buildGrassMap(Map map, int width, int height, int tileWidth, int tileHeight, HeightMap heightMap, List<Tile> mapObjects) {
 
         map.tileTexture = new Texture(Gdx.files.internal("sprites/grassGradient.png"));
@@ -153,11 +220,21 @@ public class MapBuilder {
         return map;
     }
 
+    /**
+     * Utility method to build the object sprite layer.
+     *
+     * @param width        The width of the map.
+     * @param height       The height of the map.
+     * @param tileWidth    The width of each individual tile in pixels.
+     * @param tileHeight   The height of each individual tile in pixels.
+     * @param mapObjects   The list of objects on the map.
+     * @param splitSprites The tile set's object sprites.
+     * @return The object sprite layer.
+     */
     private static TiledMapTileLayer addSprites(int width, int height, int tileWidth, int tileHeight, List<Tile> mapObjects, TextureRegion[] splitSprites) {
         TiledMapTileLayer spriteLayer = new TiledMapTileLayer(width, height, tileWidth, tileHeight);
-        int enemyCount = 0;
         for (Tile tile : mapObjects) { //For each level object set correct sprite.
-            int tx = 0, ty = 0;
+            int tx = 0;
             switch (tile.tileState) {
                 case START:
                     tx = 4;
@@ -173,14 +250,12 @@ public class MapBuilder {
                     break;
                 case ENEMY:
                     tx = 2;
-                    enemyCount++;
                     break;
             }
             TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
             cell.setTile(new StaticTiledMapTile(splitSprites[tx]));
             spriteLayer.setCell(tile.position[0], tile.position[1], cell);
         }
-        enemyCount = enemyCount -1;
         return spriteLayer;
     }
 }

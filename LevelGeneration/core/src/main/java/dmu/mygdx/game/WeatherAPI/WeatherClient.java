@@ -1,5 +1,6 @@
 package dmu.mygdx.game.WeatherAPI;
 
+import com.badlogic.gdx.Gdx;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -9,6 +10,7 @@ import dmu.project.utils.RestClient;
 
 /**
  * Created by Dom on 22/02/2017.
+ * Client to access OpenWeatherMap API.
  */
 
 public class WeatherClient {
@@ -17,6 +19,12 @@ public class WeatherClient {
     private String apiUrl;
     private final ObjectMapper mapper;
 
+    /**
+     * Constructor
+     *
+     * @param apiUrl The base URL to the API.
+     * @param apiKey The client's API key.
+     */
     public WeatherClient(String apiUrl, String apiKey) {
         this.apiUrl = apiUrl;
         this.apiKey = apiKey;
@@ -24,6 +32,13 @@ public class WeatherClient {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
+    /**
+     * Query the OpenWeatherMap service for the current weather at the specified location.
+     *
+     * @param latitude The latitude to look up.
+     * @param longitude The longitude to look up.
+     * @return The current weather at that location or null if the query failed.
+     */
     public WeatherResponse getWeather(double latitude, double longitude) {
         String response = executeRequest(latitude, longitude);
         if(response == null){
@@ -38,7 +53,17 @@ public class WeatherClient {
             return null;
         }
     }
+    /////////////////////////////
+    //Private Utility Methods //
+    ////////////////////////////
 
+    /**
+     * Builds and executes the REST request.
+     *
+     * @param latitude The latitude to look up.
+     * @param longitude The longitude to look up.
+     * @return The JSON response from the server.
+     */
     private String executeRequest(double latitude, double longitude) {
         String response = null;
         try {
@@ -51,8 +76,7 @@ public class WeatherClient {
             client.execute(RestClient.RequestMethod.GET);
             response = client.getResponse();
         } catch (Exception e) {
-            e.printStackTrace();
-            response = "{\"coord\":{\"lon\":-0.13,\"lat\":51.51},\"weather\":[{\"id\":300,\"main\":\"Drizzle\",\"description\":\"light intensity drizzle\",\"icon\":\"09d\"}],\"base\":\"stations\",\"main\":{\"temp\":12.25,\"pressure\":1008,\"humidity\":82,\"temp_min\":11,\"temp_max\":13},\"visibility\":10000,\"wind\":{\"speed\":7.2,\"deg\":250},\"clouds\":{\"all\":90},\"dt\":1487760600,\"sys\":{\"type\":1,\"id\":5091,\"message\":0.036,\"country\":\"GB\",\"sunrise\":1487746753,\"sunset\":1487784566},\"id\":2643743,\"name\":\"London\",\"cod\":200}";
+            Gdx.app.error("WeatherAPI", e.getMessage(), e);
         }
         return response;
     }

@@ -10,9 +10,6 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.tiles.StaticTiledMapTile;
 import com.badlogic.gdx.math.Vector2;
 import com.google.common.base.Stopwatch;
-import dmu.mygdx.game.Enemy;
-import dmu.mygdx.game.GridMovement;
-import dmu.mygdx.game.MapBuilder;
 
 import java.util.Iterator;
 import java.util.List;
@@ -24,6 +21,7 @@ import dmu.project.utils.Grid;
 
 /**
  * Created by Dom on 03/03/2017.
+ * Class representing the Player character.
  */
 
 public class Player extends TileMovable {
@@ -41,6 +39,16 @@ public class Player extends TileMovable {
     private int HP;
 
 
+    /**
+     * Constructor.
+     *
+     * @param screen   The current screen.
+     * @param batch    The sprite batch to render the player with.
+     * @param grid     The grid to move the player on.
+     * @param tileList The list of all game objects in the level.
+     * @param map      The current map.
+     * @param HP       The players max HP.
+     */
     public Player(LevelGenScreen screen, SpriteBatch batch, Grid grid, List<Tile> tileList, MapBuilder.Map map, int HP) {
         super(new Vector2(20 * TILE_WIDTH, 20 * TILE_HEIGHT), new Vector2());
         this.tileList = tileList;
@@ -65,6 +73,9 @@ public class Player extends TileMovable {
         this.HP = HP;
     }
 
+    /**
+     * Sets the player into attack state.
+     */
     public void attack() {
         if (!attacking) {
             Gdx.app.log("Button Press", "Player attack");
@@ -81,6 +92,10 @@ public class Player extends TileMovable {
         }
     }
 
+    /**
+     * Interact with object in front of the player.
+     * If it's objective, activate it. If it's an item, gain HP.
+     */
     public void interact() {
         for (Tile tile : tileList) {
             if (tile.tileState != TileState.ITEM && tile.tileState != TileState.OBJECTIVE)
@@ -93,10 +108,10 @@ public class Player extends TileMovable {
                     gridMovement.getGrid().getNode(tile.position[0], tile.position[1]).walkable = true;
                     ((TiledMapTileLayer) map.tiledMap.getLayers().get(1)).setCell(tile.position[0], tile.position[1], null);
                     tile.active = false;
-                    HP+=3;
+                    HP += 3;
                     screen.gameUI.updateHP(3);
-                    if(HP > 10){
-                        int diff = 10-HP;
+                    if (HP > 10) {
+                        int diff = 10 - HP;
                         HP = 10;
                         screen.gameUI.updateHP(diff);
                     }
@@ -112,6 +127,12 @@ public class Player extends TileMovable {
         }
     }
 
+    /**
+     * Update the player's movement and collisions.
+     *
+     * @param delta   The time step.
+     * @param enemies The list of enemies.
+     */
     public void update(float delta, List<Enemy> enemies) {
         super.update(delta);
         if (timer.isRunning() && timer.elapsed(TimeUnit.MILLISECONDS) > 75) { //If the touchpad hasn't been released for x ms, read as a move instead of change facing dir
@@ -127,13 +148,13 @@ public class Player extends TileMovable {
             int tileY = (int) (position.y / TILE_HEIGHT);
             int enemyX = (int) (enemy.position.x / TILE_WIDTH);
             int enemyY = (int) (enemy.position.y / TILE_HEIGHT);
-            if (attacking) {
-                if (enemyX == tileX + direction.x && enemyY == tileY + direction.y) {
+            if (attacking) { //IF in attack state
+                if (enemyX == tileX + direction.x && enemyY == tileY + direction.y) { //If there's an enemy in front of us, kill them.
                     iterator.remove();
                     break;
                 }
             }
-            if (enemyX == tileX && enemyY == tileY) {
+            if (enemyX == tileX && enemyY == tileY) { //If an enemy is on the same tile as us, lose health and get knocked back.
                 HP--;
                 screen.gameUI.updateHP(-1);
                 if (gridMovement.getGrid().walkable(tileX + (int) (direction.x * -2), tileY + (int) (direction.y * -2))) {
@@ -151,6 +172,11 @@ public class Player extends TileMovable {
         }
     }
 
+    /**
+     * Render the player's sprite
+     * @param delta the time step.
+     * @param camera the camera to use.
+     */
     public void render(float delta, Camera camera) {
         animTime += delta;
         TextureRegion keyFrame = null, attackFrame = null;
@@ -203,6 +229,10 @@ public class Player extends TileMovable {
         if (animTime > 1.0f) animTime = 0.0f;
     }
 
+    /**
+     * Start moving the player in the specified direction.
+     * @param dir 2D vector specifying the direction to move in.
+     */
     public void setMoving(Vector2 dir) {
         if (dir != null) { //Controller passed a direction
             direction = dir; //Set the player's direction

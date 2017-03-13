@@ -4,6 +4,7 @@ import dmu.project.utils.Grid;
 
 /**
  * Created by Dom on 19/01/2017.
+ * Class representing the level's height map.
  */
 
 public class HeightMap {

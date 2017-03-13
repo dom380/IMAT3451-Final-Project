@@ -22,6 +22,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
  * Created by Dom on 03/03/2017.
+ * Class to handle input to control the player character and display the on screen controls.
  */
 
 public class Controller extends InputAdapter {
@@ -34,6 +35,12 @@ public class Controller extends InputAdapter {
     private Skin touchpadSkin, buttonSkin;
     private Player player;
 
+    /**
+     * Constructor. Initialises the UI layout.
+     *
+     * @param batch The sprite batch to use when rendering the UI
+     * @param player The player character to control.
+     */
     public Controller(SpriteBatch batch, final Player player) {
         this.player = player;
         camera = new OrthographicCamera();
@@ -122,11 +129,18 @@ public class Controller extends InputAdapter {
         stage.addActor(table);
     }
 
+    /**
+     * Render the UI elements.
+     * @param delta the time since the last frame.
+     */
     public void draw(float delta) {
         stage.act(delta);
         stage.draw();
     }
 
+    /**
+     * Clean up assets.
+     */
     public void dispose() {
         stage.dispose();
         atlas.dispose();
@@ -135,15 +149,28 @@ public class Controller extends InputAdapter {
     }
 
 
+    /**
+     * Called on screen resize events.
+     * @param width new width of screen.
+     * @param height new height of screen.
+     */
     public void resize(int width, int height) {
         viewport.update(width, height);
     }
 
+    /**
+     * @return The scene2D stage holding the UI elements.
+     */
     public Stage getStage() {
         return stage;
     }
 
 
+    /**
+     * Handle key press events.
+     * @param keycode The LibGDX key code for the key pressed.
+     * @return True if the event was handled, false if not.
+     */
     @Override
     public boolean keyDown(int keycode) {
         switch (keycode){
@@ -164,6 +191,11 @@ public class Controller extends InputAdapter {
         }
     }
 
+    /**
+     * Key Released event.
+     * @param keycode The LibGDX key code for the key pressed.
+     * @return True if the event was handled, false if not.
+     */
     @Override
     public boolean keyUp(int keycode) {
         switch (keycode){

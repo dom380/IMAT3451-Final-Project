@@ -10,6 +10,7 @@ import dmu.project.utils.Vector2D;
 
 /**
  * Created by Dom on 10/02/2017.
+ * Utility class handle creating MapCandidates for Genetic algorithm.
  */
 
 public class CandidateFactory {
@@ -20,6 +21,14 @@ public class CandidateFactory {
     private int height;
     private boolean objectivesEnabled;
 
+    /**
+     * Constructor
+     *
+     * @param heightMap         The heightmap.
+     * @param width             The width of the map.
+     * @param height            The height of the map.
+     * @param objectivesEnabled True if objects should be added.
+     */
     CandidateFactory(HeightMap heightMap, int width, int height, boolean objectivesEnabled) {
         this.heightMap = heightMap;
         this.width = width;
@@ -27,6 +36,15 @@ public class CandidateFactory {
         this.objectivesEnabled = objectivesEnabled;
     }
 
+    /**
+     * Constructor
+     *
+     * @param heightMap         The heightmap.
+     * @param width             The width of the map.
+     * @param height            The height of the map.
+     * @param objectivesEnabled True if objects should be added.
+     * @param seed              The Random number seed to use.
+     */
     CandidateFactory(HeightMap heightMap, int width, int height, boolean objectivesEnabled, long seed) {
         this.heightMap = heightMap;
         this.width = width;
@@ -35,24 +53,26 @@ public class CandidateFactory {
         rng = new Random(seed);
     }
 
-    /* TODO Requires tweaking
-            Things that impact difficulty:
-                - Order of entities being added
-                - Number of tiles available
-             On Higher Difficulty (say 7-10):
-                - Objectives, Enemies, Obstacles, Items
-                - Bias more objectives?
-                - Bias more enemies?
-                - Limit items
-             Mid difficulty (4-6):
-                - Objectives, Obstacles, Enemies, Items
-                - Bias less objectives
-             Low difficulty (1-3):
-                - Objectives, Obstacles, Enemies, Items
-                - bias less enemies
-                - slightly more items?
-                - hard limit objectives to 1-3.
-         */
+    /**
+     * Creates the MapCandidate at the specified difficulty.
+     * <p>
+     * On Higher Difficulty (7-10):
+     * - Objectives, Enemies, Obstacles, Items
+     * - Bias more objectives?
+     * - Bias more enemies?
+     * - Limit items
+     * Mid difficulty (4-6):
+     * - Objectives, Obstacles, Enemies, Items
+     * - Bias less objectives
+     * Low difficulty (1-3):
+     * - Objectives, Obstacles, Enemies, Items
+     * - bias less enemies
+     * - slightly more items?
+     * - hard limit objectives to 1-3.
+     *
+     * @param difficulty The difficulty of the map.
+     * @return The populated MapCandidate.
+     */
     public MapCandidate createCandidate(int difficulty) {
         List<Tile> tileSet = new ArrayList<>();
         Set<Vector2D> usedTiles = new LinkedHashSet<>();
@@ -65,6 +85,19 @@ public class CandidateFactory {
         return new MapCandidate(tileSet);
     }
 
+    /////////////////////////////
+    //Private Utility Methods //
+    ////////////////////////////
+
+    /**
+     * Add the objects to the map in a random position.
+     *
+     * @param tileSet    The current list of objects.
+     * @param difficulty The difficulty.
+     * @param freeTiles  The number of free tiles.
+     * @param usedTiles  The set of used tiles.
+     * @return The number of tiles used.
+     */
     private int addObjectives(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
         if (objectivesEnabled) {
             int numOfObjectives;
@@ -80,6 +113,15 @@ public class CandidateFactory {
             return 0;
     }
 
+    /**
+     * Add the enemies to the map.
+     *
+     * @param tileSet    The current list of objects.
+     * @param difficulty The difficulty.
+     * @param freeTiles  The number of free tiles.
+     * @param usedTiles  The set of used tiles.
+     * @return The number of tiles used.
+     */
     private int addEnemies(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
         int numOfEntity;
         numOfEntity = difficulty * 10;
@@ -87,6 +129,15 @@ public class CandidateFactory {
         return numOfEntity;
     }
 
+    /**
+     * Add the items to the map.
+     *
+     * @param tileSet    The current list of objects.
+     * @param difficulty The difficulty.
+     * @param freeTiles  The number of free tiles.
+     * @param usedTiles  The set of used tiles.
+     * @return The number of tiles used.
+     */
     private int addItems(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
         int numOfEntity;
         if (difficulty < 4) {
@@ -98,6 +149,15 @@ public class CandidateFactory {
         return numOfEntity;
     }
 
+    /**
+     * Add the obstacles to the map.
+     *
+     * @param tileSet    The current list of objects.
+     * @param difficulty The difficulty.
+     * @param freeTiles  The number of free tiles.
+     * @param usedTiles  The set of used tiles.
+     * @return The number of tiles used.
+     */
     private int addObstacles(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
         int x, y;
         int numOfEntity = rng.nextInt(freeTiles / 2);
@@ -105,6 +165,17 @@ public class CandidateFactory {
         return numOfEntity;
     }
 
+
+    /**
+     * Utility method to actually add the object to the map.
+     * Randomly selects a free tile and places the
+     *
+     * @param tileSet     The current list of objects.
+     * @param tileState   The type of object to add.
+     * @param numOfEntity The number to add.
+     * @param freeTiles   The number of free tiles.
+     * @param usedTiles   The set of used tiles.
+     */
     public void addTiles(List<Tile> tileSet, TileState tileState, int numOfEntity, int freeTiles, Set<Vector2D> usedTiles) {
         int x, y;
         for (int i = 0; i < numOfEntity; ++i) {
