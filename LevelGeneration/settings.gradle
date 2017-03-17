@@ -1,2 +1,2 @@
-include ':levelgenerator'
+include ':levelgenerator', ':weather-api'
 include 'android', 'core'

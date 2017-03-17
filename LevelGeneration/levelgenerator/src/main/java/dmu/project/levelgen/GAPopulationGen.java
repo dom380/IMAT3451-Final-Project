@@ -9,7 +9,6 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +21,7 @@ import dmu.project.levelgen.exceptions.LevelConstraintsException;
 import dmu.project.levelgen.exceptions.LevelGenerationException;
 import dmu.project.utils.Node;
 import dmu.project.utils.PathFinder;
+import dmu.project.weather.WeatherResponse;
 
 /**
  * Implementation of the PopulationGenerator interface that uses a Genetic Algorithm.
@@ -36,6 +36,7 @@ public class GAPopulationGen implements PopulationGenerator {
     private static Random rng = new Random();
     private HeightMap heightMap;
     private CandidateFactory candidateFactory;
+    private float waterLevel = 0.25f;
 
     /**
      * Default constructor.
@@ -58,6 +59,16 @@ public class GAPopulationGen implements PopulationGenerator {
      * @param constraints Level generation constraints.
      */
     public GAPopulationGen(Constraints constraints) {
+        this(constraints, null);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param constraints Level generation constraints.
+     * @param weather     The local weather. Optional.
+     */
+    public GAPopulationGen(Constraints constraints, WeatherResponse weather) {
         if (constraints.seed != -1) {
             long seed = constraints.seed;
             levelGen = new PerlinLevelGen(seed, constraints.noiseWidth, constraints.noiseHeight, 8, 0.5);
@@ -67,6 +78,16 @@ public class GAPopulationGen implements PopulationGenerator {
             levelGen = new PerlinLevelGen(constraints.noiseWidth, constraints.noiseHeight, 8, 0.5);
         }
         this.constraints = constraints;
+        if (weather != null) {
+            WeatherResponse.ConditionCode conditionCode = weather.getWeather().get(0).getId();
+            if (weather.getMain().getTemp() >= 30.0f) {
+                this.waterLevel = 0.15f;
+            } else if (conditionCode == WeatherResponse.ConditionCode.EXTREME_RAIN || conditionCode == WeatherResponse.ConditionCode.MODERATE_RAIN) {
+                this.waterLevel = 0.35f;
+            }
+        } else {
+            this.waterLevel = 0.25f;
+        }
     }
 
     /**
@@ -87,7 +108,7 @@ public class GAPopulationGen implements PopulationGenerator {
     public List<MapCandidate> populate() throws LevelGenerationException {
         int width = constraints.mapWidth;
         int height = constraints.mapHeight;
-        heightMap = levelGen.generateLevel(width, height, 0.25); //Generate the base terrain.
+        heightMap = levelGen.generateLevel(width, height, waterLevel); //Generate the base terrain.
         if (constraints.seed > 0) {
             candidateFactory = new CandidateFactory(heightMap, width - 2, height - 2, constraints.objectivesEnabled, constraints.seed);
         } else {

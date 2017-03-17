@@ -1,4 +1,4 @@
-package dmu.project.utils;
+package dmu.project.weather;
 
 import org.apache.commons.io.IOUtils;
 

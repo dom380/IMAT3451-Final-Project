@@ -1,4 +1,4 @@
-package dmu.mygdx.game.WeatherAPI;
+package dmu.project.weather;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 

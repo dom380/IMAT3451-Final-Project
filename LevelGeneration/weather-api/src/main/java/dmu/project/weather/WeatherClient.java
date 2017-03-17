@@ -1,12 +1,9 @@
-package dmu.mygdx.game.WeatherAPI;
+package dmu.project.weather;
 
-import com.badlogic.gdx.Gdx;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-
-import dmu.project.utils.RestClient;
 
 /**
  * Created by Dom on 22/02/2017.
@@ -76,7 +73,7 @@ public class WeatherClient {
             client.execute(RestClient.RequestMethod.GET);
             response = client.getResponse();
         } catch (Exception e) {
-            Gdx.app.error("WeatherAPI", e.getMessage(), e);
+            e.printStackTrace();
         }
         return response;
     }

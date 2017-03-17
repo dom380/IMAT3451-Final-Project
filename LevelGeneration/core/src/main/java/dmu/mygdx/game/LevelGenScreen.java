@@ -18,14 +18,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import dmu.mygdx.game.WeatherAPI.WeatherClient;
-import dmu.mygdx.game.WeatherAPI.WeatherResponse;
 import dmu.project.levelgen.Constraints;
 import dmu.project.levelgen.GAPopulationGen;
 import dmu.project.levelgen.HeightMap;
 import dmu.project.levelgen.MapCandidate;
 import dmu.project.levelgen.Tile;
 import dmu.project.levelgen.exceptions.LevelGenerationException;
+import dmu.project.weather.WeatherClient;
+import dmu.project.weather.WeatherResponse;
 
 /**
  * Implementation of the LibGDX Screen class.
@@ -61,10 +61,10 @@ public class LevelGenScreen implements Screen {
     /**
      * Constructor
      *
-     * @param game The main game object.
-     * @param noiseWidth The width of the noise sample grid for the Perlin level generator.
-     * @param noiseHeight The height of the noise sample grid for the Perlin level generator.
-     * @param difficulty The difficulty of the levels to generate.
+     * @param game         The main game object.
+     * @param noiseWidth   The width of the noise sample grid for the Perlin level generator.
+     * @param noiseHeight  The height of the noise sample grid for the Perlin level generator.
+     * @param difficulty   The difficulty of the levels to generate.
      * @param debugEnabled Whether to use the debug seed or not.
      */
     public LevelGenScreen(MyGdxGame game, int noiseWidth, int noiseHeight, int difficulty, boolean debugEnabled) {
@@ -83,6 +83,7 @@ public class LevelGenScreen implements Screen {
 
     /**
      * Switch the map with the specified index.
+     *
      * @param index The index of the map to switch to.
      */
     void switchMap(int index) {
@@ -311,7 +312,7 @@ public class LevelGenScreen implements Screen {
         if (ui != null) ui.dispose();
         if (player != null) player.dispose();
         if (gameUI != null) gameUI.dispose();
-        if(controller != null) controller.dispose();
+        if (controller != null) controller.dispose();
     }
 
     public List<MapCandidate> getMapCandidates() {
@@ -334,20 +335,20 @@ public class LevelGenScreen implements Screen {
     private boolean init() {
         scaleX = (float) width / (Gdx.graphics.getWidth() / tileWidth);
         scaleY = (float) height / (Gdx.graphics.getHeight() / tileWidth);
+        WeatherClient weatherClient = new WeatherClient(game.apiUrl, game.apiKey);
+        double[] latLong = game.getLocationService().getLatLong();
+        if (latLong != null)
+            weather = weatherClient.getWeather(latLong[0], latLong[1]);
         //Set level constraints
         Constraints constraints = readConstraints(game.properties);
         //Generate Level
-        GAPopulationGen populationGen = new GAPopulationGen(constraints);
+        GAPopulationGen populationGen = new GAPopulationGen(constraints, weather);
         try {
             mapCandidates = populationGen.populate();
         } catch (LevelGenerationException e) {
             Gdx.app.error("Level Creation", "Unrecoverable exception thrown.", e);
             game.returnToMenu(); //Go back to main menu.
         }
-        WeatherClient weatherClient = new WeatherClient(game.apiUrl, game.apiKey);
-        double[] latLong = game.getLocationService().getLatLong();
-        if (latLong != null)
-            weather = weatherClient.getWeather(latLong[0], latLong[1]);
         heightMap = populationGen.getHeightMap();
         map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, mapCandidates.get(0).tileSet, weather);
         CameraController2D cameraInputController = new CameraController2D(camera, Math.min(scaleX, scaleY), scaleX, scaleY);
@@ -413,6 +414,7 @@ public class LevelGenScreen implements Screen {
 
     /**
      * Reset the game grid.
+     *
      * @param lastMapIndex Index of the last map used.
      */
     private void resetGrid(int lastMapIndex) {

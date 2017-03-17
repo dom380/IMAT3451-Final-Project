@@ -1,4 +1,4 @@
-package dmu.mygdx.game.WeatherAPI;
+package dmu.project.weather;
 
 
 import org.junit.Assert;
@@ -14,7 +14,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.net.URI;
 
 import cz.msebera.android.httpclient.client.methods.HttpUriRequest;
-import dmu.project.utils.RestClient;
 
 /**
  * Created by Dom on 12/03/2017.
