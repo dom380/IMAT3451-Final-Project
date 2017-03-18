@@ -99,8 +99,8 @@ public class LocationServiceAndroid implements LocationService, GoogleApiClient.
     public void onConnected(@Nullable Bundle bundle) {
         LocationRequest request = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
-                .setInterval(30000) //30sec
-                .setFastestInterval(10000); //19 sec
+                .setInterval(120000) //2 min
+                .setFastestInterval(60000); //1 min
         if (ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
