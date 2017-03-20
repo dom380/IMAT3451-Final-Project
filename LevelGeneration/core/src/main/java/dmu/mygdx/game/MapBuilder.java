@@ -45,7 +45,7 @@ public class MapBuilder {
                     conditionCode == WeatherResponse.ConditionCode.HEAVY_SNOW ||
                     conditionCode == WeatherResponse.ConditionCode.SNOW) {
                 return buildSnowMap(map, width, height, tileWidth, tileHeight, heightMap, mapObjects);
-            } else if (conditionCode == WeatherResponse.ConditionCode.EXTREME_RAIN || conditionCode == WeatherResponse.ConditionCode.MODERATE_RAIN) {
+            } else if (conditionCode == WeatherResponse.ConditionCode.EXTREME_RAIN || conditionCode == WeatherResponse.ConditionCode.MODERATE_RAIN || conditionCode == WeatherResponse.ConditionCode.DRIZZLE) {
                 return buildSwampMap(map, width, height, tileWidth, tileHeight, heightMap, mapObjects);
             } else if (temp >= 30.0f) {
                 return buildDesertMap(map, width, height, tileWidth, tileHeight, heightMap, mapObjects);

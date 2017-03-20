@@ -129,14 +129,14 @@ public class GAPopulationGen implements PopulationGenerator {
                 reachedMaxFit = true;
                 break;
             }
-            if (timer.elapsed(TimeUnit.SECONDS) > 25) { //We've been running too long, give up. //TODO make configurable?
+            if (timer.elapsed(TimeUnit.SECONDS) > 25) { //We've been running too long, give up.
                 reachedMaxFit = false;
                 break;
             }
             if (Math.abs(avgFitness - previousFitness) < 0.001) { //Keep track of the number of generations with no meaningful fitness increase.
                 sameFitnessCount++;
             }
-            if (sameFitnessCount > 10) // TODO: 07/12/2016 Move to constraint or config.
+            if (sameFitnessCount > 10)
                 break; //If no fitness improvement for the last x generations exit
             previousFitness = avgFitness;
             population = getNewGen(population); //Perform crossover and mutation to get next generation.

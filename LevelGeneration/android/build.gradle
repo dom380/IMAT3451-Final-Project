@@ -19,7 +19,7 @@ android {
     }
     defaultConfig {
         applicationId "dmu.mygdx.game"
-        minSdkVersion 24
+        minSdkVersion 23
         targetSdkVersion 25
     }
 }

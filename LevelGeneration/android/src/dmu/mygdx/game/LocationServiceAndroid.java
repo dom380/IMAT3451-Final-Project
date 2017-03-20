@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Dialog;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -17,7 +18,7 @@ import com.google.android.gms.location.LocationServices;
 
 /**
  * Created by Dom on 20/02/2017.
- *
+ * <p>
  * Implementation of LocationService using Google Play Services.
  */
 
@@ -103,9 +104,11 @@ public class LocationServiceAndroid implements LocationService, GoogleApiClient.
                 .setFastestInterval(60000); //1 min
         if (ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(launcher.getActivity(), launcher.getString(R.string.location_explanation))) {
+                ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT > 23 && ActivityCompat.shouldShowRequestPermissionRationale(launcher.getActivity(), launcher.getString(R.string.location_explanation))) {
                 //Check to see if we should explain the request
+            } else if (ActivityCompat.shouldShowRequestPermissionRationale(launcher.getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)) {
+
             } else {
                 //Request permissions
                 ActivityCompat.requestPermissions(launcher.getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, launcher.getResources().getInteger(R.integer.LOCATION_PERMISSION_REQUEST));
