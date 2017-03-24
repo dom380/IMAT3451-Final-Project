@@ -19,12 +19,14 @@ public interface LocationService {
 
     /**
      * Check if the location service is reachable.
+     *
      * @return True if can use the location service.
      */
     boolean isAvailable();
 
     /**
      * Retrieve the latitude and longitude of the device.
+     *
      * @return The latitude and longitude of the device.
      */
     double[] getLatLong();

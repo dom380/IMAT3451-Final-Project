@@ -16,7 +16,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
  * Created by Dom on 08/03/2017.
- *
+ * <p>
  * Class that handles the Game's UI.
  */
 
@@ -34,11 +34,12 @@ public class GameUI {
 
     /**
      * Constructor.
-     * @param game The main game.
-     * @param screen The game screen.
-     * @param batch The sprite batch to render the UI with.
+     *
+     * @param game            The main game.
+     * @param screen          The game screen.
+     * @param batch           The sprite batch to render the UI with.
      * @param numOfObjectives The number of objects.
-     * @param playerHP The player's maximum HP.
+     * @param playerHP        The player's maximum HP.
      */
     public GameUI(MyGdxGame game, LevelGenScreen screen, SpriteBatch batch, int numOfObjectives, int playerHP) {
         this.game = game;
@@ -89,7 +90,8 @@ public class GameUI {
 
     /**
      * Resize the UI. Called on screen resize event.
-     * @param width The new width of the screen.
+     *
+     * @param width  The new width of the screen.
      * @param height The new height of the screen.
      */
     public void resize(int width, int height) {
@@ -116,6 +118,7 @@ public class GameUI {
 
     /**
      * Sets the game over text to display.
+     *
      * @param text Text to display.
      */
     public void setGameOverText(String text) {
@@ -132,7 +135,7 @@ public class GameUI {
     /**
      * Changes the UI to the level complete version.
      */
-    public void switchToWinUI(){
+    public void switchToWinUI() {
         stage = new Stage(viewport, batch);
 
         Table table = new Table();
@@ -143,7 +146,7 @@ public class GameUI {
         table.row();
         table.row();
         TextButton mainMenu = new TextButton("Return to Main Menu", skin);
-        mainMenu.addListener(new ClickListener(){
+        mainMenu.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 game.returnToMenu();
@@ -151,7 +154,7 @@ public class GameUI {
         });
         table.add(mainMenu);
         TextButton nextLevel = new TextButton("Play next level", skin);
-        nextLevel.addListener(new ClickListener(){
+        nextLevel.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 screen.switchNextMap();

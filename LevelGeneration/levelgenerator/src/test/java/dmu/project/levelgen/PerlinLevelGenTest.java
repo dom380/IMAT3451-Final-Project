@@ -173,6 +173,15 @@ public class PerlinLevelGenTest {
             exceptionThrown = true;
         }
         Assert.assertTrue("LevelGenerationException should have been thrown.", exceptionThrown);
+        waterLevel = 0.25f;
+        levelGen = new PerlinLevelGen(seed, originX, originY, 0, 0, octaves, persistance);
+        exceptionThrown = false;
+        try {
+            levelGen.generateLevel(width, height, waterLevel);
+        } catch (LevelGenerationException e) {
+            exceptionThrown = true;
+        }
+        Assert.assertTrue("LevelGenerationException should have been thrown.", exceptionThrown);
     }
 
 

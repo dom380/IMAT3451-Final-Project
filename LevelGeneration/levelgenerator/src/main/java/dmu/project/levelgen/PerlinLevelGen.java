@@ -24,10 +24,10 @@ public class PerlinLevelGen implements LevelGenerator {
     private double persistence;
 
     /**
-     * Default constructor
+     * Constructor
      *
-     * @param noiseWidth  the width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
-     * @param noiseHeight the height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param noiseWidth  The width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param noiseHeight The height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
      * @param octaves     The number of noise octaves to layer.
      * @param persistence The amount the amplitude increases for each octave.
      */
@@ -35,14 +35,44 @@ public class PerlinLevelGen implements LevelGenerator {
         this(new Random().nextLong(), 0, 0, noiseWidth, noiseHeight, octaves, persistence);
     }
 
+    /**
+     * Constructor
+     *
+     * @param seed        The random number generator seed to use.
+     * @param noiseWidth  The width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param noiseHeight The height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param octaves     The number of noise octaves to layer.
+     * @param persistence The amount the amplitude increases for each octave.
+     */
     public PerlinLevelGen(long seed, int noiseWidth, int noiseHeight, int octaves, double persistence) {
         this(seed, 0, 0, noiseWidth, noiseHeight, octaves, persistence);
     }
 
+    /**
+     * Constructor
+     *
+     * @param noiseOriginX The x coordinate of the bottom-left corner of the area to sample from.
+     * @param noiseOriginY The y coordinate of the bottom-left corner of the area to sample from.
+     * @param noiseWidth   the width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param noiseHeight  the height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param octaves      The number of noise octaves to layer.
+     * @param persistence  The amount the amplitude increases for each octave.
+     */
     public PerlinLevelGen(int noiseOriginX, int noiseOriginY, int noiseWidth, int noiseHeight, int octaves, double persistence) {
         this(new Random().nextLong(), noiseOriginX, noiseOriginY, noiseWidth, noiseHeight, octaves, persistence);
     }
 
+    /**
+     * Constructor
+     *
+     * @param seed         The random number generator seed to use.
+     * @param noiseOriginX The x coordinate of the bottom-left corner of the area to sample from.
+     * @param noiseOriginY The y coordinate of the bottom-left corner of the area to sample from.
+     * @param noiseWidth   the width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param noiseHeight  the height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param octaves      The number of noise octaves to layer.
+     * @param persistence  The amount the amplitude increases for each octave.
+     */
     public PerlinLevelGen(long seed, int noiseOriginX, int noiseOriginY, int noiseWidth, int noiseHeight, int octaves, double persistence) {
         this.simplexNoise = new OpenSimplexNoise(seed);
         this.noiseHeight = noiseHeight;
@@ -60,10 +90,14 @@ public class PerlinLevelGen implements LevelGenerator {
      * @param height     the height of the level.
      * @param waterLevel a value between 0..1 that represents the water level for the generated map.
      * @return A 2D width by height array of height values representing the terrain.
+     * @throws LevelGenerationException
      */
     @Override
     public HeightMap generateLevel(int width, int height, double waterLevel) throws LevelGenerationException {
-        if(width <= 0 || height <= 0 || waterLevel < 0) throw new LevelGenerationException("Invalid parameters for heightmap generation");
+        if (width <= 0 || height <= 0 || waterLevel < 0)
+            throw new LevelGenerationException("Invalid parameters for heightmap generation");
+        if (noiseHeight == 0 || noiseWidth == 0)
+            throw new LevelGenerationException("Invalid noise width and height for heightmap generation");
         double[][] noise = new double[width][height];
         HeightMap heightMap = new HeightMap(width, height, true, waterLevel);
         for (int y = 0; y < height; ++y) {
@@ -86,9 +120,9 @@ public class PerlinLevelGen implements LevelGenerator {
                 noise[x][y] = e;
                 if (e > waterLevel) {
                     heightMap.aboveWaterValues++;
-                    heightMap.grid.addNode(x,y,createNode(x,y,true));
+                    heightMap.grid.addNode(x, y, createNode(x, y, true));
                 } else {
-                    heightMap.grid.addNode(x,y,createNode(x,y,false));
+                    heightMap.grid.addNode(x, y, createNode(x, y, false));
                 }
             }
         }
@@ -109,19 +143,18 @@ public class PerlinLevelGen implements LevelGenerator {
      * @return Noise value scaled between 0..1
      */
     private double noise(double nx, double ny) {
-        //return (simplexNoise.eval(nx,ny, 0.5) + 1.0)/2.0;
         return (simplexNoise.eval(nx, ny) / 2.0) + 0.5;
     }
 
     /**
      * Creates a new Node.
      *
-     * @param x The X coordinate of the node.
-     * @param y The Y coordinate of the node.
+     * @param x          The X coordinate of the node.
+     * @param y          The Y coordinate of the node.
      * @param aboveWater True if the node is above the water level.
      * @return The created node.
      */
-    private Node createNode(int x, int y, boolean aboveWater){
-        return new Node(new Vector2D(x,y),-1, aboveWater);
+    private Node createNode(int x, int y, boolean aboveWater) {
+        return new Node(new Vector2D(x, y), -1, aboveWater);
     }
 }

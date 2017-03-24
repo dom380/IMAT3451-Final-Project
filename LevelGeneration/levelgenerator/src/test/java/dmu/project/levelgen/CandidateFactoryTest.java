@@ -32,6 +32,24 @@ public class CandidateFactoryTest {
         Assert.assertNotNull(candidate);
         Assert.assertTrue("Fitness should be initialised to 0", candidate.fitness == 0.0f);
         Assert.assertTrue("Tile set should be less than the maximum value", candidate.tileSet.size() > 0 && candidate.tileSet.size() < heightMap.aboveWaterValues/5);
+        boolean hasStartPos = false;
+        int objectiveCount = 0, enemyCount = 0;
+        for (Tile tile : candidate.tileSet) {
+            switch (tile.tileState) {
+                case START:
+                    hasStartPos = true;
+                    break;
+                case ENEMY:
+                    enemyCount++;
+                    break;
+                case OBJECTIVE:
+                    objectiveCount++;
+                    break;
+            }
+        }
+        Assert.assertTrue("Should have a start position", hasStartPos);
+        Assert.assertTrue("Objective count should be in range", objectiveCount >= 1 && objectiveCount < defaultConstraints.difficulty);
+        Assert.assertEquals("Enemy count should match", defaultConstraints.difficulty * 10, enemyCount);
     }
 
 }

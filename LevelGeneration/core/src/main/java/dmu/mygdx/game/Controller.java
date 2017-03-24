@@ -38,7 +38,7 @@ public class Controller extends InputAdapter {
     /**
      * Constructor. Initialises the UI layout.
      *
-     * @param batch The sprite batch to use when rendering the UI
+     * @param batch  The sprite batch to use when rendering the UI
      * @param player The player character to control.
      */
     public Controller(SpriteBatch batch, final Player player) {
@@ -106,7 +106,7 @@ public class Controller extends InputAdapter {
         AButtonStyle.up = buttonSkin.getDrawable("AButton");
         AButtonStyle.down = buttonSkin.getDrawable("AButton_Pressed");
         Button aButton = new Button(AButtonStyle);
-        aButton.addListener(new ClickListener(){
+        aButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 player.attack();
@@ -118,7 +118,7 @@ public class Controller extends InputAdapter {
         BButtonStyle.up = buttonSkin.getDrawable("BButton");
         BButtonStyle.down = buttonSkin.getDrawable("BButton_Pressed");
         Button bButton = new Button(BButtonStyle);
-        bButton.addListener(new ClickListener(){
+        bButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 player.interact();
@@ -131,6 +131,7 @@ public class Controller extends InputAdapter {
 
     /**
      * Render the UI elements.
+     *
      * @param delta the time since the last frame.
      */
     public void draw(float delta) {
@@ -151,7 +152,8 @@ public class Controller extends InputAdapter {
 
     /**
      * Called on screen resize events.
-     * @param width new width of screen.
+     *
+     * @param width  new width of screen.
      * @param height new height of screen.
      */
     public void resize(int width, int height) {
@@ -168,12 +170,13 @@ public class Controller extends InputAdapter {
 
     /**
      * Handle key press events.
+     *
      * @param keycode The LibGDX key code for the key pressed.
      * @return True if the event was handled, false if not.
      */
     @Override
     public boolean keyDown(int keycode) {
-        switch (keycode){
+        switch (keycode) {
             case Input.Keys.UP:
                 player.setMoving(new Vector2(0, 1));
                 return true;
@@ -193,12 +196,13 @@ public class Controller extends InputAdapter {
 
     /**
      * Key Released event.
+     *
      * @param keycode The LibGDX key code for the key pressed.
      * @return True if the event was handled, false if not.
      */
     @Override
     public boolean keyUp(int keycode) {
-        switch (keycode){
+        switch (keycode) {
             case Input.Keys.UP:
             case Input.Keys.LEFT:
             case Input.Keys.DOWN:

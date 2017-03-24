@@ -23,7 +23,7 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
     }
 
     @Override
-    protected void attachBaseContext(Context context){
+    protected void attachBaseContext(Context context) {
         super.attachBaseContext(context);
         MultiDex.install(this);
     }

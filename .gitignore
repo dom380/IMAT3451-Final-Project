@@ -42,3 +42,6 @@ captures/
 #LibreOffice Lock files
 .~lock*
 *.pdn
+JavaDocs/
+Documentation/
+*.suml

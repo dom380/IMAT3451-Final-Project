@@ -18,6 +18,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 
 public class GameFragment extends AndroidFragmentApplication implements GoogleApiClient.OnConnectionFailedListener {
     LocationService locationService;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration(); //Configure android application settings
@@ -35,7 +36,7 @@ public class GameFragment extends AndroidFragmentApplication implements GoogleAp
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
-            case R.integer.LOCATION_PERMISSION_REQUEST : {
+            case R.integer.LOCATION_PERMISSION_REQUEST: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     locationService.enable();
                 } else {

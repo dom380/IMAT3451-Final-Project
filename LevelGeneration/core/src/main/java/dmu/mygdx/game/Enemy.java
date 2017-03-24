@@ -30,10 +30,11 @@ public class Enemy extends TileMovable {
 
     /**
      * Constructor.
-     * @param batch The sprite batch to draw this enemy.
-     * @param grid The grid to move on.
+     *
+     * @param batch        The sprite batch to draw this enemy.
+     * @param grid         The grid to move on.
      * @param textureAtlas The texture atlas containing this enemies sprites.
-     * @param position The position of the enemy.
+     * @param position     The position of the enemy.
      */
     public Enemy(SpriteBatch batch, Grid grid, TextureAtlas textureAtlas, Vector2 position) {
         super(position, new Vector2(0, 0));
@@ -55,7 +56,7 @@ public class Enemy extends TileMovable {
     /**
      * Updates the enemies AI and movement.
      *
-     * @param delta Time step.
+     * @param delta  Time step.
      * @param player The player, used for AI calculations.
      */
     public void update(float delta, Player player) {
@@ -66,7 +67,7 @@ public class Enemy extends TileMovable {
         if (dist <= 10) {
             int dx = playerX - x;
             int dy = playerY - y;
-            if(Math.abs(dx) > Math.abs(dy)){
+            if (Math.abs(dx) > Math.abs(dy)) {
                 direction.set((float) (1.0 * Integer.signum(dx)), 0.0f);
             } else {
                 direction.set(0.0f, (float) (1.0 * Integer.signum(dy)));
@@ -111,7 +112,8 @@ public class Enemy extends TileMovable {
 
     /**
      * Render the enemy sprite.
-     * @param delta time step.
+     *
+     * @param delta  time step.
      * @param camera the scene's camera.
      */
     public void render(float delta, Camera camera) {

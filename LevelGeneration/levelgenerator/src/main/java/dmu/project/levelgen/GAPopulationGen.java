@@ -119,18 +119,15 @@ public class GAPopulationGen implements PopulationGenerator {
         int maxGen = constraints.getMaxGenerations();
         int sameFitnessCount = 0;
         float avgFitness = 0, initFitness = 0, previousFitness = 0;
-        boolean reachedMaxFit = false;
         for (int currentGen = 0; currentGen < maxGen; currentGen++) { //For each generation
             avgFitness = testFitness(population);
             if (currentGen == 0) {
                 initFitness = avgFitness; //Get the initial population's fitness for debug purposes.
             }
             if (avgFitness > 0.9f) { //If sufficient fitness reached then exit.
-                reachedMaxFit = true;
                 break;
             }
             if (timer.elapsed(TimeUnit.SECONDS) > 25) { //We've been running too long, give up.
-                reachedMaxFit = false;
                 break;
             }
             if (Math.abs(avgFitness - previousFitness) < 0.001) { //Keep track of the number of generations with no meaningful fitness increase.
@@ -141,9 +138,6 @@ public class GAPopulationGen implements PopulationGenerator {
             previousFitness = avgFitness;
             population = getNewGen(population); //Perform crossover and mutation to get next generation.
         }
-        if (!reachedMaxFit)
-            avgFitness = testFitness(population); //get fitness of final generation.
-
         Collections.sort(population, Collections.reverseOrder(new Comparator<MapCandidate>() {
             @Override
             public int compare(MapCandidate map1, MapCandidate map2) { //Sort population by fitness in descending order
@@ -255,7 +249,9 @@ public class GAPopulationGen implements PopulationGenerator {
             }
             fitness += pathFitness.fitness;
             map.fitness = fitness;
-            if (map.fitness > highestFitness) highestFitness = map.fitness;
+            if (map.fitness > highestFitness) {
+                highestFitness = map.fitness;
+            }
             avgFitness += fitness;
         }
         avgFitness /= numOfMaps;
@@ -328,7 +324,6 @@ public class GAPopulationGen implements PopulationGenerator {
         for (int i = arraySize; i < arraySize2; ++i) { //Ensure we don't discard any tiles from the crossover
             child2Tiles.add(parent2.tileSet.get(i));
         }
-        //Move out of this function? Should we be mutating in the crossover function?
         children.add(mutate(new MapCandidate(child1Tiles)));
         children.add(mutate(new MapCandidate(child2Tiles)));
         return children;

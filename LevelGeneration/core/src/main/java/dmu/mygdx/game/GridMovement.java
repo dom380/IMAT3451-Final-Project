@@ -21,7 +21,7 @@ public class GridMovement {
      * Constructor.
      *
      * @param tileMovable The entity to control the movement of.
-     * @param grid The grid to move on.
+     * @param grid        The grid to move on.
      */
     public GridMovement(TileMovable tileMovable, Grid grid) {
         entity = tileMovable;
@@ -30,6 +30,7 @@ public class GridMovement {
 
     /**
      * Update method called every frame. Updates the entities movement.
+     *
      * @param delta time step.
      */
     public void update(float delta) {
@@ -47,7 +48,7 @@ public class GridMovement {
             continueMovingFromDestination();
         }
         // Dest reached but changing direction
-        else if (isMoving  && direction != null && (canMoveDirectionFromTile(destination.x, destination.y, direction)) && !direction.epsilonEquals(lastMove, 0.001f)) {
+        else if (isMoving && direction != null && (canMoveDirectionFromTile(destination.x, destination.y, direction)) && !direction.epsilonEquals(lastMove, 0.001f)) {
             changeDirectionAndContinueMoving(direction);
         }
         // Dest not reached, continue

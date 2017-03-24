@@ -42,8 +42,8 @@ public class CameraController2D implements GestureDetector.GestureListener {
     /**
      * Response to touch event.
      *
-     * @param x X position of touch event.
-     * @param y Y position of touch event.
+     * @param x       X position of touch event.
+     * @param y       Y position of touch event.
      * @param pointer Index of the pointer that triggered the event.
      * @param button
      * @return True if the event was handled. False if event should continue to pass to listeners.
@@ -91,7 +91,7 @@ public class CameraController2D implements GestureDetector.GestureListener {
      * Zoom in or out the camera while keeping it constrained to the scene.
      *
      * @param initialDistance The initial zoom value.
-     * @param distance The new zoom value/
+     * @param distance        The new zoom value/
      * @return True if the event was handled. False if event should continue to pass to listeners.
      */
     @Override

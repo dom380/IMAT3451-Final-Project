@@ -43,13 +43,13 @@ public class LoadingScreen implements Screen {
 
     /**
      * Constructor.
-     *
+     * <p>
      * Initialises an asynchronous task to generate the level pool.
      *
-     * @param game The main game object.
-     * @param noiseWidth The width of noise to sample from.
-     * @param noiseHeight The height of noise to sample from.
-     * @param difficulty The difficulty of the levels to generate.
+     * @param game         The main game object.
+     * @param noiseWidth   The width of noise to sample from.
+     * @param noiseHeight  The height of noise to sample from.
+     * @param difficulty   The difficulty of the levels to generate.
      * @param debugEnabled If true use the debug seed.
      */
     public LoadingScreen(final MyGdxGame game, final int noiseWidth, final int noiseHeight, final int difficulty, final boolean debugEnabled) {
@@ -143,10 +143,10 @@ public class LoadingScreen implements Screen {
      * Creates a LevelGenScreen object that will call the Procedural content generation system to generate levels.
      * To be run on a background thread as this is a long running process.
      *
-     * @param game The main game object.
-     * @param noiseWidth The width of noise to sample from.
-     * @param noiseHeight The height of noise to sample from.
-     * @param difficulty The difficulty of the levels to generate.
+     * @param game         The main game object.
+     * @param noiseWidth   The width of noise to sample from.
+     * @param noiseHeight  The height of noise to sample from.
+     * @param difficulty   The difficulty of the levels to generate.
      * @param debugEnabled If true use the debug seed.
      * @return The LevelGenScreen with the generated levels.
      */

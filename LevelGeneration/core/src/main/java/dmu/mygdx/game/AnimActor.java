@@ -21,6 +21,7 @@ public class AnimActor extends Actor {
 
     /**
      * Constructor
+     *
      * @param animation The animation this actor should control.
      */
     public AnimActor(Animation animation) {
@@ -29,8 +30,9 @@ public class AnimActor extends Actor {
 
     /**
      * Constructor
+     *
      * @param animation The animation this actor should control.
-     * @param reCentre Boolean flag signaling whether to render the animation from its centre if true.
+     * @param reCentre  Boolean flag signaling whether to render the animation from its centre if true.
      */
     public AnimActor(Animation animation, boolean reCentre) {
         this.animation = animation;
@@ -39,6 +41,7 @@ public class AnimActor extends Actor {
 
     /**
      * Override of act method. Called by scene2D stage. Sets the current key frame of animation.
+     *
      * @param delta The time in seconds since the last update.
      */
     @Override
@@ -51,7 +54,8 @@ public class AnimActor extends Actor {
 
     /**
      * Draws the current key frame using the specified batch.
-     * @param batch The batch to render the frame with.
+     *
+     * @param batch       The batch to render the frame with.
      * @param parentAlpha The alpha value of this actors parent.
      */
     @Override

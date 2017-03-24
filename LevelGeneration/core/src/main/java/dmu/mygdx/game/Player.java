@@ -174,7 +174,8 @@ public class Player extends TileMovable {
 
     /**
      * Render the player's sprite
-     * @param delta the time step.
+     *
+     * @param delta  the time step.
      * @param camera the camera to use.
      */
     public void render(float delta, Camera camera) {
@@ -231,6 +232,7 @@ public class Player extends TileMovable {
 
     /**
      * Start moving the player in the specified direction.
+     *
      * @param dir 2D vector specifying the direction to move in.
      */
     public void setMoving(Vector2 dir) {

@@ -4,7 +4,7 @@ import com.badlogic.gdx.math.Vector2;
 
 /**
  * Created by Dom on 04/03/2017.
- *
+ * <p>
  * Base abstract class for objects that move on a grid.
  */
 

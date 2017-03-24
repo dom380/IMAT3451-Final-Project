@@ -23,7 +23,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
  * Created by Dom on 18/11/2016.
- *
+ * <p>
  * Class implementing the LibGDX Screen interface.
  */
 
@@ -38,6 +38,7 @@ public class MainMenuScreen implements Screen {
 
     /**
      * Constructor.
+     *
      * @param game The main game object.
      */
     public MainMenuScreen(MyGdxGame game) {
@@ -72,7 +73,7 @@ public class MainMenuScreen implements Screen {
         titleTable.setFillParent(true);
         titleTable.top();
         Label title = new Label("IMAT3451 Project: Procedural Content Generation", skin);
-        title.setFontScale(1.2f,1.2f);
+        title.setFontScale(1.2f, 1.2f);
         titleTable.add(title).padTop(125.f).center();
 
         Label difficultyLabel = new Label("Difficulty", skin);

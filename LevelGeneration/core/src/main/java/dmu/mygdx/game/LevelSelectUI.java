@@ -31,7 +31,7 @@ public class LevelSelectUI {
     /**
      * Constructor
      *
-     * @param game The main game object.
+     * @param game   The main game object.
      * @param screen The current screen.
      */
     public LevelSelectUI(final MyGdxGame game, final LevelGenScreen screen) {
@@ -54,7 +54,7 @@ public class LevelSelectUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 screen.switchPreviousMap();
-                mapLabel.setText("Map " + (screen.getMapIndex()+1) + "/10");
+                mapLabel.setText("Map " + (screen.getMapIndex() + 1) + "/10");
             }
         });
         TextButton nextButton = new TextButton("Next Map", skin);
@@ -62,7 +62,7 @@ public class LevelSelectUI {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 screen.switchNextMap();
-                mapLabel.setText("Map " + (screen.getMapIndex()+1) + "/10");
+                mapLabel.setText("Map " + (screen.getMapIndex() + 1) + "/10");
             }
         });
         TextButton menuButton = new TextButton("Main Menu", skin);
@@ -74,7 +74,7 @@ public class LevelSelectUI {
         });
 
         TextButton playButton = new TextButton("Play", skin);
-        playButton.addListener(new ClickListener(){
+        playButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 screen.playMap();
@@ -109,7 +109,8 @@ public class LevelSelectUI {
 
     /**
      * Resize the UI.
-     * @param width The new width of the screen.
+     *
+     * @param width  The new width of the screen.
      * @param height The new height of the screen.
      */
     public void resize(int width, int height) {
