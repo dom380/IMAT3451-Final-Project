@@ -26,102 +26,102 @@ import dmu.project.utils.Grid;
 
 public class Player extends TileMovable {
 
-    private float animTime = 0.0f, attAnimTime = 0.0f;
-    private Animation idle, run, up, down, attack;
-    private TextureAtlas textureAtlas, attackAtlas;
-    private SpriteBatch spriteBatch;
-    private boolean flip = false, attacking = false;
-    private List<Tile> tileList;
+    private float mAnimTime = 0.0f, mAttackAnimTime = 0.0f;
+    private Animation mIdle, mRun, mUp, mDown, mAttack;
+    private TextureAtlas mTextureAtlas, mAttackAtlas;
+    private SpriteBatch mSpriteBatch;
+    private boolean mFlip = false, mAttacking = false;
+    private List<Tile> mTileList;
     private static float ATTACK_TIME = 0.25f;
-    private MapBuilder.Map map;
-    private LevelGenScreen screen;
-    private Stopwatch timer;
-    private int HP;
+    private MapBuilder.Map mMap;
+    private LevelGenScreen mScreen;
+    private Stopwatch mTimer;
+    private int mHp;
 
 
     /**
      * Constructor.
      *
-     * @param screen   The current screen.
-     * @param batch    The sprite batch to render the player with.
-     * @param grid     The grid to move the player on.
-     * @param tileList The list of all game objects in the level.
-     * @param map      The current map.
-     * @param HP       The players max HP.
+     * @param mScreen   The current mScreen.
+     * @param batch     The sprite mBatch to render the player with.
+     * @param grid      The grid to move the player on.
+     * @param mTileList The list of all game objects in the level.
+     * @param mMap      The current mMap.
+     * @param mHp       The players max mHp.
      */
-    public Player(LevelGenScreen screen, SpriteBatch batch, Grid grid, List<Tile> tileList, MapBuilder.Map map, int HP) {
+    public Player(LevelGenScreen mScreen, SpriteBatch batch, Grid grid, List<Tile> mTileList, MapBuilder.Map mMap, int mHp) {
         super(new Vector2(20 * TILE_WIDTH, 20 * TILE_HEIGHT), new Vector2());
-        this.tileList = tileList;
-        this.screen = screen;
-        spriteBatch = batch;
-        textureAtlas = new TextureAtlas(Gdx.files.internal("sprites/pc.atlas"));
-        attackAtlas = new TextureAtlas(Gdx.files.internal("sprites/attack2.atlas"));
-        idle = new Animation(0.33f, textureAtlas.findRegions("erika_idle"));
-        idle.setPlayMode(Animation.PlayMode.LOOP);
-        run = new Animation(0.15f, textureAtlas.findRegions("erika_run"));
-        run.setPlayMode(Animation.PlayMode.LOOP);
-        up = new Animation(0.15f, textureAtlas.findRegions("erika_up"));
-        up.setPlayMode(Animation.PlayMode.LOOP);
-        down = new Animation(0.15f, textureAtlas.findRegions("erika_down"));
-        down.setPlayMode(Animation.PlayMode.LOOP);
-        attack = new Animation(ATTACK_TIME, attackAtlas.findRegion("attack_left"));
-        gridMovement = new GridMovement(this, grid);
-        gridMovement.setSpeed(new Vector2(75f, 75f));
-        direction = new Vector2(-1.0f, 0.0f);
-        timer = Stopwatch.createUnstarted();
-        this.map = map;
-        this.HP = HP;
+        this.mTileList = mTileList;
+        this.mScreen = mScreen;
+        mSpriteBatch = batch;
+        mTextureAtlas = new TextureAtlas(Gdx.files.internal("sprites/pc.atlas"));
+        mAttackAtlas = new TextureAtlas(Gdx.files.internal("sprites/attack2.atlas"));
+        mIdle = new Animation(0.33f, mTextureAtlas.findRegions("erika_idle"));
+        mIdle.setPlayMode(Animation.PlayMode.LOOP);
+        mRun = new Animation(0.15f, mTextureAtlas.findRegions("erika_run"));
+        mRun.setPlayMode(Animation.PlayMode.LOOP);
+        mUp = new Animation(0.15f, mTextureAtlas.findRegions("erika_up"));
+        mUp.setPlayMode(Animation.PlayMode.LOOP);
+        mDown = new Animation(0.15f, mTextureAtlas.findRegions("erika_down"));
+        mDown.setPlayMode(Animation.PlayMode.LOOP);
+        mAttack = new Animation(ATTACK_TIME, mAttackAtlas.findRegion("attack_left"));
+        mGridMovement = new GridMovement(this, grid);
+        mGridMovement.setSpeed(new Vector2(75f, 75f));
+        mDirection = new Vector2(-1.0f, 0.0f);
+        mTimer = Stopwatch.createUnstarted();
+        this.mMap = mMap;
+        this.mHp = mHp;
     }
 
     /**
-     * Sets the player into attack state.
+     * Sets the player into mAttack state.
      */
     public void attack() {
-        if (!attacking) {
-            Gdx.app.log("Button Press", "Player attack");
-            attacking = true;
-            if (direction.x < 0.0) {
-                attack = new Animation(ATTACK_TIME, attackAtlas.findRegion("attack_left"));
-            } else if (direction.x > 0.0) {
-                attack = new Animation(ATTACK_TIME, attackAtlas.findRegion("attack_right"));
-            } else if (direction.y > 0.0) {
-                attack = new Animation(ATTACK_TIME, attackAtlas.findRegion("attack_up"));
-            } else if (direction.y < 0.0) {
-                attack = new Animation(ATTACK_TIME, attackAtlas.findRegion("attack_down"));
+        if (!mAttacking) {
+            Gdx.app.log("Button Press", "Player mAttack");
+            mAttacking = true;
+            if (mDirection.x < 0.0) {
+                mAttack = new Animation(ATTACK_TIME, mAttackAtlas.findRegion("attack_left"));
+            } else if (mDirection.x > 0.0) {
+                mAttack = new Animation(ATTACK_TIME, mAttackAtlas.findRegion("attack_right"));
+            } else if (mDirection.y > 0.0) {
+                mAttack = new Animation(ATTACK_TIME, mAttackAtlas.findRegion("attack_up"));
+            } else if (mDirection.y < 0.0) {
+                mAttack = new Animation(ATTACK_TIME, mAttackAtlas.findRegion("attack_down"));
             }
         }
     }
 
     /**
      * Interact with object in front of the player.
-     * If it's objective, activate it. If it's an item, gain HP.
+     * If it's objective, activate it. If it's an item, gain mHp.
      */
     public void interact() {
-        for (Tile tile : tileList) {
+        for (Tile tile : mTileList) {
             if (tile.tileState != TileState.ITEM && tile.tileState != TileState.OBJECTIVE)
                 continue;
-            int tileX = (int) (position.x / TILE_WIDTH);
-            int tileY = (int) (position.y / TILE_HEIGHT);
-            if (tile.position[0] == tileX + direction.x && tile.position[1] == tileY + direction.y) {
+            int tileX = (int) (mPosition.x / TILE_WIDTH);
+            int tileY = (int) (mPosition.y / TILE_HEIGHT);
+            if (tile.position[0] == tileX + mDirection.x && tile.position[1] == tileY + mDirection.y) {
                 Gdx.app.log("Interact", "At pos " + tile.position[0] + "," + tile.position[1]);
                 if (tile.tileState == TileState.ITEM && tile.active) {
-                    gridMovement.getGrid().getNode(tile.position[0], tile.position[1]).walkable = true;
-                    ((TiledMapTileLayer) map.tiledMap.getLayers().get(1)).setCell(tile.position[0], tile.position[1], null);
+                    mGridMovement.getGrid().getNode(tile.position[0], tile.position[1]).walkable = true;
+                    ((TiledMapTileLayer) mMap.tiledMap.getLayers().get(1)).setCell(tile.position[0], tile.position[1], null);
                     tile.active = false;
-                    HP += 3;
-                    screen.gameUI.updateHP(3);
-                    if (HP > 10) {
-                        int diff = 10 - HP;
-                        HP = 10;
-                        screen.gameUI.updateHP(diff);
+                    mHp += 3;
+                    mScreen.mGameUI.updateHP(3);
+                    if (mHp > 10) {
+                        int diff = 10 - mHp;
+                        mHp = 10;
+                        mScreen.mGameUI.updateHP(diff);
                     }
                     break;
                 } else if (tile.tileState == TileState.OBJECTIVE && tile.active) {
                     TiledMapTileLayer.Cell cell = new TiledMapTileLayer.Cell();
-                    cell.setTile(new StaticTiledMapTile(TextureRegion.split(map.spriteTexture, 16, 16)[2][1]));
-                    ((TiledMapTileLayer) map.tiledMap.getLayers().get(1)).setCell(tile.position[0], tile.position[1], cell);
+                    cell.setTile(new StaticTiledMapTile(TextureRegion.split(mMap.spriteTexture, 16, 16)[2][1]));
+                    ((TiledMapTileLayer) mMap.tiledMap.getLayers().get(1)).setCell(tile.position[0], tile.position[1], cell);
                     tile.active = false;
-                    screen.gameUI.updateObjectiveCount();
+                    mScreen.mGameUI.updateObjectiveCount();
                 }
             }
         }
@@ -135,38 +135,38 @@ public class Player extends TileMovable {
      */
     public void update(float delta, List<Enemy> enemies) {
         super.update(delta);
-        if (timer.isRunning() && timer.elapsed(TimeUnit.MILLISECONDS) > 75) { //If the touchpad hasn't been released for x ms, read as a move instead of change facing dir
-            gridMovement.setDirection(direction);
-            timer.stop();
+        if (mTimer.isRunning() && mTimer.elapsed(TimeUnit.MILLISECONDS) > 75) { //If the touchpad hasn't been released for x ms, read as a move instead of change facing dir
+            mGridMovement.setDirection(mDirection);
+            mTimer.stop();
         }
-        gridMovement.update(delta);
+        mGridMovement.update(delta);
 
         Iterator<Enemy> iterator = enemies.iterator();
         while (iterator.hasNext()) {
             Enemy enemy = iterator.next();
-            int tileX = (int) (position.x / TILE_WIDTH);
-            int tileY = (int) (position.y / TILE_HEIGHT);
-            int enemyX = (int) (enemy.position.x / TILE_WIDTH);
-            int enemyY = (int) (enemy.position.y / TILE_HEIGHT);
-            if (attacking) { //IF in attack state
-                if (enemyX == tileX + direction.x && enemyY == tileY + direction.y) { //If there's an enemy in front of us, kill them.
+            int tileX = (int) (mPosition.x / TILE_WIDTH);
+            int tileY = (int) (mPosition.y / TILE_HEIGHT);
+            int enemyX = (int) (enemy.mPosition.x / TILE_WIDTH);
+            int enemyY = (int) (enemy.mPosition.y / TILE_HEIGHT);
+            if (mAttacking) { //IF in mAttack state
+                if (enemyX == tileX + mDirection.x && enemyY == tileY + mDirection.y) { //If there's an enemy in front of us, kill them.
                     iterator.remove();
                     break;
                 }
             }
             if (enemyX == tileX && enemyY == tileY) { //If an enemy is on the same tile as us, lose health and get knocked back.
-                HP--;
-                screen.gameUI.updateHP(-1);
-                if (gridMovement.getGrid().walkable(tileX + (int) (direction.x * -2), tileY + (int) (direction.y * -2))) {
+                mHp--;
+                mScreen.mGameUI.updateHP(-1);
+                if (mGridMovement.getGrid().walkable(tileX + (int) (mDirection.x * -2), tileY + (int) (mDirection.y * -2))) {
                     setMoving(null);
-                    gridMovement.snapToTile(tileX + (int) (direction.x * -2), tileY + (int) (direction.y * -2));
-                    gridMovement.setDestination(null);
+                    mGridMovement.snapToTile(tileX + (int) (mDirection.x * -2), tileY + (int) (mDirection.y * -2));
+                    mGridMovement.setDestination(null);
                 } else {
                     setMoving(null);
-                    gridMovement.snapToTile(tileX + (int) (direction.x * -1), tileY + (int) (direction.y * -1));
-                    gridMovement.setDestination(null);
+                    mGridMovement.snapToTile(tileX + (int) (mDirection.x * -1), tileY + (int) (mDirection.y * -1));
+                    mGridMovement.setDestination(null);
                 }
-                velocity.set(0.0f, 0.0f);
+                mVelocity.set(0.0f, 0.0f);
                 break;
             }
         }
@@ -179,92 +179,92 @@ public class Player extends TileMovable {
      * @param camera the camera to use.
      */
     public void render(float delta, Camera camera) {
-        animTime += delta;
+        mAnimTime += delta;
         TextureRegion keyFrame = null, attackFrame = null;
-        flip = direction.x > 0.0;
-        if (attacking) {
-            attAnimTime += delta;
-            if (attack.isAnimationFinished(attAnimTime)) {
-                attacking = false;
-                keyFrame = idle.getKeyFrame(animTime);
-                attAnimTime = 0.0f;
+        mFlip = mDirection.x > 0.0;
+        if (mAttacking) {
+            mAttackAnimTime += delta;
+            if (mAttack.isAnimationFinished(mAttackAnimTime)) {
+                mAttacking = false;
+                keyFrame = mIdle.getKeyFrame(mAnimTime);
+                mAttackAnimTime = 0.0f;
             } else {
-                attackFrame = attack.getKeyFrame(attAnimTime, false);
-                if (direction == null) {
-                    keyFrame = idle.getKeyFrames()[0];
-                } else if (direction.x < 0.0) {  //Check last known direction
-                    keyFrame = run.getKeyFrames()[0];
-                } else if (direction.x > 0.0) {
-                    keyFrame = run.getKeyFrames()[0];
-                } else if (direction.y > 0.0) {
-                    keyFrame = up.getKeyFrames()[0];
-                } else if (direction.y < 0.0) {
-                    keyFrame = down.getKeyFrames()[0];
+                attackFrame = mAttack.getKeyFrame(mAttackAnimTime, false);
+                if (mDirection == null) {
+                    keyFrame = mIdle.getKeyFrames()[0];
+                } else if (mDirection.x < 0.0) {  //Check mLast known mDirection
+                    keyFrame = mRun.getKeyFrames()[0];
+                } else if (mDirection.x > 0.0) {
+                    keyFrame = mRun.getKeyFrames()[0];
+                } else if (mDirection.y > 0.0) {
+                    keyFrame = mUp.getKeyFrames()[0];
+                } else if (mDirection.y < 0.0) {
+                    keyFrame = mDown.getKeyFrames()[0];
                 }
 
             }
         }
         //set animation
-        else if (!gridMovement.isMoving()) { //If not moving, use idle
-            keyFrame = idle.getKeyFrame(animTime);
+        else if (!mGridMovement.isMoving()) { //If not moving, use mIdle
+            keyFrame = mIdle.getKeyFrame(mAnimTime);
         } else { //Else character still moving
-            if (direction.x < 0.0) {  //Check last known direction
-                keyFrame = run.getKeyFrame(animTime);
-            } else if (direction.x > 0.0) {
-                keyFrame = run.getKeyFrame(animTime);
-            } else if (direction.y > 0.0) {
-                keyFrame = up.getKeyFrame(animTime);
-            } else if (direction.y < 0.0) {
-                keyFrame = down.getKeyFrame(animTime);
+            if (mDirection.x < 0.0) {  //Check mLast known mDirection
+                keyFrame = mRun.getKeyFrame(mAnimTime);
+            } else if (mDirection.x > 0.0) {
+                keyFrame = mRun.getKeyFrame(mAnimTime);
+            } else if (mDirection.y > 0.0) {
+                keyFrame = mUp.getKeyFrame(mAnimTime);
+            } else if (mDirection.y < 0.0) {
+                keyFrame = mDown.getKeyFrame(mAnimTime);
             }
         }
         if (keyFrame != null) { //Render the animation frame
-            spriteBatch.begin();
-            spriteBatch.setProjectionMatrix(camera.combined);
-            spriteBatch.draw(keyFrame, flip ? (position.x) + keyFrame.getRegionWidth() : position.x, position.y, flip ? -keyFrame.getRegionWidth() : keyFrame.getRegionWidth(), keyFrame.getRegionHeight());
+            mSpriteBatch.begin();
+            mSpriteBatch.setProjectionMatrix(camera.combined);
+            mSpriteBatch.draw(keyFrame, mFlip ? (mPosition.x) + keyFrame.getRegionWidth() : mPosition.x, mPosition.y, mFlip ? -keyFrame.getRegionWidth() : keyFrame.getRegionWidth(), keyFrame.getRegionHeight());
             if (attackFrame != null) {
-                spriteBatch.draw(attackFrame, direction.x < 0.0 ? position.x - (TILE_WIDTH) : position.x, direction.y < 0.0 ? position.y - TILE_HEIGHT : position.y, attackFrame.getRegionWidth(), attackFrame.getRegionHeight());
+                mSpriteBatch.draw(attackFrame, mDirection.x < 0.0 ? mPosition.x - (TILE_WIDTH) : mPosition.x, mDirection.y < 0.0 ? mPosition.y - TILE_HEIGHT : mPosition.y, attackFrame.getRegionWidth(), attackFrame.getRegionHeight());
             }
-            spriteBatch.end();
+            mSpriteBatch.end();
         }
-        if (animTime > 1.0f) animTime = 0.0f;
+        if (mAnimTime > 1.0f) mAnimTime = 0.0f;
     }
 
     /**
-     * Start moving the player in the specified direction.
+     * Start moving the player in the specified mDirection.
      *
-     * @param dir 2D vector specifying the direction to move in.
+     * @param dir 2D vector specifying the mDirection to move in.
      */
     public void setMoving(Vector2 dir) {
-        if (dir != null) { //Controller passed a direction
-            direction = dir; //Set the player's direction
-            if (timer.isRunning()) //Start a timer, to count how long the touchpad is held
+        if (dir != null) { //Controller passed a mDirection
+            mDirection = dir; //Set the player's mDirection
+            if (mTimer.isRunning()) //Start a mTimer, to count how long the touchpad is held
                 return;
-            timer.reset();
-            timer.start();
+            mTimer.reset();
+            mTimer.start();
         } else {
-            gridMovement.setDirection(dir); //Touchpad released, stop movement
-            if (timer.isRunning())
-                timer.stop();
-            timer.reset();
+            mGridMovement.setDirection(dir); //Touchpad released, stop movement
+            if (mTimer.isRunning())
+                mTimer.stop();
+            mTimer.reset();
         }
     }
 
     public void setDirection(Vector2 dir) {
-        direction = dir;
+        mDirection = dir;
     }
 
     public List<Tile> getTileList() {
-        return tileList;
+        return mTileList;
     }
 
     public void setTileList(List<Tile> tileList) {
-        this.tileList = tileList;
+        this.mTileList = tileList;
     }
 
     public void dispose() {
-        this.textureAtlas.dispose();
-        this.attackAtlas.dispose();
+        this.mTextureAtlas.dispose();
+        this.mAttackAtlas.dispose();
     }
 
     @Override
@@ -273,22 +273,22 @@ public class Player extends TileMovable {
     }
 
     public MapBuilder.Map getMap() {
-        return map;
+        return mMap;
     }
 
     public void setMap(MapBuilder.Map map) {
-        this.map = map;
+        this.mMap = map;
     }
 
     public boolean isAttacking() {
-        return attacking;
+        return mAttacking;
     }
 
     public int getHP() {
-        return HP;
+        return mHp;
     }
 
     public void setHP(int HP) {
-        this.HP = HP;
+        this.mHp = HP;
     }
 }

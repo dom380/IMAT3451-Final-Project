@@ -7,64 +7,62 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 
 /**
  * Created by Dom on 03/03/2017.
- * Extends LibGDX scene2D actor to use LibGDX animation.
+ * Extends LibGDX scene2D actor to use LibGDX mAnimation.
  */
 
 public class AnimActor extends Actor {
 
-    private Animation animation;
-    private TextureRegion currentRegion;
-
-    private boolean reCentre;
-
-    private float time = 0.0f;
+    private Animation mAnimation;
+    private TextureRegion mCurrentRegion;
+    private boolean mReCentre;
+    private float mTime = 0.0f;
 
     /**
      * Constructor
      *
-     * @param animation The animation this actor should control.
+     * @param mAnimation The mAnimation this actor should control.
      */
-    public AnimActor(Animation animation) {
-        this(animation, false);
+    public AnimActor(Animation mAnimation) {
+        this(mAnimation, false);
     }
 
     /**
      * Constructor
      *
-     * @param animation The animation this actor should control.
-     * @param reCentre  Boolean flag signaling whether to render the animation from its centre if true.
+     * @param mAnimation The mAnimation this actor should control.
+     * @param mReCentre  Boolean flag signaling whether to render the mAnimation from its centre if true.
      */
-    public AnimActor(Animation animation, boolean reCentre) {
-        this.animation = animation;
-        this.reCentre = reCentre;
+    public AnimActor(Animation mAnimation, boolean mReCentre) {
+        this.mAnimation = mAnimation;
+        this.mReCentre = mReCentre;
     }
 
     /**
-     * Override of act method. Called by scene2D stage. Sets the current key frame of animation.
+     * Override of act method. Called by scene2D stage. Sets the current key frame of mAnimation.
      *
-     * @param delta The time in seconds since the last update.
+     * @param delta The mTime in seconds since the mLast update.
      */
     @Override
     public void act(float delta) {
         super.act(delta);
-        time += delta;
+        mTime += delta;
 
-        currentRegion = animation.getKeyFrame(time, true);
+        mCurrentRegion = mAnimation.getKeyFrame(mTime, true);
     }
 
     /**
-     * Draws the current key frame using the specified batch.
+     * Draws the current key frame using the specified mBatch.
      *
-     * @param batch       The batch to render the frame with.
+     * @param batch       The mBatch to render the frame with.
      * @param parentAlpha The alpha value of this actors parent.
      */
     @Override
     public void draw(Batch batch, float parentAlpha) {
         super.draw(batch, parentAlpha);
-        if (reCentre)
-            batch.draw(currentRegion, getX() - currentRegion.getRegionWidth() / 2, getY() - currentRegion.getRegionHeight() / 2);
+        if (mReCentre)
+            batch.draw(mCurrentRegion, getX() - mCurrentRegion.getRegionWidth() / 2, getY() - mCurrentRegion.getRegionHeight() / 2);
         else
-            batch.draw(currentRegion, getX(), getY());
+            batch.draw(mCurrentRegion, getX(), getY());
     }
 
 }

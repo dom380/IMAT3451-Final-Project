@@ -20,12 +20,12 @@ import com.badlogic.gdx.utils.viewport.Viewport;
  */
 
 public class LevelSelectUI {
-    private OrthographicCamera camera;
-    private Stage stage;
-    private Viewport viewport;
-    private TextureAtlas atlas;
-    private Skin skin;
-    private SpriteBatch batch;
+    private OrthographicCamera mCamera;
+    private Stage mStage;
+    private Viewport mViewport;
+    private TextureAtlas mAtlas;
+    private Skin mSkin;
+    private SpriteBatch mBatch;
 
 
     /**
@@ -35,21 +35,21 @@ public class LevelSelectUI {
      * @param screen The current screen.
      */
     public LevelSelectUI(final MyGdxGame game, final LevelGenScreen screen) {
-        camera = new OrthographicCamera();
-        atlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
-        skin = new Skin(Gdx.files.internal("sprites/uiskin.json"), atlas);
-        viewport = new StretchViewport(800, 480, camera);
-        viewport.apply();
-        batch = game.batch;
-        stage = new Stage(viewport, batch);
+        mCamera = new OrthographicCamera();
+        mAtlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
+        mSkin = new Skin(Gdx.files.internal("sprites/uiskin.json"), mAtlas);
+        mViewport = new StretchViewport(800, 480, mCamera);
+        mViewport.apply();
+        mBatch = game.mBatch;
+        mStage = new Stage(mViewport, mBatch);
 
         Table table = new Table();
         table.setFillParent(true);
         table.left().bottom();
         table.pad(0.0f, 0.0f, 5.0f, 0.0f);
 
-        final Label mapLabel = new Label("Map 1/10", skin);
-        TextButton previousButton = new TextButton("Previous Map", skin);
+        final Label mapLabel = new Label("Map 1/10", mSkin);
+        TextButton previousButton = new TextButton("Previous Map", mSkin);
         previousButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -57,7 +57,7 @@ public class LevelSelectUI {
                 mapLabel.setText("Map " + (screen.getMapIndex() + 1) + "/10");
             }
         });
-        TextButton nextButton = new TextButton("Next Map", skin);
+        TextButton nextButton = new TextButton("Next Map", mSkin);
         nextButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -65,7 +65,7 @@ public class LevelSelectUI {
                 mapLabel.setText("Map " + (screen.getMapIndex() + 1) + "/10");
             }
         });
-        TextButton menuButton = new TextButton("Main Menu", skin);
+        TextButton menuButton = new TextButton("Main Menu", mSkin);
         menuButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -73,7 +73,7 @@ public class LevelSelectUI {
             }
         });
 
-        TextButton playButton = new TextButton("Play", skin);
+        TextButton playButton = new TextButton("Play", mSkin);
         playButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -88,23 +88,23 @@ public class LevelSelectUI {
         table.add(mapLabel).pad(0.0f, 5.0f, 0.0f, 0.0f);
         table.add();
         table.add(playButton).right().padRight(25.0f).padLeft(25.0f).expandX();
-        stage.addActor(table);
+        mStage.addActor(table);
     }
 
     /**
      * Render the UI.
      */
     public void draw() {
-        stage.draw();
+        mStage.draw();
     }
 
     /**
      * Dispose of the assets.
      */
     public void dispose() {
-        stage.dispose();
-        atlas.dispose();
-        skin.dispose();
+        mStage.dispose();
+        mAtlas.dispose();
+        mSkin.dispose();
     }
 
     /**
@@ -114,14 +114,14 @@ public class LevelSelectUI {
      * @param height The new height of the screen.
      */
     public void resize(int width, int height) {
-        viewport.update(width, height);
+        mViewport.update(width, height);
     }
 
     /**
-     * @return Returns the scene2D stage holding the UI elements.
+     * @return Returns the scene2D mStage holding the UI elements.
      */
     public Stage getStage() {
-        return stage;
+        return mStage;
     }
 }
 

@@ -21,89 +21,89 @@ import com.badlogic.gdx.utils.viewport.Viewport;
  */
 
 public class GameUI {
-    private MyGdxGame game;
-    private LevelGenScreen screen;
-    private OrthographicCamera camera;
-    private Stage stage;
-    private Viewport viewport;
-    private TextureAtlas atlas;
-    private Skin skin;
-    private SpriteBatch batch;
-    private Label beaconLabel, hpLabel, gameOverLabel;
-    private int numOfObjectives, hp;
+    private MyGdxGame mGame;
+    private LevelGenScreen mScreen;
+    private OrthographicCamera mCamera;
+    private Stage mStage;
+    private Viewport mViewport;
+    private TextureAtlas mAtlas;
+    private Skin mSkin;
+    private SpriteBatch mBatch;
+    private Label mBeaconLabel, mHpLabel, mGameOverLabel;
+    private int mNumOfObjectives, mHp;
 
     /**
      * Constructor.
      *
-     * @param game            The main game.
-     * @param screen          The game screen.
-     * @param batch           The sprite batch to render the UI with.
-     * @param numOfObjectives The number of objects.
-     * @param playerHP        The player's maximum HP.
+     * @param mGame            The main mGame.
+     * @param mScreen          The mGame mScreen.
+     * @param mBatch           The sprite mBatch to render the UI with.
+     * @param mNumOfObjectives The number of objects.
+     * @param playerHP         The player's maximum HP.
      */
-    public GameUI(MyGdxGame game, LevelGenScreen screen, SpriteBatch batch, int numOfObjectives, int playerHP) {
-        this.game = game;
-        this.screen = screen;
-        this.batch = batch;
-        this.numOfObjectives = numOfObjectives;
-        this.hp = playerHP;
-        camera = new OrthographicCamera();
-        atlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
-        skin = new Skin(Gdx.files.internal("sprites/uiskin.json"), atlas);
-        viewport = new StretchViewport(800, 480, camera);
-        viewport.apply();
-        stage = new Stage(viewport, batch);
+    public GameUI(MyGdxGame mGame, LevelGenScreen mScreen, SpriteBatch mBatch, int mNumOfObjectives, int playerHP) {
+        this.mGame = mGame;
+        this.mScreen = mScreen;
+        this.mBatch = mBatch;
+        this.mNumOfObjectives = mNumOfObjectives;
+        this.mHp = playerHP;
+        mCamera = new OrthographicCamera();
+        mAtlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
+        mSkin = new Skin(Gdx.files.internal("sprites/uiskin.json"), mAtlas);
+        mViewport = new StretchViewport(800, 480, mCamera);
+        mViewport.apply();
+        mStage = new Stage(mViewport, mBatch);
 
         Table table = new Table();
         table.setFillParent(true);
         table.top();
 
-        beaconLabel = new Label("Beacons to light: " + numOfObjectives, skin);
-        hpLabel = new Label("HP: " + hp, skin);
-        gameOverLabel = new Label("", skin);
-        gameOverLabel.setColor(1.0f, 0.0f, 0.0f, 1.0f);
-        gameOverLabel.setFontScale(3.0f, 3.0f);
+        mBeaconLabel = new Label("Beacons to light: " + mNumOfObjectives, mSkin);
+        mHpLabel = new Label("HP: " + mHp, mSkin);
+        mGameOverLabel = new Label("", mSkin);
+        mGameOverLabel.setColor(1.0f, 0.0f, 0.0f, 1.0f);
+        mGameOverLabel.setFontScale(3.0f, 3.0f);
 
-        table.add(beaconLabel).padLeft(25.0f).padRight(25.0f).left();
-        table.add(hpLabel).padLeft(25.0f).padRight(25.0f);
+        table.add(mBeaconLabel).padLeft(25.0f).padRight(25.0f).left();
+        table.add(mHpLabel).padLeft(25.0f).padRight(25.0f);
         table.row();
-        table.add(gameOverLabel).center().padTop(50.0f);
+        table.add(mGameOverLabel).center().padTop(50.0f);
 
-        stage.addActor(table);
+        mStage.addActor(table);
     }
 
     /**
      * Render the UI.
      */
     public void draw() {
-        stage.draw();
+        mStage.draw();
     }
 
     /**
      * Clean up assets.
      */
     public void dispose() {
-        stage.dispose();
-        atlas.dispose();
-        skin.dispose();
+        mStage.dispose();
+        mAtlas.dispose();
+        mSkin.dispose();
     }
 
     /**
-     * Resize the UI. Called on screen resize event.
+     * Resize the UI. Called on mScreen resize event.
      *
-     * @param width  The new width of the screen.
-     * @param height The new height of the screen.
+     * @param width  The new width of the mScreen.
+     * @param height The new height of the mScreen.
      */
     public void resize(int width, int height) {
-        viewport.update(width, height);
+        mViewport.update(width, height);
     }
 
     /**
      * Updates the remaining objectives text.
      */
     public void updateObjectiveCount() {
-        numOfObjectives--;
-        beaconLabel.setText("Beacons to light: " + numOfObjectives);
+        mNumOfObjectives--;
+        mBeaconLabel.setText("Beacons to light: " + mNumOfObjectives);
     }
 
     /**
@@ -112,63 +112,63 @@ public class GameUI {
      * @param amount The amount to change the value by.
      */
     public void updateHP(int amount) {
-        hp += amount;
-        hpLabel.setText("HP: " + hp);
+        mHp += amount;
+        mHpLabel.setText("HP: " + mHp);
     }
 
     /**
-     * Sets the game over text to display.
+     * Sets the mGame over text to display.
      *
      * @param text Text to display.
      */
     public void setGameOverText(String text) {
-        gameOverLabel.setText(text);
+        mGameOverLabel.setText(text);
     }
 
     /**
      * @return Returns the number of objectives.
      */
     public int getNumOfObjectives() {
-        return numOfObjectives;
+        return mNumOfObjectives;
     }
 
     /**
      * Changes the UI to the level complete version.
      */
     public void switchToWinUI() {
-        stage = new Stage(viewport, batch);
+        mStage = new Stage(mViewport, mBatch);
 
         Table table = new Table();
         table.setFillParent(true);
         table.center();
 
-        table.add(gameOverLabel);
+        table.add(mGameOverLabel);
         table.row();
         table.row();
-        TextButton mainMenu = new TextButton("Return to Main Menu", skin);
+        TextButton mainMenu = new TextButton("Return to Main Menu", mSkin);
         mainMenu.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                game.returnToMenu();
+                mGame.returnToMenu();
             }
         });
         table.add(mainMenu);
-        TextButton nextLevel = new TextButton("Play next level", skin);
+        TextButton nextLevel = new TextButton("Play next level", mSkin);
         nextLevel.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                screen.switchNextMap();
-                screen.playMap();
+                mScreen.switchNextMap();
+                mScreen.playMap();
             }
         });
         table.add(nextLevel).padLeft(15.0f);
-        stage.addActor(table);
+        mStage.addActor(table);
     }
 
     /**
-     * @return returns the scene2D stage holding the UI elements.
+     * @return returns the scene2D mStage holding the UI elements.
      */
     public Stage getStage() {
-        return stage;
+        return mStage;
     }
 }

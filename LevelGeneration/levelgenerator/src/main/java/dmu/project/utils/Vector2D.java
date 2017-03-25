@@ -7,28 +7,28 @@ package dmu.project.utils;
 
 public class Vector2D {
 
-    private Double x, y;
+    private Double mX, mY;
 
     /**
      * Constructor.
      *
-     * @param x The X component.
-     * @param y The Y component.
+     * @param mX The X component.
+     * @param mY The Y component.
      */
-    public Vector2D(Double x, Double y) {
-        this.x = x;
-        this.y = y;
+    public Vector2D(Double mX, Double mY) {
+        this.mX = mX;
+        this.mY = mY;
     }
 
     /**
      * Constructor.
      *
-     * @param x The X component.
-     * @param y The Y component.
+     * @param mX The X component.
+     * @param mY The Y component.
      */
-    public Vector2D(int x, int y) {
-        this.x = (double) x;
-        this.y = (double) y;
+    public Vector2D(int mX, int mY) {
+        this.mX = (double) mX;
+        this.mY = (double) mY;
     }
 
     /**
@@ -37,8 +37,8 @@ public class Vector2D {
      * @param other The vector2D to copy from.
      */
     public Vector2D(Vector2D other) {
-        this.x = other.x;
-        this.y = other.y;
+        this.mX = other.mX;
+        this.mY = other.mY;
     }
 
     /**
@@ -48,14 +48,14 @@ public class Vector2D {
      * @return The dot product.
      */
     public Double dotProduct(Vector2D other) {
-        return (x * other.x) + (y * other.y);
+        return (mX * other.mX) + (mY * other.mY);
     }
 
     /**
      * @return The magnitude of the vector.
      */
     public Double magnitude() {
-        return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+        return Math.sqrt(Math.pow(mX, 2) + Math.pow(mY, 2));
     }
 
     /**
@@ -71,56 +71,58 @@ public class Vector2D {
         if (ob == null) return false;
         if (ob.getClass() != getClass()) return false;
         Vector2D other = (Vector2D) ob;
-        return (other.x.equals(x) && other.y.equals(y));
+        return (other.mX.equals(mX) && other.mY.equals(mY));
     }
 
     @Override
     public int hashCode() {
-        return (int) (x * y);
+        return (int) (mX * mY);
     }
 
     /**
      * Add two vectors.
+     *
      * @param other The vector to add.
      * @return The resultant vector
      */
     public Vector2D add(Vector2D other) {
-        return new Vector2D(x + other.x, y + other.y);
+        return new Vector2D(mX + other.mX, mY + other.mY);
     }
 
     /**
      * Add subtract vectors.
+     *
      * @param other The vector to subtract.
      * @return The resultant vector
      */
     public Vector2D subtract(Vector2D other) {
-        return new Vector2D(x - other.x, y - other.y);
+        return new Vector2D(mX - other.mX, mY - other.mY);
     }
 
     //Getters and Setters.
     public Double getX() {
-        return x;
+        return mX;
     }
 
     public void setX(Double x) {
-        this.x = x;
+        this.mX = x;
     }
 
     public Double getY() {
-        return y;
+        return mY;
     }
 
     public void setY(Double y) {
-        this.y = y;
+        this.mY = y;
     }
 
     public void setXY(Double x, Double y) {
-        this.x = x;
-        this.y = y;
+        this.mX = x;
+        this.mY = y;
     }
 
     public void setXY(int x, int y) {
-        this.x = (double) x;
-        this.y = (double) y;
+        this.mX = (double) x;
+        this.mY = (double) y;
     }
 }

@@ -2,8 +2,6 @@ package dmu.project.levelgen;
 
 import java.util.List;
 
-import dmu.project.utils.Grid;
-
 /**
  * Class representing a potential game level within the Genetic Algorithm.
  *

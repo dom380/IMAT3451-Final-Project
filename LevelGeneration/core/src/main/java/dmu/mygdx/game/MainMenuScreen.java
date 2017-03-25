@@ -29,32 +29,32 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class MainMenuScreen implements Screen {
 
-    private final MyGdxGame game;
-    private OrthographicCamera camera;
-    private Stage stage;
-    private Viewport viewport;
-    private TextureAtlas atlas;
-    private Skin skin;
+    private final MyGdxGame mGame;
+    private OrthographicCamera mCamera;
+    private Stage mStage;
+    private Viewport mViewport;
+    private TextureAtlas mAtlas;
+    private Skin mSkin;
 
     /**
      * Constructor.
      *
-     * @param game The main game object.
+     * @param mGame The main mGame object.
      */
-    public MainMenuScreen(MyGdxGame game) {
-        this.game = game;
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 480);
-        atlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
-        skin = new Skin(Gdx.files.internal("sprites/uiskin.json"), atlas);
-        viewport = new StretchViewport(800, 480);
-        viewport.apply();
-        camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
-        camera.update();
-        stage = new Stage(viewport, game.batch);
+    public MainMenuScreen(MyGdxGame mGame) {
+        this.mGame = mGame;
+        mCamera = new OrthographicCamera();
+        mCamera.setToOrtho(false, 800, 480);
+        mAtlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
+        mSkin = new Skin(Gdx.files.internal("sprites/uiskin.json"), mAtlas);
+        mViewport = new StretchViewport(800, 480);
+        mViewport.apply();
+        mCamera.position.set(mCamera.viewportWidth / 2, mCamera.viewportHeight / 2, 0);
+        mCamera.update();
+        mStage = new Stage(mViewport, mGame.mBatch);
 
         //Stage should control input:
-        Gdx.input.setInputProcessor(stage);
+        Gdx.input.setInputProcessor(mStage);
     }
 
     /**
@@ -65,21 +65,21 @@ public class MainMenuScreen implements Screen {
     public void show() {
         //Create Table
         Table mainTable = new Table();
-        //Set table to fill stage
+        //Set table to fill mStage
         mainTable.setFillParent(true);
         //Set alignment of contents in the table.
         mainTable.center();
         Table titleTable = new Table();
         titleTable.setFillParent(true);
         titleTable.top();
-        Label title = new Label("IMAT3451 Project: Procedural Content Generation", skin);
+        Label title = new Label("IMAT3451 Project: Procedural Content Generation", mSkin);
         title.setFontScale(1.2f, 1.2f);
         titleTable.add(title).padTop(125.f).center();
 
-        Label difficultyLabel = new Label("Difficulty", skin);
-        final Label difficultyValue = new Label("1.0", skin);
+        Label difficultyLabel = new Label("Difficulty", mSkin);
+        final Label difficultyValue = new Label("1.0", mSkin);
         mainTable.add(difficultyLabel);
-        final Slider difficultySlider = new Slider(1.0f, 10.0f, 1.0f, false, skin);
+        final Slider difficultySlider = new Slider(1.0f, 10.0f, 1.0f, false, mSkin);
         difficultySlider.addListener(new ChangeListener() {
 
             @Override
@@ -90,11 +90,11 @@ public class MainMenuScreen implements Screen {
         mainTable.add(difficultySlider);
         mainTable.add(difficultyValue);
         mainTable.row();
-        Label noiseWidthLabel = new Label("Noise Width:", skin);
-        final TextField noiseWidthField = new TextField("", skin);
+        Label noiseWidthLabel = new Label("Noise Width:", mSkin);
+        final TextField noiseWidthField = new TextField("", mSkin);
         noiseWidthField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
-        Label noiseHeightLabel = new Label("Noise Height:", skin);
-        final TextField noiseHeightField = new TextField("", skin);
+        Label noiseHeightLabel = new Label("Noise Height:", mSkin);
+        final TextField noiseHeightField = new TextField("", mSkin);
         noiseHeightField.setTextFieldFilter(new TextField.TextFieldFilter.DigitsOnlyFilter());
         mainTable.add(noiseWidthLabel);
         mainTable.add(noiseWidthField);
@@ -104,8 +104,8 @@ public class MainMenuScreen implements Screen {
         mainTable.row();
 
         //Add buttons to table
-        final CheckBox debugButton = new CheckBox("Debug Seed", skin);
-        TextButton playButton = new TextButton("Generate Level", skin);
+        final CheckBox debugButton = new CheckBox("Debug Seed", mSkin);
+        TextButton playButton = new TextButton("Generate Level", mSkin);
         playButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -113,7 +113,7 @@ public class MainMenuScreen implements Screen {
                 int noiseWidth = noiseWidthField.getText().isEmpty() ? 4 : Integer.parseInt(noiseWidthField.getText());
                 int noiseHeight = noiseHeightField.getText().isEmpty() ? 4 : Integer.parseInt(noiseHeightField.getText());
                 boolean debugEnabled = debugButton.isChecked();
-                ((Game) Gdx.app.getApplicationListener()).setScreen(new LoadingScreen(game, noiseWidth, noiseHeight, diff, debugEnabled));
+                ((Game) Gdx.app.getApplicationListener()).setScreen(new LoadingScreen(mGame, noiseWidth, noiseHeight, diff, debugEnabled));
 
             }
         });
@@ -121,25 +121,36 @@ public class MainMenuScreen implements Screen {
         mainTable.add(playButton);
 //        mainTable.add(debugButton);
         mainTable.row();
-        //Add table to stage
-        stage.addActor(titleTable);
-        stage.addActor(mainTable);
+        //Add table to mStage
+        mStage.addActor(titleTable);
+        mStage.addActor(mainTable);
     }
 
+    /**
+     * Renders the GUI elements.
+     *
+     * @param delta The current time step.
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(.1f, .12f, .16f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        stage.act();
-        stage.draw();
+        mStage.act();
+        mStage.draw();
     }
 
+    /**
+     * Resize the mViewport and recenter the mCamera.
+     *
+     * @param width  The new width of the screen in pixels.
+     * @param height The new height of the screen in pixels.
+     */
     @Override
     public void resize(int width, int height) {
-        viewport.update(width, height);
-        camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
-        camera.update();
+        mViewport.update(width, height);
+        mCamera.position.set(mCamera.viewportWidth / 2, mCamera.viewportHeight / 2, 0);
+        mCamera.update();
     }
 
     @Override
@@ -159,8 +170,8 @@ public class MainMenuScreen implements Screen {
 
     @Override
     public void dispose() {
-        stage.dispose();
-        skin.dispose();
-        atlas.dispose();
+        mStage.dispose();
+        mSkin.dispose();
+        mAtlas.dispose();
     }
 }

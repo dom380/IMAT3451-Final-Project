@@ -6,6 +6,12 @@ package dmu.project.utils;
  */
 
 public class Node implements Comparable<Node> {
+    public double gScore;
+    public double fScore;
+    public double hScore;
+    public Vector2D position;
+    public Node parent;
+    public boolean walkable;
 
     /**
      * Constructor.
@@ -53,13 +59,6 @@ public class Node implements Comparable<Node> {
         fScore = gScore + hScore;
         this.parent = parent != null ? parent : this.parent;
     }
-
-    public double gScore;
-    public double fScore;
-    public double hScore;
-    public Vector2D position;
-    public Node parent;
-    public boolean walkable;
 
     /**
      * Equals override.

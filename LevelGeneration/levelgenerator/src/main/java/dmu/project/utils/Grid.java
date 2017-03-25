@@ -6,38 +6,38 @@ import java.util.List;
 
 /**
  * Created by Dom on 25/01/2017.
- * Class representing the map as a grid for path finding.
+ * Class representing the map as a mGrid for path finding.
  */
 
 public class Grid {
 
-    private Node[][] grid;
-    private int xMax, yMax;
-    private boolean moveDiag;
+    private Node[][] mGrid;
+    private int mXMax, mYMax;
+    private boolean mMoveDiag;
 
     /**
      * Constructor.
      *
-     * @param xMax         Number of nodes in the X direction.
-     * @param yMax         Number of nodes in the Y direction.
-     * @param moveDiagonal True if the grid allows diagonal movement.
+     * @param mXMax         Number of nodes in the X direction.
+     * @param mYMax         Number of nodes in the Y direction.
+     * @param moveDiagonal True if the mGrid allows diagonal movement.
      */
-    public Grid(int xMax, int yMax, boolean moveDiagonal) {
-        grid = new Node[xMax][yMax];
-        this.xMax = xMax;
-        this.yMax = yMax;
-        this.moveDiag = moveDiagonal;
+    public Grid(int mXMax, int mYMax, boolean moveDiagonal) {
+        mGrid = new Node[mXMax][mYMax];
+        this.mXMax = mXMax;
+        this.mYMax = mYMax;
+        this.mMoveDiag = moveDiagonal;
     }
 
     /**
-     * Adds a node to the grid at the specified position.
+     * Adds a node to the mGrid at the specified position.
      *
      * @param x    The X coordinate of the node.
      * @param y    The Y coordinate of the node.
      * @param node The node to add.
      */
     public void addNode(int x, int y, Node node) {
-        grid[x][y] = node;
+        mGrid[x][y] = node;
     }
 
     /**
@@ -48,7 +48,7 @@ public class Grid {
      * @return The node at that position.
      */
     public Node getNode(int x, int y) {
-        return grid[x][y];
+        return mGrid[x][y];
     }
 
     /**
@@ -59,26 +59,26 @@ public class Grid {
      * @return True if the node can be moved to.
      */
     public boolean walkable(int x, int y) {
-        if ((x < 0) || (x >= xMax)) {
+        if ((x < 0) || (x >= mXMax)) {
             int check = 1;
             return false;
-        } else if ((y < 0) || (y >= yMax)) {
+        } else if ((y < 0) || (y >= mYMax)) {
             int check = 1;
             return false;
         }
-        return grid[x][y].walkable;
+        return mGrid[x][y].walkable;
     }
 
     /**
-     * Resets every node in the grid.
+     * Resets every node in the mGrid.
      */
     public void reset() {
-        for (int i = 0; i < xMax; i++) {
-            for (int j = 0; j < yMax; j++) {
-                grid[i][j].fScore = -1;
-                grid[i][j].gScore = -1;
-                grid[i][j].hScore = -1;
-                grid[i][j].parent = null;
+        for (int i = 0; i < mXMax; i++) {
+            for (int j = 0; j < mYMax; j++) {
+                mGrid[i][j].fScore = -1;
+                mGrid[i][j].gScore = -1;
+                mGrid[i][j].hScore = -1;
+                mGrid[i][j].parent = null;
             }
         }
     }
@@ -90,7 +90,7 @@ public class Grid {
      * @return A list of the positions of the free neighbours of the specified node.
      */
     public List<Vector2D> getNeighbours(Node node) {
-        return getNeighbours(node, moveDiag);
+        return getNeighbours(node, mMoveDiag);
     }
 
     /**
@@ -142,7 +142,7 @@ public class Grid {
             dx = (x - px) / Math.max(Math.abs(x - px), 1);
             dy = (y - py) / Math.max(Math.abs(y - py), 1);
             //search diagonally
-            if (dx != 0 && dy != 0 && moveDiag) {
+            if (dx != 0 && dy != 0 && mMoveDiag) {
                 if (walkable(x, y + dy)) {
                     neighbors.add(new Vector2D(x, (y + dy)));
                 }
@@ -217,8 +217,8 @@ public class Grid {
     /**
      * @return True if diagonal movement enabled.
      */
-    public boolean isMoveDiag() {
-        return moveDiag;
+    public boolean ismMoveDiag() {
+        return mMoveDiag;
     }
 
     /**

@@ -15,26 +15,25 @@ import java.io.IOException;
  * The main game class.
  */
 public class MyGdxGame extends Game {
-    SpriteBatch batch;
-    private BitmapFont font;
-    private MainMenuScreen mainMenuScreen;
-    private LocationService locationService;
-    String apiUrl;
-    String apiKey;
-
-    ObjectMap<String, String> properties = new ObjectMap<>();
+    private BitmapFont mFont;
+    private MainMenuScreen mMainMenuScreen;
+    private LocationService mLocationService;
+    SpriteBatch mBatch;
+    String mApiUrl;
+    String mApiKey;
+    ObjectMap<String, String> mProperties = new ObjectMap<>();
 
     /**
      * Constructor.
      *
-     * @param locationService Implementation of the location service.
-     * @param apiUrl          The Weather API URL.
-     * @param apiKey          The Weather API key.
+     * @param mLocationService Implementation of the location service.
+     * @param mApiUrl          The Weather API URL.
+     * @param mApiKey          The Weather API key.
      */
-    MyGdxGame(LocationService locationService, String apiUrl, String apiKey) {
-        this.locationService = locationService;
-        this.apiUrl = apiUrl;
-        this.apiKey = apiKey;
+    MyGdxGame(LocationService mLocationService, String mApiUrl, String mApiKey) {
+        this.mLocationService = mLocationService;
+        this.mApiUrl = mApiUrl;
+        this.mApiKey = mApiKey;
     }
 
     /**
@@ -42,19 +41,19 @@ public class MyGdxGame extends Game {
      */
     @Override
     public void create() {
-        batch = new SpriteBatch();
-        font = new BitmapFont();
-        mainMenuScreen = new MainMenuScreen(this);
+        mBatch = new SpriteBatch();
+        mFont = new BitmapFont();
+        mMainMenuScreen = new MainMenuScreen(this);
         try {
-            FileHandle configFile = Gdx.files.internal("config.properties");
+            FileHandle configFile = Gdx.files.internal("config.mProperties");
             if (configFile.exists())
-                PropertiesUtils.load(properties, configFile.reader());
-            else setDefaultProperties(properties);
+                PropertiesUtils.load(mProperties, configFile.reader());
+            else setDefaultProperties(mProperties);
         } catch (IOException e) {
             Gdx.app.log("Error", e.getMessage());
-            setDefaultProperties(properties);
+            setDefaultProperties(mProperties);
         }
-        this.setScreen(mainMenuScreen);
+        this.setScreen(mMainMenuScreen);
     }
 
     /**
@@ -64,8 +63,8 @@ public class MyGdxGame extends Game {
         if (this.getScreen() != null)
             this.getScreen().dispose();
 
-        mainMenuScreen = new MainMenuScreen(this);
-        this.setScreen(mainMenuScreen);
+        mMainMenuScreen = new MainMenuScreen(this);
+        this.setScreen(mMainMenuScreen);
     }
 
     /**
@@ -83,7 +82,7 @@ public class MyGdxGame extends Game {
      * @return the location service.
      */
     public LocationService getLocationService() {
-        return locationService;
+        return mLocationService;
     }
 
     public void render() {
@@ -91,16 +90,16 @@ public class MyGdxGame extends Game {
     }
 
     public void dispose() {
-        batch.dispose();
-        font.dispose();
-        mainMenuScreen.dispose();
+        mBatch.dispose();
+        mFont.dispose();
+        mMainMenuScreen.dispose();
         this.getScreen().dispose();
     }
 
     /**
-     * Sets the default level generation properties.
+     * Sets the default level generation mProperties.
      *
-     * @param properties The object to hold the properties.
+     * @param properties The object to hold the mProperties.
      */
     private void setDefaultProperties(ObjectMap<String, String> properties) {
         properties.put("constraints.populationSize", "100");

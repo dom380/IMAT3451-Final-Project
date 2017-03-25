@@ -82,7 +82,7 @@ public class GAPopulationTest {
         populationGen.setCandidateFactory(candidateFactory);
 
         //Use reflection to set the heightmap field.
-        Field heightMapField = populationGen.getClass().getDeclaredField("heightMap");
+        Field heightMapField = populationGen.getClass().getDeclaredField("mHeightMap");
         heightMapField.setAccessible(true);
         heightMapField.set(populationGen, this.heightMap);
 
@@ -103,7 +103,7 @@ public class GAPopulationTest {
                 .thenReturn(0.1);
 
         //Replace RNG in populationGen.
-        Field rngField = populationGen.getClass().getDeclaredField("rng");
+        Field rngField = populationGen.getClass().getDeclaredField("sRng");
         rngField.setAccessible(true);
         rngField.set(populationGen, rng);
 
@@ -121,7 +121,7 @@ public class GAPopulationTest {
         populationGen.setCandidateFactory(candidateFactory);
 
         //Use reflection to set the heightmap field.
-        Field heightMapField = populationGen.getClass().getDeclaredField("heightMap");
+        Field heightMapField = populationGen.getClass().getDeclaredField("mHeightMap");
         heightMapField.setAccessible(true);
         heightMapField.set(populationGen, this.heightMap);
 
@@ -151,7 +151,7 @@ public class GAPopulationTest {
                 .thenReturn(30);
 
         //Replace RNG in populationGen.
-        Field rngField = populationGen.getClass().getDeclaredField("rng");
+        Field rngField = populationGen.getClass().getDeclaredField("sRng");
         rngField.setAccessible(true);
         rngField.set(populationGen, rng);
 
@@ -197,7 +197,7 @@ public class GAPopulationTest {
                 .thenReturn(crossoverP2);
 
         //Replace RNG in populationGen.
-        Field rngField = populationGen.getClass().getDeclaredField("rng");
+        Field rngField = populationGen.getClass().getDeclaredField("sRng");
         rngField.setAccessible(true);
         rngField.set(populationGen, rng);
 
@@ -231,7 +231,7 @@ public class GAPopulationTest {
         GAPopulationGen populationGen = new GAPopulationGen(constraints);
         populationGen.setCandidateFactory(candidateFactory);
         //Use reflection to set the heightmap field.
-        Field heightMapField = populationGen.getClass().getDeclaredField("heightMap");
+        Field heightMapField = populationGen.getClass().getDeclaredField("mHeightMap");
         heightMapField.setAccessible(true);
         heightMapField.set(populationGen, this.heightMap);
 

@@ -42,7 +42,7 @@ public class PathFinder {
         Stopwatch stopwatch = Stopwatch.createStarted();
         frontier.add(new LIFOEntry<Node>(startNode));
         cleaningList.add(startNode);
-        boolean moveDiag = grid.isMoveDiag();
+        boolean moveDiag = grid.ismMoveDiag();
         //JPS
         while (!frontier.isEmpty()) {
             LIFOEntry<Node> entry = frontier.poll();
@@ -99,7 +99,7 @@ public class PathFinder {
         Stopwatch stopwatch = Stopwatch.createStarted();
         frontier.add(new LIFOEntry<Node>(startNode));
         cleaningList.add(startNode);
-        boolean moveDiag = grid.isMoveDiag();
+        boolean moveDiag = grid.ismMoveDiag();
         //JPS
         while (!frontier.isEmpty()) {
             LIFOEntry<Node> entry = frontier.poll();

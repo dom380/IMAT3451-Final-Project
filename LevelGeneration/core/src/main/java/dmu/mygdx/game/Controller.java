@@ -22,47 +22,47 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
  * Created by Dom on 03/03/2017.
- * Class to handle input to control the player character and display the on screen controls.
+ * Class to handle input to control the mPlayer character and display the on screen controls.
  */
 
 public class Controller extends InputAdapter {
-    private OrthographicCamera camera;
-    private Stage stage;
-    private Viewport viewport;
-    private TextureAtlas atlas;
-    private Skin skin;
-    private SpriteBatch batch;
-    private Skin touchpadSkin, buttonSkin;
-    private Player player;
+    private OrthographicCamera mCamera;
+    private Stage mStage;
+    private Viewport mViewport;
+    private TextureAtlas mAtlas;
+    private Skin mSkin;
+    private SpriteBatch mBatch;
+    private Skin mTouchpadSkin, mButtonSkin;
+    private Player mPlayer;
 
     /**
      * Constructor. Initialises the UI layout.
      *
-     * @param batch  The sprite batch to use when rendering the UI
-     * @param player The player character to control.
+     * @param batch   The sprite mBatch to use when rendering the UI
+     * @param mPlayer The mPlayer character to control.
      */
-    public Controller(SpriteBatch batch, final Player player) {
-        this.player = player;
-        camera = new OrthographicCamera();
-        atlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
-        skin = new Skin(Gdx.files.internal("sprites/uiskin.json"), atlas);
-        viewport = new StretchViewport(800, 480, camera);
-        viewport.apply();
-        this.batch = batch;
-        stage = new Stage(viewport, batch);
+    public Controller(SpriteBatch batch, final Player mPlayer) {
+        this.mPlayer = mPlayer;
+        mCamera = new OrthographicCamera();
+        mAtlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
+        mSkin = new Skin(Gdx.files.internal("sprites/uiskin.json"), mAtlas);
+        mViewport = new StretchViewport(800, 480, mCamera);
+        mViewport.apply();
+        this.mBatch = batch;
+        mStage = new Stage(mViewport, batch);
         Table table = new Table();
         table.setFillParent(true);
         table.bottom();
         table.pad(0.0f, 0.0f, 5.0f, 0.0f);
 
-        touchpadSkin = new Skin();
-        touchpadSkin.add("touchBackground", new Texture("controller/joystickBackground.png"));
-        touchpadSkin.add("touchKnob", new Texture("controller/joystickKnob.png"));
+        mTouchpadSkin = new Skin();
+        mTouchpadSkin.add("touchBackground", new Texture("controller/joystickBackground.png"));
+        mTouchpadSkin.add("touchKnob", new Texture("controller/joystickKnob.png"));
         Touchpad.TouchpadStyle touchpadStyle = new Touchpad.TouchpadStyle();
-        touchpadStyle.background = touchpadSkin.getDrawable("touchBackground");
+        touchpadStyle.background = mTouchpadSkin.getDrawable("touchBackground");
         touchpadStyle.background.setMinHeight(50);
         touchpadStyle.background.setMinWidth(50);
-        touchpadStyle.knob = touchpadSkin.getDrawable("touchKnob");
+        touchpadStyle.knob = mTouchpadSkin.getDrawable("touchKnob");
         touchpadStyle.knob.setMinHeight(40);
         touchpadStyle.knob.setMinWidth(40);
         Touchpad touchpad = new Touchpad(5, touchpadStyle);
@@ -73,11 +73,11 @@ public class Controller extends InputAdapter {
                 float dx = tp.getKnobPercentX();
                 float dy = tp.getKnobPercentY();
                 if (dx == 0.0 && dy == 0.0) {
-                    player.setMoving(null);
+                    mPlayer.setMoving(null);
                     return;
                 }
                 double angle = Math.atan2(dy, dx);
-                int quad = (int) ((4 * angle / (2 * Math.PI) + 4.5) % 4); //get the nearest 4-direction
+                int quad = (int) ((4 * angle / (2 * Math.PI) + 4.5) % 4); //get the nearest 4-mDirection
                 if (quad == 0) { //Right
                     dy = 0.0f;
                     dx = 1.0f;
@@ -91,62 +91,62 @@ public class Controller extends InputAdapter {
                     dy = -1.0f;
                     dx = 0.0f;
                 }
-                player.setMoving(new Vector2(dx, dy));
+                mPlayer.setMoving(new Vector2(dx, dy));
             }
         });
         table.add(touchpad).width(75).height(75).pad(0.0f, 10.0f, 5.0f, 0.0f).fill().left().expandX();
 
-        buttonSkin = new Skin();
-        buttonSkin.add("AButton", new Texture(Gdx.files.internal("controller/AButton.png")));
-        buttonSkin.add("AButton_Pressed", new Texture(Gdx.files.internal("controller/AButton_Pressed.png")));
-        buttonSkin.add("BButton", new Texture(Gdx.files.internal("controller/BButton.png")));
-        buttonSkin.add("BButton_Pressed", new Texture(Gdx.files.internal("controller/BButton_Pressed.png")));
+        mButtonSkin = new Skin();
+        mButtonSkin.add("AButton", new Texture(Gdx.files.internal("controller/AButton.png")));
+        mButtonSkin.add("AButton_Pressed", new Texture(Gdx.files.internal("controller/AButton_Pressed.png")));
+        mButtonSkin.add("BButton", new Texture(Gdx.files.internal("controller/BButton.png")));
+        mButtonSkin.add("BButton_Pressed", new Texture(Gdx.files.internal("controller/BButton_Pressed.png")));
 
         Button.ButtonStyle AButtonStyle = new Button.ButtonStyle();
-        AButtonStyle.up = buttonSkin.getDrawable("AButton");
-        AButtonStyle.down = buttonSkin.getDrawable("AButton_Pressed");
+        AButtonStyle.up = mButtonSkin.getDrawable("AButton");
+        AButtonStyle.down = mButtonSkin.getDrawable("AButton_Pressed");
         Button aButton = new Button(AButtonStyle);
         aButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                player.attack();
+                mPlayer.attack();
             }
         });
         table.add(aButton).right();
 
         Button.ButtonStyle BButtonStyle = new Button.ButtonStyle();
-        BButtonStyle.up = buttonSkin.getDrawable("BButton");
-        BButtonStyle.down = buttonSkin.getDrawable("BButton_Pressed");
+        BButtonStyle.up = mButtonSkin.getDrawable("BButton");
+        BButtonStyle.down = mButtonSkin.getDrawable("BButton_Pressed");
         Button bButton = new Button(BButtonStyle);
         bButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                player.interact();
+                mPlayer.interact();
             }
         });
         table.add(bButton).right().padRight(10.0f).padLeft(10.0f);
 
-        stage.addActor(table);
+        mStage.addActor(table);
     }
 
     /**
      * Render the UI elements.
      *
-     * @param delta the time since the last frame.
+     * @param delta the time since the mLast frame.
      */
     public void draw(float delta) {
-        stage.act(delta);
-        stage.draw();
+        mStage.act(delta);
+        mStage.draw();
     }
 
     /**
      * Clean up assets.
      */
     public void dispose() {
-        stage.dispose();
-        atlas.dispose();
-        skin.dispose();
-        touchpadSkin.dispose();
+        mStage.dispose();
+        mAtlas.dispose();
+        mSkin.dispose();
+        mTouchpadSkin.dispose();
     }
 
 
@@ -157,14 +157,14 @@ public class Controller extends InputAdapter {
      * @param height new height of screen.
      */
     public void resize(int width, int height) {
-        viewport.update(width, height);
+        mViewport.update(width, height);
     }
 
     /**
-     * @return The scene2D stage holding the UI elements.
+     * @return The scene2D mStage holding the UI elements.
      */
     public Stage getStage() {
-        return stage;
+        return mStage;
     }
 
 
@@ -178,16 +178,16 @@ public class Controller extends InputAdapter {
     public boolean keyDown(int keycode) {
         switch (keycode) {
             case Input.Keys.UP:
-                player.setMoving(new Vector2(0, 1));
+                mPlayer.setMoving(new Vector2(0, 1));
                 return true;
             case Input.Keys.LEFT:
-                player.setMoving(new Vector2(-1, 0));
+                mPlayer.setMoving(new Vector2(-1, 0));
                 return true;
             case Input.Keys.DOWN:
-                player.setMoving(new Vector2(0, -1));
+                mPlayer.setMoving(new Vector2(0, -1));
                 return true;
             case Input.Keys.RIGHT:
-                player.setMoving(new Vector2(1, 0));
+                mPlayer.setMoving(new Vector2(1, 0));
                 return true;
             default:
                 return false;
@@ -207,7 +207,7 @@ public class Controller extends InputAdapter {
             case Input.Keys.LEFT:
             case Input.Keys.DOWN:
             case Input.Keys.RIGHT:
-                player.setMoving(null);
+                mPlayer.setMoving(null);
                 return true;
             default:
                 return false;

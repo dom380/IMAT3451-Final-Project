@@ -31,62 +31,62 @@ import dmu.project.weather.WeatherResponse;
 
 public class GAPopulationGen implements PopulationGenerator {
 
-    private Constraints constraints;
-    private LevelGenerator levelGen;
-    private static Random rng = new Random();
-    private HeightMap heightMap;
-    private CandidateFactory candidateFactory;
-    private float waterLevel = 0.25f;
+    private Constraints mConstraints;
+    private LevelGenerator mLevelGen;
+    private static Random sRng = new Random();
+    private HeightMap mHeightMap;
+    private CandidateFactory mCandidateFactory;
+    private float mWaterLevel = 0.25f;
 
     /**
      * Default constructor.
      */
     public GAPopulationGen() {
-        constraints = new Constraints();
-        if (constraints.seed != -1) {
-            long seed = constraints.seed;
-            levelGen = new PerlinLevelGen(seed, constraints.noiseWidth, constraints.noiseHeight, 8, 0.5);
-            rng = new Random(seed);
+        mConstraints = new Constraints();
+        if (mConstraints.seed != -1) {
+            long seed = mConstraints.seed;
+            mLevelGen = new PerlinLevelGen(seed, mConstraints.noiseWidth, mConstraints.noiseHeight, 8, 0.5);
+            sRng = new Random(seed);
             randomState = new RandomEnum<>(TileState.class, seed);
         } else {
-            levelGen = new PerlinLevelGen(constraints.noiseWidth, constraints.noiseHeight, 8, 0.5);
+            mLevelGen = new PerlinLevelGen(mConstraints.noiseWidth, mConstraints.noiseHeight, 8, 0.5);
         }
     }
 
     /**
      * Constructor.
      *
-     * @param constraints Level generation constraints.
+     * @param mConstraints Level generation mConstraints.
      */
-    public GAPopulationGen(Constraints constraints) {
-        this(constraints, null);
+    public GAPopulationGen(Constraints mConstraints) {
+        this(mConstraints, null);
     }
 
     /**
      * Constructor
      *
-     * @param constraints Level generation constraints.
+     * @param mConstraints Level generation mConstraints.
      * @param weather     The local weather. Optional.
      */
-    public GAPopulationGen(Constraints constraints, WeatherResponse weather) {
-        if (constraints.seed != -1) {
-            long seed = constraints.seed;
-            levelGen = new PerlinLevelGen(seed, constraints.noiseWidth, constraints.noiseHeight, 8, 0.5);
-            rng = new Random(seed);
+    public GAPopulationGen(Constraints mConstraints, WeatherResponse weather) {
+        if (mConstraints.seed != -1) {
+            long seed = mConstraints.seed;
+            mLevelGen = new PerlinLevelGen(seed, mConstraints.noiseWidth, mConstraints.noiseHeight, 8, 0.5);
+            sRng = new Random(seed);
             randomState = new RandomEnum<>(TileState.class, seed);
         } else {
-            levelGen = new PerlinLevelGen(constraints.noiseWidth, constraints.noiseHeight, 8, 0.5);
+            mLevelGen = new PerlinLevelGen(mConstraints.noiseWidth, mConstraints.noiseHeight, 8, 0.5);
         }
-        this.constraints = constraints;
+        this.mConstraints = mConstraints;
         if (weather != null) {
             WeatherResponse.ConditionCode conditionCode = weather.getWeather().get(0).getId();
             if (weather.getMain().getTemp() >= 30.0f) {
-                this.waterLevel = 0.15f;
+                this.mWaterLevel = 0.15f;
             } else if (conditionCode == WeatherResponse.ConditionCode.EXTREME_RAIN || conditionCode == WeatherResponse.ConditionCode.MODERATE_RAIN) {
-                this.waterLevel = 0.35f;
+                this.mWaterLevel = 0.35f;
             }
         } else {
-            this.waterLevel = 0.25f;
+            this.mWaterLevel = 0.25f;
         }
     }
 
@@ -96,7 +96,7 @@ public class GAPopulationGen implements PopulationGenerator {
      * @return heightmap.
      */
     public HeightMap getHeightMap() {
-        return heightMap;
+        return mHeightMap;
     }
 
     /**
@@ -106,17 +106,17 @@ public class GAPopulationGen implements PopulationGenerator {
      */
     @Override
     public List<MapCandidate> populate() throws LevelGenerationException {
-        int width = constraints.mapWidth;
-        int height = constraints.mapHeight;
-        heightMap = levelGen.generateLevel(width, height, waterLevel); //Generate the base terrain.
-        if (constraints.seed > 0) {
-            candidateFactory = new CandidateFactory(heightMap, width - 2, height - 2, constraints.objectivesEnabled, constraints.seed);
+        int width = mConstraints.mapWidth;
+        int height = mConstraints.mapHeight;
+        mHeightMap = mLevelGen.generateLevel(width, height, mWaterLevel); //Generate the base terrain.
+        if (mConstraints.seed > 0) {
+            mCandidateFactory = new CandidateFactory(mHeightMap, width - 2, height - 2, mConstraints.objectivesEnabled, mConstraints.seed);
         } else {
-            candidateFactory = new CandidateFactory(heightMap, width - 2, height - 2, constraints.objectivesEnabled);
+            mCandidateFactory = new CandidateFactory(mHeightMap, width - 2, height - 2, mConstraints.objectivesEnabled);
         }
-        List<MapCandidate> population = initPopulation(constraints.populationSize, heightMap);
+        List<MapCandidate> population = initPopulation(mConstraints.populationSize, mHeightMap);
         Stopwatch timer = Stopwatch.createStarted();
-        int maxGen = constraints.getMaxGenerations();
+        int maxGen = mConstraints.getMaxGenerations();
         int sameFitnessCount = 0;
         float avgFitness = 0, initFitness = 0, previousFitness = 0;
         for (int currentGen = 0; currentGen < maxGen; currentGen++) { //For each generation
@@ -150,9 +150,9 @@ public class GAPopulationGen implements PopulationGenerator {
     }
 
     /**
-     * Reads the constraints from the specified file.
+     * Reads the mConstraints from the specified file.
      *
-     * @param file Java File object representing the constraints xml file.
+     * @param file Java File object representing the mConstraints xml file.
      * @throws LevelConstraintsException
      */
     @Override
@@ -162,31 +162,31 @@ public class GAPopulationGen implements PopulationGenerator {
             XmlMapper mapper = new XmlMapper();
             constraints = mapper.readValue(IOUtils.toByteArray(new FileInputStream(file)), Constraints.class);
         } catch (JsonParseException | JsonMappingException e) {
-            throw new LevelConstraintsException("Invalid constraints file", e);
+            throw new LevelConstraintsException("Invalid mConstraints file", e);
         } catch (IOException e) {
             throw new LevelConstraintsException("Constraints file not found", e);
         } finally {
             if (constraints != null) {
-                this.constraints = constraints;
+                this.mConstraints = constraints;
             }
         }
     }
 
     /**
-     * Setter for level generation constraints
+     * Setter for level generation mConstraints
      *
-     * @param constraints constraints to use.
+     * @param constraints mConstraints to use.
      */
     @Override
     public void setConstraints(Constraints constraints) {
-        this.constraints = constraints;
+        this.mConstraints = constraints;
     }
 
     /**
      * Fitness function to test current population's fitness.
      *
      * @param population List of MapCandidates to test.
-     * @return Average fitness of population (ignoring maps that fail constraints)
+     * @return Average fitness of population (ignoring maps that fail mConstraints)
      */
     private float testFitness(List<MapCandidate> population) {
         float highestFitness = 0.0f;
@@ -274,7 +274,7 @@ public class GAPopulationGen implements PopulationGenerator {
         MapCandidate currentFittest = null, secondFitness = null;
         while (newGeneration.size() < populationSize) { //While not enough candidates in next gen
             for (int i = 0; i < tournamentSize; ++i) { //Select random candidates for tournament
-                MapCandidate mapCandidate = currentPop.get(rng.nextInt(populationSize));
+                MapCandidate mapCandidate = currentPop.get(sRng.nextInt(populationSize));
                 if ((currentFittest == null) || (mapCandidate.fitness > currentFittest.fitness)) {
                     secondFitness = currentFittest;
                     currentFittest = mapCandidate;
@@ -300,8 +300,8 @@ public class GAPopulationGen implements PopulationGenerator {
         List<MapCandidate> children = new ArrayList<>();
         int arraySize1 = parent1.tileSet.size(), arraySize2 = parent2.tileSet.size();
         int arraySize = Math.min(arraySize1, arraySize2);
-        int crossoverPoint1 = rng.nextInt(arraySize);
-        int crossoverPoint2 = rng.nextInt(arraySize);
+        int crossoverPoint1 = sRng.nextInt(arraySize);
+        int crossoverPoint2 = sRng.nextInt(arraySize);
         if (crossoverPoint1 > crossoverPoint2) { //Ensure crossover point 1 is smaller than 2
             int temp = crossoverPoint1;
             crossoverPoint1 = crossoverPoint2;
@@ -336,20 +336,20 @@ public class GAPopulationGen implements PopulationGenerator {
      * @return Possibly mutated MapCandidate.
      */
     private MapCandidate mutate(MapCandidate map) {
-        double chance = rng.nextDouble();
+        double chance = sRng.nextDouble();
         if (chance <= 0.33) { // 1 in 3 chance to mutate
-            chance = rng.nextDouble();
+            chance = sRng.nextDouble();
             if (chance <= 0.5) { // 50/50 chance to add, or change tile
                 int x, y;
                 do {
-                    x = rng.nextInt(constraints.mapWidth - 2) + 2; //Avoid the edges
-                    y = rng.nextInt(constraints.mapHeight - 2) + 2;
+                    x = sRng.nextInt(mConstraints.mapWidth - 2) + 2; //Avoid the edges
+                    y = sRng.nextInt(mConstraints.mapHeight - 2) + 2;
                 }
-                while (heightMap.elevation[x][y] < heightMap.waterLevel);
+                while (mHeightMap.elevation[x][y] < mHeightMap.waterLevel);
                 map.tileSet.add(new Tile(randomState.random(), x, y));
             } else {
                 TileState randomTileState;
-                int randomIndex = rng.nextInt(map.tileSet.size());
+                int randomIndex = sRng.nextInt(map.tileSet.size());
                 do {
                     randomTileState = randomState.random();
                 }
@@ -374,7 +374,7 @@ public class GAPopulationGen implements PopulationGenerator {
     private List<MapCandidate> initPopulation(int popSize, HeightMap elevation) {
         List<MapCandidate> population = new ArrayList<MapCandidate>();
         for (int i = 0; i < popSize; ++i) {
-            population.add(candidateFactory.createCandidate(constraints.getDifficulty()));
+            population.add(mCandidateFactory.createCandidate(mConstraints.getDifficulty()));
         }
         return population;
     }
@@ -391,11 +391,11 @@ public class GAPopulationGen implements PopulationGenerator {
 
     private PathFitness testPathFitness(int[] startPos, List<Tile> objectiveBucket, List<Tile> obstacleBucket) {
         List<Node> obstacles = new ArrayList<>();
-        Node startNode = heightMap.grid.getNode(startPos[0], startPos[1]);
+        Node startNode = mHeightMap.grid.getNode(startPos[0], startPos[1]);
         float fitness = 0.0f;
         boolean goodPaths = true;
         for (Tile tile : obstacleBucket) { //mark each obstacle tile as not walkable on grid.
-            Node node = heightMap.grid.getNode(tile.position[0], tile.position[1]);
+            Node node = mHeightMap.grid.getNode(tile.position[0], tile.position[1]);
             node.walkable = false;
             obstacles.add(node);
             if (node.position.equals(startNode)) {
@@ -403,17 +403,17 @@ public class GAPopulationGen implements PopulationGenerator {
             }
         }
         //Test start position is reasonable
-        int startTiles = heightMap.grid.getNeighbours(startNode).size();
+        int startTiles = mHeightMap.grid.getNeighbours(startNode).size();
         if (startTiles < 8) { //If not all nodes immediately surround the start are free, mark down map.
             fitness -= 0.05f * (8 - startTiles);
         }
         int listSize = objectiveBucket.size();
         for (int i = 0; i < listSize; ++i) { //Test for path to each objective.
             Tile objective = objectiveBucket.get(i);
-            if (Heuristics.diagonalDist(objective.position, startPos) < 20 || Heuristics.diagonalDist(objective.position, startPos) > constraints.length) {
+            if (Heuristics.diagonalDist(objective.position, startPos) < 20 || Heuristics.diagonalDist(objective.position, startPos) > mConstraints.length) {
                 fitness -= 0.075f;
             }
-            if (!PathFinder.checkPathExists(startPos, objective.position, heightMap.grid)) {
+            if (!PathFinder.checkPathExists(startPos, objective.position, mHeightMap.grid)) {
                 goodPaths = false;
                 break;
             }
@@ -429,12 +429,12 @@ public class GAPopulationGen implements PopulationGenerator {
     }
 
     public Constraints getConstraints() {
-        return constraints;
+        return mConstraints;
     }
 
     //Package access method for testing.
     void setCandidateFactory(CandidateFactory candidateFactory) {
-        this.candidateFactory = candidateFactory;
+        this.mCandidateFactory = candidateFactory;
     }
 
     /**

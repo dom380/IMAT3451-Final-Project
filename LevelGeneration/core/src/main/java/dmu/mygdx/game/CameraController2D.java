@@ -5,7 +5,7 @@ import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
 
 /**
- * Class to control the level camera.
+ * Class to control the level mCamera.
  * <p>
  * Touch to pan around. Pinch to zoom in and out.
  * <p>
@@ -14,44 +14,43 @@ import com.badlogic.gdx.math.Vector2;
 
 public class CameraController2D implements GestureDetector.GestureListener {
 
-    private OrthographicCamera camera;
-    private Vector2 lastTouch = new Vector2();
-    private float initialScale = 1;
-    private float maxScale;
-    private Vector2 scrollLimit = new Vector2();
+    private OrthographicCamera mCamera;
+    private Vector2 mLastTouch = new Vector2();
+    private float mInitialScale = 1;
+    private float mMaxScale;
+    private Vector2 mScrollLimit = new Vector2();
 
-    public CameraController2D(OrthographicCamera camera) {
-        this(camera, 1.0f, 1.0f, 1.0f);
-    }
 
     /**
-     * @param camera The camera to control input for.
-     * @param zoom   The initial zoom. Value between 0.0-1.0
-     * @param scaleX The scene's width divided by the viewport width.
-     * @param scaleY The scene's height divided by the viewport height.
+     * Constructor
+     *
+     * @param mCamera The mCamera to control input for.
+     * @param zoom    The initial zoom. Value between 0.0-1.0
+     * @param scaleX  The scene's width divided by the viewport width.
+     * @param scaleY  The scene's height divided by the viewport height.
      */
-    public CameraController2D(OrthographicCamera camera, float zoom, float scaleX, float scaleY) {
-        this.camera = camera;
-        camera.zoom = zoom;
-        maxScale = Math.min(scaleX, scaleY);
-        this.camera.position.x = (camera.viewportWidth * scaleX) / 2;
-        this.camera.position.y = (camera.viewportHeight * scaleY) / 2;
-        this.scrollLimit = new Vector2(camera.viewportWidth * scaleX, camera.viewportHeight * scaleY); //new Vector2(camera.viewportWidth, camera.viewportHeight); //scrollLimit;
+    public CameraController2D(OrthographicCamera mCamera, float zoom, float scaleX, float scaleY) {
+        this.mCamera = mCamera;
+        mCamera.zoom = zoom;
+        mMaxScale = Math.min(scaleX, scaleY);
+        this.mCamera.position.x = (mCamera.viewportWidth * scaleX) / 2;
+        this.mCamera.position.y = (mCamera.viewportHeight * scaleY) / 2;
+        this.mScrollLimit = new Vector2(mCamera.viewportWidth * scaleX, mCamera.viewportHeight * scaleY); //new Vector2(mCamera.viewportWidth, mCamera.viewportHeight); //mScrollLimit;
     }
 
     /**
      * Response to touch event.
      *
-     * @param x       X position of touch event.
-     * @param y       Y position of touch event.
+     * @param x       X mPosition of touch event.
+     * @param y       Y mPosition of touch event.
      * @param pointer Index of the pointer that triggered the event.
      * @param button
      * @return True if the event was handled. False if event should continue to pass to listeners.
      */
     @Override
     public boolean touchDown(float x, float y, int pointer, int button) {
-        lastTouch.set(x, y);
-        initialScale = camera.zoom;
+        mLastTouch.set(x, y);
+        mInitialScale = mCamera.zoom;
         return false;
     }
 
@@ -75,7 +74,7 @@ public class CameraController2D implements GestureDetector.GestureListener {
 
     @Override
     public boolean pan(float x, float y, float deltaX, float deltaY) {
-        camera.translate(-deltaX, deltaY, 0);
+        mCamera.translate(-deltaX, deltaY, 0);
         constrainCamera();
         return false;
     }
@@ -88,7 +87,7 @@ public class CameraController2D implements GestureDetector.GestureListener {
 
 
     /**
-     * Zoom in or out the camera while keeping it constrained to the scene.
+     * Zoom in or out the mCamera while keeping it constrained to the scene.
      *
      * @param initialDistance The initial zoom value.
      * @param distance        The new zoom value/
@@ -96,8 +95,8 @@ public class CameraController2D implements GestureDetector.GestureListener {
      */
     @Override
     public boolean zoom(float initialDistance, float distance) {
-        float ratio = (initialDistance / distance) * initialScale;
-        camera.zoom = ratio > maxScale ? maxScale : ratio;
+        float ratio = (initialDistance / distance) * mInitialScale;
+        mCamera.zoom = ratio > mMaxScale ? mMaxScale : ratio;
         constrainCamera();
         return true;
     }
@@ -118,17 +117,17 @@ public class CameraController2D implements GestureDetector.GestureListener {
     ////////////////////////////
 
     /**
-     * Constrains the camera so it doesn't scroll outside the scene.
+     * Constrains the mCamera so it doesn't scroll outside the scene.
      */
     private void constrainCamera() {
-        if (camera.position.x - (camera.viewportWidth * camera.zoom) / 2 < 0)
-            camera.position.x = (camera.viewportWidth * camera.zoom) / 2;
-        else if (camera.position.x + (camera.viewportWidth * camera.zoom) / 2 > scrollLimit.x)
-            camera.position.x = scrollLimit.x - (camera.viewportWidth * camera.zoom) / 2;
-        if (camera.position.y - (camera.viewportHeight * camera.zoom) / 2 < 0)
-            camera.position.y = (camera.viewportHeight * camera.zoom) / 2;
-        else if (camera.position.y + (camera.viewportHeight * camera.zoom) / 2 > scrollLimit.y)
-            camera.position.y = scrollLimit.y - (camera.viewportHeight * camera.zoom) / 2;
-        camera.update();
+        if (mCamera.position.x - (mCamera.viewportWidth * mCamera.zoom) / 2 < 0)
+            mCamera.position.x = (mCamera.viewportWidth * mCamera.zoom) / 2;
+        else if (mCamera.position.x + (mCamera.viewportWidth * mCamera.zoom) / 2 > mScrollLimit.x)
+            mCamera.position.x = mScrollLimit.x - (mCamera.viewportWidth * mCamera.zoom) / 2;
+        if (mCamera.position.y - (mCamera.viewportHeight * mCamera.zoom) / 2 < 0)
+            mCamera.position.y = (mCamera.viewportHeight * mCamera.zoom) / 2;
+        else if (mCamera.position.y + (mCamera.viewportHeight * mCamera.zoom) / 2 > mScrollLimit.y)
+            mCamera.position.y = mScrollLimit.y - (mCamera.viewportHeight * mCamera.zoom) / 2;
+        mCamera.update();
     }
 }

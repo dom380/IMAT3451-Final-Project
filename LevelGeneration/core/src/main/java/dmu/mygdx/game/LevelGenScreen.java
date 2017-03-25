@@ -35,118 +35,118 @@ import dmu.project.weather.WeatherResponse;
  */
 
 public class LevelGenScreen implements Screen {
-    private static int width = 80, height = 50;
-    private final MyGdxGame game;
-    private OrthographicCamera camera;
-    private MapBuilder.Map map;
-    private OrthogonalTiledMapRenderer renderer = null;
-    private int noiseWidth, noiseHeight, difficulty, tileWidth = 16, tileHeight = 16;
-    private final static long debugSeed = -2656433763347937011L;
-    private boolean debugEnabled;
-    private LevelSelectUI ui;
-    private List<MapCandidate> mapCandidates;
-    private HeightMap heightMap;
-    private WeatherResponse weather = null;
-    private InputMultiplexer inputMultiplexer = new InputMultiplexer();
-    private Player player;
-    private Controller controller;
-    private GestureDetector mapCameraController;
-    private float scaleX, scaleY;
-    private List<Enemy> enemies = new ArrayList<>();
-    private GameState state = GameState.LEVEL_SELECT;
-    private Stopwatch timer;
-    private int mapIndex = 0, lastMapIndex = 0;
-    GameUI gameUI;
+    private static int sWidth = 80, sHeight = 50;
+    private final MyGdxGame mGame;
+    private OrthographicCamera mCamera;
+    private MapBuilder.Map mMap;
+    private OrthogonalTiledMapRenderer mRenderer = null;
+    private int mNoiseWidth, mNoiseHeight, mDifficulty, mTileWidth = 16, mTileHeight = 16;
+    private final static long DEBUG_SEED = -2656433763347937011L;
+    private boolean mDebugEnabled;
+    private LevelSelectUI mUi;
+    private List<MapCandidate> mMapCandidates;
+    private HeightMap mHeightMap;
+    private WeatherResponse mWeather = null;
+    private InputMultiplexer mInputMultiplexer = new InputMultiplexer();
+    private Player mPlayer;
+    private Controller mController;
+    private GestureDetector mMapCameraController;
+    private float mScaleX, mScaleY;
+    private List<Enemy> mEnemies = new ArrayList<>();
+    private GameState mState = GameState.LEVEL_SELECT;
+    private Stopwatch mTimer;
+    private int mMapIndex = 0, mLastMapIndex = 0;
+    GameUI mGameUI;
 
     /**
      * Constructor
      *
-     * @param game         The main game object.
-     * @param noiseWidth   The width of the noise sample grid for the Perlin level generator.
-     * @param noiseHeight  The height of the noise sample grid for the Perlin level generator.
-     * @param difficulty   The difficulty of the levels to generate.
-     * @param debugEnabled Whether to use the debug seed or not.
+     * @param mGame         The main mGame object.
+     * @param mNoiseWidth   The sWidth of the noise sample grid for the Perlin level generator.
+     * @param mNoiseHeight  The sHeight of the noise sample grid for the Perlin level generator.
+     * @param mDifficulty   The mDifficulty of the levels to generate.
+     * @param mDebugEnabled Whether to use the debug seed or not.
      */
-    public LevelGenScreen(MyGdxGame game, int noiseWidth, int noiseHeight, int difficulty, boolean debugEnabled) {
-        this.game = game;
-        this.noiseWidth = noiseWidth;
-        this.noiseHeight = noiseHeight;
-        this.difficulty = difficulty;
-        this.debugEnabled = debugEnabled;
-        width = game.properties.get("constraints.mapWidth") != null ? Integer.parseInt(game.properties.get("constraints.mapWidth")) : 80;
-        height = game.properties.get("constraints.mapHeight") != null ? Integer.parseInt(game.properties.get("constraints.mapHeight")) : 50;
-        this.camera = new OrthographicCamera();
+    public LevelGenScreen(MyGdxGame mGame, int mNoiseWidth, int mNoiseHeight, int mDifficulty, boolean mDebugEnabled) {
+        this.mGame = mGame;
+        this.mNoiseWidth = mNoiseWidth;
+        this.mNoiseHeight = mNoiseHeight;
+        this.mDifficulty = mDifficulty;
+        this.mDebugEnabled = mDebugEnabled;
+        sWidth = mGame.mProperties.get("constraints.mapWidth") != null ? Integer.parseInt(mGame.mProperties.get("constraints.mapWidth")) : 80;
+        sHeight = mGame.mProperties.get("constraints.mapHeight") != null ? Integer.parseInt(mGame.mProperties.get("constraints.mapHeight")) : 50;
+        this.mCamera = new OrthographicCamera();
         resetCamera();
         init();
     }
 
 
     /**
-     * Switch the map with the specified index.
+     * Switch the mMap with the specified index.
      *
-     * @param index The index of the map to switch to.
+     * @param index The index of the mMap to switch to.
      */
     void switchMap(int index) {
-        if (index > 9 || index >= mapCandidates.size())
-            index = Math.min(9, mapCandidates.size() - 1);
+        if (index > 9 || index >= mMapCandidates.size())
+            index = Math.min(9, mMapCandidates.size() - 1);
         List<Tile> tileList = getMapCandidates().get(index).tileSet;
-        lastMapIndex = mapIndex;
-        mapIndex = index;
-        map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, tileList, weather);
-        if (renderer != null)
-            renderer.setMap(map.tiledMap);
+        mLastMapIndex = mMapIndex;
+        mMapIndex = index;
+        mMap = MapBuilder.buildMap(sWidth, sHeight, mTileWidth, mTileHeight, mHeightMap, tileList, mWeather);
+        if (mRenderer != null)
+            mRenderer.setMap(mMap.tiledMap);
         else
-            renderer = new OrthogonalTiledMapRenderer(this.map.tiledMap, game.batch);
-        if (player != null)
-            player.setTileList(tileList);
-        renderer.setView(camera);
+            mRenderer = new OrthogonalTiledMapRenderer(this.mMap.tiledMap, mGame.mBatch);
+        if (mPlayer != null)
+            mPlayer.setTileList(tileList);
+        mRenderer.setView(mCamera);
     }
 
     /**
-     * Switch the next map.
+     * Switch the next mMap.
      */
     void switchNextMap() {
-        int minIndex = Math.min(9, mapCandidates.size() - 1);
-        lastMapIndex = mapIndex;
-        mapIndex = mapIndex != minIndex ? mapIndex + 1 : 0;
-        List<Tile> tileList = getMapCandidates().get(mapIndex).tileSet;
-        map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, tileList, weather);
-        if (renderer != null)
-            renderer.setMap(map.tiledMap);
+        int minIndex = Math.min(9, mMapCandidates.size() - 1);
+        mLastMapIndex = mMapIndex;
+        mMapIndex = mMapIndex != minIndex ? mMapIndex + 1 : 0;
+        List<Tile> tileList = getMapCandidates().get(mMapIndex).tileSet;
+        mMap = MapBuilder.buildMap(sWidth, sHeight, mTileWidth, mTileHeight, mHeightMap, tileList, mWeather);
+        if (mRenderer != null)
+            mRenderer.setMap(mMap.tiledMap);
         else
-            renderer = new OrthogonalTiledMapRenderer(this.map.tiledMap, game.batch);
-        if (player != null)
-            player.setTileList(tileList);
-        renderer.setView(camera);
+            mRenderer = new OrthogonalTiledMapRenderer(this.mMap.tiledMap, mGame.mBatch);
+        if (mPlayer != null)
+            mPlayer.setTileList(tileList);
+        mRenderer.setView(mCamera);
     }
 
     /**
-     * Switch the previous map.
+     * Switch the previous mMap.
      */
     void switchPreviousMap() {
-        int minIndex = Math.min(9, mapCandidates.size() - 1);
-        lastMapIndex = mapIndex;
-        mapIndex = mapIndex == 0 ? minIndex : mapIndex - 1;
-        List<Tile> tileList = getMapCandidates().get(mapIndex).tileSet;
-        map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, tileList, weather);
-        if (renderer != null)
-            renderer.setMap(map.tiledMap);
+        int minIndex = Math.min(9, mMapCandidates.size() - 1);
+        mLastMapIndex = mMapIndex;
+        mMapIndex = mMapIndex == 0 ? minIndex : mMapIndex - 1;
+        List<Tile> tileList = getMapCandidates().get(mMapIndex).tileSet;
+        mMap = MapBuilder.buildMap(sWidth, sHeight, mTileWidth, mTileHeight, mHeightMap, tileList, mWeather);
+        if (mRenderer != null)
+            mRenderer.setMap(mMap.tiledMap);
         else
-            renderer = new OrthogonalTiledMapRenderer(this.map.tiledMap, game.batch);
-        if (player != null)
-            player.setTileList(tileList);
-        renderer.setView(camera);
+            mRenderer = new OrthogonalTiledMapRenderer(this.mMap.tiledMap, mGame.mBatch);
+        if (mPlayer != null)
+            mPlayer.setTileList(tileList);
+        mRenderer.setView(mCamera);
     }
 
     /**
-     * Method called when a level is selected. Starts the game play.
+     * Method called when a level is selected. Starts the mGame play.
      */
     void playMap() {
-        state = GameState.PLAYING;
+        mState = GameState.PLAYING;
         int objectiveCount = 0;
         TextureAtlas enemyAtlas = new TextureAtlas(Gdx.files.internal("sprites/enemy.atlas"));
-        resetGrid(lastMapIndex);
-        List<Tile> tileList = getMapCandidates().get(mapIndex).tileSet;
+        resetGrid(mLastMapIndex);
+        List<Tile> tileList = getMapCandidates().get(mMapIndex).tileSet;
         Vector2 startPos = new Vector2();
         for (Tile tile : tileList) {
             switch (tile.tileState) {
@@ -156,31 +156,31 @@ public class LevelGenScreen implements Screen {
                 case END:
                     break;
                 case ITEM:
-                    heightMap.grid.getNode(tile.position[0], tile.position[1]).walkable = false;
+                    mHeightMap.grid.getNode(tile.position[0], tile.position[1]).walkable = false;
                     break;
                 case OBSTACLE:
-                    heightMap.grid.getNode(tile.position[0], tile.position[1]).walkable = false;
+                    mHeightMap.grid.getNode(tile.position[0], tile.position[1]).walkable = false;
                     break;
                 case ENEMY:
-                    ((TiledMapTileLayer) map.tiledMap.getLayers().get(1)).setCell(tile.position[0], tile.position[1], null);
-                    enemies.add(new Enemy(game.batch, heightMap.grid, enemyAtlas, new Vector2(tile.position[0] * tileWidth, tile.position[1] * tileHeight)));
+                    ((TiledMapTileLayer) mMap.tiledMap.getLayers().get(1)).setCell(tile.position[0], tile.position[1], null);
+                    mEnemies.add(new Enemy(mGame.mBatch, mHeightMap.grid, enemyAtlas, new Vector2(tile.position[0] * mTileWidth, tile.position[1] * mTileHeight)));
                     break;
                 case OBJECTIVE:
                     objectiveCount++;
-                    heightMap.grid.getNode(tile.position[0], tile.position[1]).walkable = false;
+                    mHeightMap.grid.getNode(tile.position[0], tile.position[1]).walkable = false;
                     break;
             }
         }
-        if (gameUI != null) inputMultiplexer.removeProcessor(gameUI.getStage());
-        camera.zoom = 0.25f;
-        player = new Player(this, game.batch, heightMap.grid, tileList, map, 10);
-        player.setPosition(startPos);
-        controller = new Controller(game.batch, player);
-        gameUI = new GameUI(game, this, game.batch, objectiveCount, player.getHP());
-        inputMultiplexer.removeProcessor(ui.getStage());
-        inputMultiplexer.removeProcessor(mapCameraController);
-        inputMultiplexer.addProcessor(controller.getStage());
-        inputMultiplexer.addProcessor(controller);
+        if (mGameUI != null) mInputMultiplexer.removeProcessor(mGameUI.getStage());
+        mCamera.zoom = 0.25f;
+        mPlayer = new Player(this, mGame.mBatch, mHeightMap.grid, tileList, mMap, 10);
+        mPlayer.setPosition(startPos);
+        mController = new Controller(mGame.mBatch, mPlayer);
+        mGameUI = new GameUI(mGame, this, mGame.mBatch, objectiveCount, mPlayer.getHP());
+        mInputMultiplexer.removeProcessor(mUi.getStage());
+        mInputMultiplexer.removeProcessor(mMapCameraController);
+        mInputMultiplexer.addProcessor(mController.getStage());
+        mInputMultiplexer.addProcessor(mController);
     }
 
 
@@ -190,11 +190,11 @@ public class LevelGenScreen implements Screen {
      */
     @Override
     public void show() {
-        ui = new LevelSelectUI(game, this);
-        inputMultiplexer.addProcessor(ui.getStage());
-        switchMap(mapIndex);
-        player = new Player(this, game.batch, heightMap.grid, mapCandidates.get(0).tileSet, map, 10);
-        controller = new Controller(game.batch, player);
+        mUi = new LevelSelectUI(mGame, this);
+        mInputMultiplexer.addProcessor(mUi.getStage());
+        switchMap(mMapIndex);
+        mPlayer = new Player(this, mGame.mBatch, mHeightMap.grid, mMapCandidates.get(0).tileSet, mMap, 10);
+        mController = new Controller(mGame.mBatch, mPlayer);
     }
 
     /**
@@ -207,88 +207,88 @@ public class LevelGenScreen implements Screen {
         //Clear the buffer
         Gdx.gl.glClearColor(0.4f, 0.4f, 0.98f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        //Update the camera
-        camera.update();
-        //Render the map
-        renderer.setView(camera);
-        renderer.render();
+        //Update the mCamera
+        mCamera.update();
+        //Render the mMap
+        mRenderer.setView(mCamera);
+        mRenderer.render();
         if (delta > 0.01667) delta = 0.0166f; //Limit the time step.
-        if (map.particleEffect != null) { //If there's an active particle effect, update and render it.
-            map.particleEffect.update(delta);
-            game.batch.setProjectionMatrix(camera.combined);
-            game.batch.begin();
-            map.particleEffect.draw(game.batch);
-            game.batch.end();
+        if (mMap.particleEffect != null) { //If there's an active particle effect, update and render it.
+            mMap.particleEffect.update(delta);
+            mGame.mBatch.setProjectionMatrix(mCamera.combined);
+            mGame.mBatch.begin();
+            mMap.particleEffect.draw(mGame.mBatch);
+            mGame.mBatch.end();
         }
-        switch (state) {
+        switch (mState) {
             case PLAYING: {
-                if (player.getHP() <= 0) {
-                    state = GameState.DEAD;
-                    inputMultiplexer.removeProcessor(controller.getStage());
-                    inputMultiplexer.removeProcessor(controller);
-                    gameUI.setGameOverText("You died.");
-                    timer = Stopwatch.createStarted();
+                if (mPlayer.getHP() <= 0) {
+                    mState = GameState.DEAD;
+                    mInputMultiplexer.removeProcessor(mController.getStage());
+                    mInputMultiplexer.removeProcessor(mController);
+                    mGameUI.setGameOverText("You died.");
+                    mTimer = Stopwatch.createStarted();
                 }
-                if (gameUI.getNumOfObjectives() <= 0) {
-                    state = GameState.LEVEL_COMPLETE;
-                    gameUI.setGameOverText("You win!");
-                    gameUI.switchToWinUI();
-                    inputMultiplexer.removeProcessor(controller.getStage());
-                    inputMultiplexer.removeProcessor(controller);
-                    inputMultiplexer.addProcessor(gameUI.getStage());
+                if (mGameUI.getNumOfObjectives() <= 0) {
+                    mState = GameState.LEVEL_COMPLETE;
+                    mGameUI.setGameOverText("You win!");
+                    mGameUI.switchToWinUI();
+                    mInputMultiplexer.removeProcessor(mController.getStage());
+                    mInputMultiplexer.removeProcessor(mController);
+                    mInputMultiplexer.addProcessor(mGameUI.getStage());
                 }
-                camera.position.set(player.position.x, player.position.y, 0);
+                mCamera.position.set(mPlayer.mPosition.x, mPlayer.mPosition.y, 0);
                 fixCamBounds();
-                player.update(delta, enemies);
-                Iterator<Enemy> enemyIterator = enemies.iterator();
+                mPlayer.update(delta, mEnemies);
+                Iterator<Enemy> enemyIterator = mEnemies.iterator();
                 while (enemyIterator.hasNext()) {
                     Enemy next = enemyIterator.next();
-                    next.update(delta, player);
-                    next.render(delta, camera);
+                    next.update(delta, mPlayer);
+                    next.render(delta, mCamera);
                 }
-                player.render(delta, camera);
-                controller.draw(delta);
-                gameUI.draw();
+                mPlayer.render(delta, mCamera);
+                mController.draw(delta);
+                mGameUI.draw();
                 break;
             }
             case LEVEL_SELECT:
-                ui.draw();
+                mUi.draw();
                 break;
             case DEAD: {
-                if (timer.elapsed(TimeUnit.SECONDS) > 6) {
-                    timer.stop();
-                    timer.reset();
-                    state = GameState.LEVEL_SELECT;
+                if (mTimer.elapsed(TimeUnit.SECONDS) > 6) {
+                    mTimer.stop();
+                    mTimer.reset();
+                    mState = GameState.LEVEL_SELECT;
                     resetCamera();
-                    mapCameraController = new GestureDetector(new CameraController2D(camera, Math.min(scaleX, scaleY), scaleX, scaleY));
-                    inputMultiplexer.addProcessor(mapCameraController);
+                    mMapCameraController = new GestureDetector(new CameraController2D(mCamera, Math.min(mScaleX, mScaleY), mScaleX, mScaleY));
+                    mInputMultiplexer.addProcessor(mMapCameraController);
                     show();
                 }
-                for (Enemy enemy : enemies) {
-                    enemy.render(delta, camera);
+                for (Enemy enemy : mEnemies) {
+                    enemy.render(delta, mCamera);
                 }
-                controller.draw(delta);
-                gameUI.draw();
+                mController.draw(delta);
+                mGameUI.draw();
                 break;
             }
             case LEVEL_COMPLETE:
-                for (Enemy enemy : enemies) {
-                    enemy.render(delta, camera);
+                for (Enemy enemy : mEnemies) {
+                    enemy.render(delta, mCamera);
                 }
-                player.render(delta, camera);
-                gameUI.draw();
+                mPlayer.render(delta, mCamera);
+                mGameUI.draw();
                 break;
         }
     }
 
     @Override
     public void resize(int width, int height) {
-        camera.viewportWidth = width;
-        camera.viewportHeight = height;
-        camera.update();
-        if (ui != null) ui.resize(width, height);
-        if (gameUI != null) gameUI.resize(width, height);
-        if (controller != null) controller.resize(width, height);
+        mCamera.viewportWidth = width;
+        mCamera.viewportHeight = height;
+        mCamera.update();
+        if (mUi != null) mUi.resize(width, height);
+        if (mGameUI != null) mGameUI.resize(width, height);
+        if (mController != null) mController.resize(width, height);
     }
 
     @Override
@@ -308,19 +308,19 @@ public class LevelGenScreen implements Screen {
 
     @Override
     public void dispose() {
-        if (map != null) map.dispose();
-        if (ui != null) ui.dispose();
-        if (player != null) player.dispose();
-        if (gameUI != null) gameUI.dispose();
-        if (controller != null) controller.dispose();
+        if (mMap != null) mMap.dispose();
+        if (mUi != null) mUi.dispose();
+        if (mPlayer != null) mPlayer.dispose();
+        if (mGameUI != null) mGameUI.dispose();
+        if (mController != null) mController.dispose();
     }
 
     public List<MapCandidate> getMapCandidates() {
-        return mapCandidates;
+        return mMapCandidates;
     }
 
     public int getMapIndex() {
-        return mapIndex;
+        return mMapIndex;
     }
 
     /////////////////////////////
@@ -333,36 +333,36 @@ public class LevelGenScreen implements Screen {
      * @return true if successful.
      */
     private boolean init() {
-        scaleX = (float) width / (Gdx.graphics.getWidth() / tileWidth);
-        scaleY = (float) height / (Gdx.graphics.getHeight() / tileWidth);
-        WeatherClient weatherClient = new WeatherClient(game.apiUrl, game.apiKey);
-        double[] latLong = game.getLocationService().getLatLong();
+        mScaleX = (float) sWidth / (Gdx.graphics.getWidth() / mTileWidth);
+        mScaleY = (float) sHeight / (Gdx.graphics.getHeight() / mTileWidth);
+        WeatherClient weatherClient = new WeatherClient(mGame.mApiUrl, mGame.mApiKey);
+        double[] latLong = mGame.getLocationService().getLatLong();
         if (latLong != null)
-            weather = weatherClient.getWeather(latLong[0], latLong[1]);
+            mWeather = weatherClient.getWeather(latLong[0], latLong[1]);
         //Set level constraints
-        Constraints constraints = readConstraints(game.properties);
+        Constraints constraints = readConstraints(mGame.mProperties);
         //Generate Level
-        GAPopulationGen populationGen = new GAPopulationGen(constraints, weather);
+        GAPopulationGen populationGen = new GAPopulationGen(constraints, mWeather);
         try {
-            mapCandidates = populationGen.populate();
+            mMapCandidates = populationGen.populate();
         } catch (LevelGenerationException e) {
             Gdx.app.error("Level Creation", "Unrecoverable exception thrown.", e);
-            game.returnToMenu(); //Go back to main menu.
+            mGame.returnToMenu(); //Go back to main menu.
         }
-        heightMap = populationGen.getHeightMap();
-        map = MapBuilder.buildMap(width, height, tileWidth, tileHeight, heightMap, mapCandidates.get(0).tileSet, weather);
-        CameraController2D cameraInputController = new CameraController2D(camera, Math.min(scaleX, scaleY), scaleX, scaleY);
-        mapCameraController = new GestureDetector(cameraInputController);
-        inputMultiplexer.addProcessor(mapCameraController);
-        Gdx.input.setInputProcessor(inputMultiplexer);
+        mHeightMap = populationGen.getHeightMap();
+        mMap = MapBuilder.buildMap(sWidth, sHeight, mTileWidth, mTileHeight, mHeightMap, mMapCandidates.get(0).tileSet, mWeather);
+        CameraController2D cameraInputController = new CameraController2D(mCamera, Math.min(mScaleX, mScaleY), mScaleX, mScaleY);
+        mMapCameraController = new GestureDetector(cameraInputController);
+        mInputMultiplexer.addProcessor(mMapCameraController);
+        Gdx.input.setInputProcessor(mInputMultiplexer);
         return true;
     }
 
     /**
-     * Utility method to read the game's configuration.
+     * Utility method to read the mGame's configuration.
      *
-     * @param properties A map of name value pairs.
-     * @return Returns the constraints with the values from the properties.
+     * @param properties A mMap of name value pairs.
+     * @return Returns the constraints with the values from the mProperties.
      */
     private Constraints readConstraints(ObjectMap<String, String> properties) {
         Constraints constraints = new Constraints();
@@ -370,63 +370,63 @@ public class LevelGenScreen implements Screen {
         constraints.setPopulationSize(Integer.valueOf(value));
         value = properties.get("constraints.maxGenerations", "50");
         constraints.setMaxGenerations(Integer.valueOf(value));
-        constraints.setMapHeight(height);
-        constraints.setMapWidth(width);
-        constraints.setNoiseWidth(noiseWidth);
-        constraints.setNoiseHeight(noiseHeight);
+        constraints.setMapHeight(sHeight);
+        constraints.setMapWidth(sWidth);
+        constraints.setNoiseWidth(mNoiseWidth);
+        constraints.setNoiseHeight(mNoiseHeight);
         value = properties.get("constraints.objectivesEnabled", "true");
         constraints.setObjectivesEnabled(Boolean.parseBoolean(value));
-        constraints.setDifficulty(difficulty);
-        if (debugEnabled)
-            constraints.setSeed(debugSeed);
+        constraints.setDifficulty(mDifficulty);
+        if (mDebugEnabled)
+            constraints.setSeed(DEBUG_SEED);
         return constraints;
     }
 
     /**
-     * Utility method to constrain the camera to the scene.
+     * Utility method to constrain the mCamera to the scene.
      */
     private void fixCamBounds() {
-        float scrollLimitX = camera.viewportWidth * scaleX;
-        float scrollLimitY = camera.viewportHeight * scaleY;
-        //Constrain camera from scrolling outside of map
-        if (camera.position.x - (camera.viewportWidth * camera.zoom) / 2 < 0)
-            camera.position.x = (camera.viewportWidth * camera.zoom) / 2;
-        else if (camera.position.x + (camera.viewportWidth * camera.zoom) / 2 > scrollLimitX)
-            camera.position.x = scrollLimitX - (camera.viewportWidth * camera.zoom) / 2;
-        if (camera.position.y - (camera.viewportHeight * camera.zoom) / 2 < 0)
-            camera.position.y = (camera.viewportHeight * camera.zoom) / 2;
-        else if (camera.position.y + (camera.viewportHeight * camera.zoom) / 2 > scrollLimitY)
-            camera.position.y = scrollLimitY - (camera.viewportHeight * camera.zoom) / 2;
-        camera.update();
+        float scrollLimitX = mCamera.viewportWidth * mScaleX;
+        float scrollLimitY = mCamera.viewportHeight * mScaleY;
+        //Constrain mCamera from scrolling outside of mMap
+        if (mCamera.position.x - (mCamera.viewportWidth * mCamera.zoom) / 2 < 0)
+            mCamera.position.x = (mCamera.viewportWidth * mCamera.zoom) / 2;
+        else if (mCamera.position.x + (mCamera.viewportWidth * mCamera.zoom) / 2 > scrollLimitX)
+            mCamera.position.x = scrollLimitX - (mCamera.viewportWidth * mCamera.zoom) / 2;
+        if (mCamera.position.y - (mCamera.viewportHeight * mCamera.zoom) / 2 < 0)
+            mCamera.position.y = (mCamera.viewportHeight * mCamera.zoom) / 2;
+        else if (mCamera.position.y + (mCamera.viewportHeight * mCamera.zoom) / 2 > scrollLimitY)
+            mCamera.position.y = scrollLimitY - (mCamera.viewportHeight * mCamera.zoom) / 2;
+        mCamera.update();
     }
 
     /**
-     * Utility method to reset the camera to default position.
+     * Utility method to reset the mCamera to default mPosition.
      */
     private void resetCamera() {
-        if (camera != null) {
-            this.camera.viewportWidth = Gdx.graphics.getWidth();
-            this.camera.viewportHeight = Gdx.graphics.getHeight();
-            this.camera.position.set(camera.viewportWidth / 2.f, camera.viewportHeight / 2.f, 0);
-            this.camera.update();
+        if (mCamera != null) {
+            this.mCamera.viewportWidth = Gdx.graphics.getWidth();
+            this.mCamera.viewportHeight = Gdx.graphics.getHeight();
+            this.mCamera.position.set(mCamera.viewportWidth / 2.f, mCamera.viewportHeight / 2.f, 0);
+            this.mCamera.update();
         }
     }
 
     /**
-     * Reset the game grid.
+     * Reset the mGame grid.
      *
-     * @param lastMapIndex Index of the last map used.
+     * @param lastMapIndex Index of the mLast mMap used.
      */
     private void resetGrid(int lastMapIndex) {
         List<Tile> tileList = getMapCandidates().get(lastMapIndex).tileSet;
         for (Tile tile : tileList) {
-            heightMap.grid.getNode(tile.position[0], tile.position[1]).walkable = true;
+            mHeightMap.grid.getNode(tile.position[0], tile.position[1]).walkable = true;
         }
     }
 
 
     /**
-     * Enum specifying the game state.
+     * Enum specifying the mGame mState.
      */
     private enum GameState {
         PLAYING,

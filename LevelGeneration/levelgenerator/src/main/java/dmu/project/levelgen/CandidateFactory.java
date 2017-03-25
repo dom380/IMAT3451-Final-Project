@@ -15,42 +15,42 @@ import dmu.project.utils.Vector2D;
 
 public class CandidateFactory {
 
-    private static Random rng = new Random();
-    private HeightMap heightMap;
-    private int width;
-    private int height;
-    private boolean objectivesEnabled;
+    private static Random sRng = new Random();
+    private HeightMap mHeightMap;
+    private int mWidth;
+    private int mHeight;
+    private boolean mObjectivesEnabled;
 
     /**
      * Constructor
      *
-     * @param heightMap         The heightmap.
-     * @param width             The width of the map.
-     * @param height            The height of the map.
-     * @param objectivesEnabled True if objects should be added.
+     * @param mHeightMap         The heightmap.
+     * @param mWidth             The mWidth of the map.
+     * @param mHeight            The mHeight of the map.
+     * @param mObjectivesEnabled True if objects should be added.
      */
-    CandidateFactory(HeightMap heightMap, int width, int height, boolean objectivesEnabled) {
-        this.heightMap = heightMap;
-        this.width = width;
-        this.height = height;
-        this.objectivesEnabled = objectivesEnabled;
+    CandidateFactory(HeightMap mHeightMap, int mWidth, int mHeight, boolean mObjectivesEnabled) {
+        this.mHeightMap = mHeightMap;
+        this.mWidth = mWidth;
+        this.mHeight = mHeight;
+        this.mObjectivesEnabled = mObjectivesEnabled;
     }
 
     /**
      * Constructor
      *
-     * @param heightMap         The heightmap.
-     * @param width             The width of the map.
-     * @param height            The height of the map.
-     * @param objectivesEnabled True if objects should be added.
-     * @param seed              The Random number seed to use.
+     * @param mHeightMap         The heightmap.
+     * @param mWidth             The mWidth of the map.
+     * @param mHeight            The mHeight of the map.
+     * @param mObjectivesEnabled True if objects should be added.
+     * @param seed               The Random number seed to use.
      */
-    CandidateFactory(HeightMap heightMap, int width, int height, boolean objectivesEnabled, long seed) {
-        this.heightMap = heightMap;
-        this.width = width;
-        this.height = height;
-        this.objectivesEnabled = objectivesEnabled;
-        rng = new Random(seed);
+    CandidateFactory(HeightMap mHeightMap, int mWidth, int mHeight, boolean mObjectivesEnabled, long seed) {
+        this.mHeightMap = mHeightMap;
+        this.mWidth = mWidth;
+        this.mHeight = mHeight;
+        this.mObjectivesEnabled = mObjectivesEnabled;
+        sRng = new Random(seed);
     }
 
     /**
@@ -77,7 +77,7 @@ public class CandidateFactory {
         List<Tile> tileSet = new ArrayList<>();
         Set<Vector2D> usedTiles = new LinkedHashSet<>();
         addTiles(tileSet, TileState.START, 1, 1, usedTiles);
-        int freeTiles = Math.max(rng.nextInt((heightMap.aboveWaterValues / 5) - 1), 200); //This probably should be tweaked as well
+        int freeTiles = Math.max(sRng.nextInt((mHeightMap.aboveWaterValues / 5) - 1), 200); //This probably should be tweaked as well
         freeTiles -= addObjectives(tileSet, difficulty, freeTiles, usedTiles);
         freeTiles -= addEnemies(tileSet, difficulty, freeTiles, usedTiles);
         freeTiles -= addObstacles(tileSet, difficulty, freeTiles, usedTiles);
@@ -99,13 +99,13 @@ public class CandidateFactory {
      * @return The number of tiles used.
      */
     private int addObjectives(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
-        if (objectivesEnabled) {
+        if (mObjectivesEnabled) {
             int numOfObjectives;
             if (difficulty == 1) {
                 numOfObjectives = 1;
             } else {
                 int minObjectives = difficulty / 2;
-                numOfObjectives = Math.max(rng.nextInt(difficulty - 1) + 1, minObjectives); //Add objectives
+                numOfObjectives = Math.max(sRng.nextInt(difficulty - 1) + 1, minObjectives); //Add objectives
             }
             addTiles(tileSet, TileState.OBJECTIVE, numOfObjectives, freeTiles, usedTiles);
             return numOfObjectives;
@@ -141,9 +141,9 @@ public class CandidateFactory {
     private int addItems(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
         int numOfEntity;
         if (difficulty < 4) {
-            numOfEntity = rng.nextInt(freeTiles / 6);
+            numOfEntity = sRng.nextInt(freeTiles / 6);
         } else {
-            numOfEntity = rng.nextInt(freeTiles / 8); //Higher difficulty = less items
+            numOfEntity = sRng.nextInt(freeTiles / 8); //Higher difficulty = less items
         }
         addTiles(tileSet, TileState.ITEM, numOfEntity, freeTiles, usedTiles);
         return numOfEntity;
@@ -160,7 +160,7 @@ public class CandidateFactory {
      */
     private int addObstacles(List<Tile> tileSet, int difficulty, int freeTiles, Set<Vector2D> usedTiles) {
         int x, y;
-        int numOfEntity = rng.nextInt(freeTiles / 2);
+        int numOfEntity = sRng.nextInt(freeTiles / 2);
         addTiles(tileSet, TileState.OBSTACLE, numOfEntity, freeTiles, usedTiles);
         return numOfEntity;
     }
@@ -181,11 +181,11 @@ public class CandidateFactory {
         for (int i = 0; i < numOfEntity; ++i) {
             Vector2D position;
             do {
-                x = rng.nextInt(width - 2) + 2; //Avoid the edges
-                y = rng.nextInt(height - 2) + 2;
+                x = sRng.nextInt(mWidth - 2) + 2; //Avoid the edges
+                y = sRng.nextInt(mHeight - 2) + 2;
                 position = new Vector2D(x, y);
             }
-            while (heightMap.elevation[x][y] < heightMap.waterLevel || usedTiles.contains(position)); //keep looking for a value above water level
+            while (mHeightMap.elevation[x][y] < mHeightMap.waterLevel || usedTiles.contains(position)); //keep looking for a value above water level
             tileSet.add(new Tile(tileState, x, y));
             usedTiles.add(position);
             freeTiles -= 1;

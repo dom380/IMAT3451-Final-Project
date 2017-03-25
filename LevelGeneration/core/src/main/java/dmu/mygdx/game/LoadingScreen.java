@@ -26,59 +26,57 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class LoadingScreen implements Screen {
 
-    private MyGdxGame game;
-    private OrthographicCamera camera;
-    private Viewport viewport;
-    private SpriteBatch batch;
-    private Animation anim;
-    private TextureAtlas textureAtlas;
-    private TextureAtlas uiAtlas;
-    private Skin skin;
-    private Stage stage;
-
-    AsyncExecutor asyncExecutor = new AsyncExecutor(10);
-
-    AsyncResult<LevelGenScreen> task;
+    private MyGdxGame mGame;
+    private OrthographicCamera mCamera;
+    private Viewport mViewport;
+    private SpriteBatch mBatch;
+    private Animation mAnimation;
+    private TextureAtlas mTextureAtlas;
+    private TextureAtlas mUiAtlas;
+    private Skin mSkin;
+    private Stage mStage;
+    AsyncExecutor mAsyncExecutor = new AsyncExecutor(10);
+    AsyncResult<LevelGenScreen> mTask;
 
 
     /**
      * Constructor.
      * <p>
-     * Initialises an asynchronous task to generate the level pool.
+     * Initialises an asynchronous mTask to generate the level pool.
      *
-     * @param game         The main game object.
+     * @param mGame        The main mGame object.
      * @param noiseWidth   The width of noise to sample from.
      * @param noiseHeight  The height of noise to sample from.
      * @param difficulty   The difficulty of the levels to generate.
      * @param debugEnabled If true use the debug seed.
      */
-    public LoadingScreen(final MyGdxGame game, final int noiseWidth, final int noiseHeight, final int difficulty, final boolean debugEnabled) {
-        this.game = game;
-        batch = game.batch;
-        camera = new OrthographicCamera();
-        viewport = new StretchViewport(800, 480, camera);
-        viewport.apply();
-        textureAtlas = new TextureAtlas(Gdx.files.internal("sprites/loadingRing.atlas"));
-        uiAtlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
-        skin = new Skin(Gdx.files.internal("sprites/uiskin.json"), uiAtlas);
+    public LoadingScreen(final MyGdxGame mGame, final int noiseWidth, final int noiseHeight, final int difficulty, final boolean debugEnabled) {
+        this.mGame = mGame;
+        mBatch = mGame.mBatch;
+        mCamera = new OrthographicCamera();
+        mViewport = new StretchViewport(800, 480, mCamera);
+        mViewport.apply();
+        mTextureAtlas = new TextureAtlas(Gdx.files.internal("sprites/loadingRing.atlas"));
+        mUiAtlas = new TextureAtlas(Gdx.files.internal("sprites/uiskin.atlas"));
+        mSkin = new Skin(Gdx.files.internal("sprites/uiskin.json"), mUiAtlas);
 
-        anim = new Animation(0.06f, textureAtlas.getRegions());
-        anim.setPlayMode(PlayMode.LOOP);
+        mAnimation = new Animation(0.06f, mTextureAtlas.getRegions());
+        mAnimation.setPlayMode(PlayMode.LOOP);
 
-        Label label = new Label("Generating level...", skin);
+        Label label = new Label("Generating level...", mSkin);
         Table table = new Table();
         table.setFillParent(true);
         table.center();
         table.padBottom(50.0f);
         table.add(label).padBottom(50.0f);
         table.row();
-        table.add(new dmu.mygdx.game.AnimActor(anim, true)).padTop(50.0f);
-        stage = new Stage(viewport, batch);
-        stage.addActor(table);
+        table.add(new dmu.mygdx.game.AnimActor(mAnimation, true)).padTop(50.0f);
+        mStage = new Stage(mViewport, mBatch);
+        mStage.addActor(table);
         //Start up the background thread to generate the levels.
-        task = asyncExecutor.submit(new AsyncTask<LevelGenScreen>() {
+        mTask = mAsyncExecutor.submit(new AsyncTask<LevelGenScreen>() {
             public LevelGenScreen call() {
-                return asyncMethod(game, noiseWidth, noiseHeight, difficulty, debugEnabled);
+                return asyncMethod(mGame, noiseWidth, noiseHeight, difficulty, debugEnabled);
             }
         });
     }
@@ -97,17 +95,17 @@ public class LoadingScreen implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(.1f, .12f, .16f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        if (!task.isDone()) {
-            stage.act(delta);
-            stage.draw();
+        if (!mTask.isDone()) {
+            mStage.act(delta);
+            mStage.draw();
         } else {
-            game.switchScreen(task.get());
+            mGame.switchScreen(mTask.get());
         }
     }
 
     @Override
     public void resize(int width, int height) {
-        viewport.update(width, height);
+        mViewport.update(width, height);
     }
 
     @Override
@@ -130,9 +128,9 @@ public class LoadingScreen implements Screen {
      */
     @Override
     public void dispose() {
-        textureAtlas.dispose();
-        uiAtlas.dispose();
-        stage.dispose();
+        mTextureAtlas.dispose();
+        mUiAtlas.dispose();
+        mStage.dispose();
     }
 
     /////////////////////////////
@@ -143,7 +141,7 @@ public class LoadingScreen implements Screen {
      * Creates a LevelGenScreen object that will call the Procedural content generation system to generate levels.
      * To be run on a background thread as this is a long running process.
      *
-     * @param game         The main game object.
+     * @param game         The main mGame object.
      * @param noiseWidth   The width of noise to sample from.
      * @param noiseHeight  The height of noise to sample from.
      * @param difficulty   The difficulty of the levels to generate.

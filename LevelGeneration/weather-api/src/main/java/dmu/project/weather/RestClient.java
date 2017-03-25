@@ -27,9 +27,9 @@ import cz.msebera.android.httpclient.protocol.HTTP;
  */
 
 public class RestClient {
-    private List<NameValuePair> params;
-    private List<NameValuePair> headers;
-    private String baseURL;
+    private List<NameValuePair> mParams;
+    private List<NameValuePair> mHeaders;
+    private String mBaseUrl;
     public String response;
     public int responseCode;
     public String message;
@@ -42,12 +42,12 @@ public class RestClient {
     /**
      * Constructor.
      *
-     * @param baseURL The base URL to send the request to.
+     * @param mBaseUrl The base URL to send the request to.
      */
-    public RestClient(String baseURL) {
-        this.baseURL = baseURL;
-        headers = new ArrayList<>();
-        params = new ArrayList<>();
+    public RestClient(String mBaseUrl) {
+        this.mBaseUrl = mBaseUrl;
+        mHeaders = new ArrayList<>();
+        mParams = new ArrayList<>();
     }
 
     /**
@@ -57,7 +57,7 @@ public class RestClient {
      * @param value
      */
     public void addParam(String name, String value) {
-        params.add(new BasicNameValuePair(name, value));
+        mParams.add(new BasicNameValuePair(name, value));
     }
 
     /**
@@ -67,7 +67,7 @@ public class RestClient {
      * @param value
      */
     public void addHeader(String name, String value) {
-        headers.add(new BasicNameValuePair(name, value));
+        mHeaders.add(new BasicNameValuePair(name, value));
     }
 
     /**
@@ -80,10 +80,10 @@ public class RestClient {
         switch (method) {
             case GET: {
                 //add parameters
-                HttpGet request = buildRequest(params);
+                HttpGet request = buildRequest(mParams);
 
-                //add headers
-                for (NameValuePair h : headers) {
+                //add mHeaders
+                for (NameValuePair h : mHeaders) {
                     request.addHeader(h.getName(), h.getValue());
                 }
 
@@ -91,15 +91,15 @@ public class RestClient {
                 break;
             }
             case POST: {
-                HttpPost request = new HttpPost(baseURL);
+                HttpPost request = new HttpPost(mBaseUrl);
 
-                //add headers
-                for (NameValuePair h : headers) {
+                //add mHeaders
+                for (NameValuePair h : mHeaders) {
                     request.addHeader(h.getName(), h.getValue());
                 }
 
-                if (!params.isEmpty()) {
-                    request.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+                if (!mParams.isEmpty()) {
+                    request.setEntity(new UrlEncodedFormEntity(mParams, HTTP.UTF_8));
                 }
 
                 executeRequest(request);
@@ -152,7 +152,7 @@ public class RestClient {
                 }
             }
         }
-        return new HttpGet(baseURL + combinedParams);
+        return new HttpGet(mBaseUrl + combinedParams);
     }
 
     public String getResponse() {

@@ -12,33 +12,33 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class LIFOEntry<E extends Comparable<? super E>> implements Comparable<LIFOEntry<E>> {
 
-    final static AtomicLong seq = new AtomicLong();
-    final long seqNum;
-    final E entry;
+    final static AtomicLong SEQ = new AtomicLong();
+    final long mSeqNum;
+    final E mEntry;
 
     /**
      * Constructor.
      *
-     * @param entry The object to wrap.
+     * @param mEntry The object to wrap.
      */
-    public LIFOEntry(E entry) {
-        this.entry = entry;
-        seqNum = seq.getAndIncrement();
+    public LIFOEntry(E mEntry) {
+        this.mEntry = mEntry;
+        mSeqNum = SEQ.getAndIncrement();
     }
 
     /**
      * @return The wrapped object.
      */
     public E getEntry() {
-        return entry;
+        return mEntry;
     }
 
     /**
      * Resets the static atomic long.
      */
     public static void resetCount() {
-        if (seq != null)
-            seq.set(0);
+        if (SEQ != null)
+            SEQ.set(0);
     }
 
     /**
@@ -52,9 +52,9 @@ public class LIFOEntry<E extends Comparable<? super E>> implements Comparable<LI
         if (o == null) return false;
         if (o.getClass() == getClass()) {
             LIFOEntry other = (LIFOEntry) o;
-            return entry.equals(other.entry);
-        } else if (o.getClass() == entry.getClass()) {
-            return entry.equals(o);
+            return mEntry.equals(other.mEntry);
+        } else if (o.getClass() == mEntry.getClass()) {
+            return mEntry.equals(o);
         }
         return false;
     }
@@ -69,9 +69,9 @@ public class LIFOEntry<E extends Comparable<? super E>> implements Comparable<LI
      */
     @Override
     public int compareTo(LIFOEntry<E> o) {
-        int res = entry.compareTo(o.entry);
+        int res = mEntry.compareTo(o.mEntry);
         if (res == 0)
-            res = (seqNum < o.seqNum ? 1 : -1);
+            res = (mSeqNum < o.mSeqNum ? 1 : -1);
         return res;
     }
 }

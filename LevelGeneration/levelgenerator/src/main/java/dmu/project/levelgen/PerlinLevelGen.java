@@ -18,34 +18,34 @@ public class PerlinLevelGen implements LevelGenerator {
     /**
      * OpenSimplexNoise library.
      */
-    private final OpenSimplexNoise simplexNoise;
+    private final OpenSimplexNoise mSimplexNoise;
 
-    private int noiseX, noiseY, noiseWidth, noiseHeight, octaves;
-    private double persistence;
+    private int mNoiseX, mNoiseY, mNoiseWidth, mNoiseHeight, mOctaves;
+    private double mPersistence;
 
     /**
      * Constructor
      *
-     * @param noiseWidth  The width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
-     * @param noiseHeight The height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
-     * @param octaves     The number of noise octaves to layer.
-     * @param persistence The amount the amplitude increases for each octave.
+     * @param mNoiseWidth  The width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param mNoiseHeight The height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param mOctaves     The number of noise mOctaves to layer.
+     * @param mPersistence  The amount the amplitude increases for each octave.
      */
-    public PerlinLevelGen(int noiseWidth, int noiseHeight, int octaves, double persistence) {
-        this(new Random().nextLong(), 0, 0, noiseWidth, noiseHeight, octaves, persistence);
+    public PerlinLevelGen(int mNoiseWidth, int mNoiseHeight, int mOctaves, double mPersistence) {
+        this(new Random().nextLong(), 0, 0, mNoiseWidth, mNoiseHeight, mOctaves, mPersistence);
     }
 
     /**
      * Constructor
      *
-     * @param seed        The random number generator seed to use.
-     * @param noiseWidth  The width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
-     * @param noiseHeight The height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
-     * @param octaves     The number of noise octaves to layer.
-     * @param persistence The amount the amplitude increases for each octave.
+     * @param seed         The random number generator seed to use.
+     * @param mNoiseWidth  The width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param mNoiseHeight The height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param mOctaves     The number of noise mOctaves to layer.
+     * @param mPersistence  The amount the amplitude increases for each octave.
      */
-    public PerlinLevelGen(long seed, int noiseWidth, int noiseHeight, int octaves, double persistence) {
-        this(seed, 0, 0, noiseWidth, noiseHeight, octaves, persistence);
+    public PerlinLevelGen(long seed, int mNoiseWidth, int mNoiseHeight, int mOctaves, double mPersistence) {
+        this(seed, 0, 0, mNoiseWidth, mNoiseHeight, mOctaves, mPersistence);
     }
 
     /**
@@ -53,13 +53,13 @@ public class PerlinLevelGen implements LevelGenerator {
      *
      * @param noiseOriginX The x coordinate of the bottom-left corner of the area to sample from.
      * @param noiseOriginY The y coordinate of the bottom-left corner of the area to sample from.
-     * @param noiseWidth   the width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
-     * @param noiseHeight  the height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
-     * @param octaves      The number of noise octaves to layer.
-     * @param persistence  The amount the amplitude increases for each octave.
+     * @param mNoiseWidth  the width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param mNoiseHeight the height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param mOctaves     The number of noise mOctaves to layer.
+     * @param mPersistence  The amount the amplitude increases for each octave.
      */
-    public PerlinLevelGen(int noiseOriginX, int noiseOriginY, int noiseWidth, int noiseHeight, int octaves, double persistence) {
-        this(new Random().nextLong(), noiseOriginX, noiseOriginY, noiseWidth, noiseHeight, octaves, persistence);
+    public PerlinLevelGen(int noiseOriginX, int noiseOriginY, int mNoiseWidth, int mNoiseHeight, int mOctaves, double mPersistence) {
+        this(new Random().nextLong(), noiseOriginX, noiseOriginY, mNoiseWidth, mNoiseHeight, mOctaves, mPersistence);
     }
 
     /**
@@ -68,19 +68,19 @@ public class PerlinLevelGen implements LevelGenerator {
      * @param seed         The random number generator seed to use.
      * @param noiseOriginX The x coordinate of the bottom-left corner of the area to sample from.
      * @param noiseOriginY The y coordinate of the bottom-left corner of the area to sample from.
-     * @param noiseWidth   the width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
-     * @param noiseHeight  the height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
-     * @param octaves      The number of noise octaves to layer.
-     * @param persistence  The amount the amplitude increases for each octave.
+     * @param mNoiseWidth  the width of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param mNoiseHeight the height of the area to sample noise from. The larger the area the more varied/zoomed out the terrain.
+     * @param mOctaves     The number of noise mOctaves to layer.
+     * @param mPersistence  The amount the amplitude increases for each octave.
      */
-    public PerlinLevelGen(long seed, int noiseOriginX, int noiseOriginY, int noiseWidth, int noiseHeight, int octaves, double persistence) {
-        this.simplexNoise = new OpenSimplexNoise(seed);
-        this.noiseHeight = noiseHeight;
-        this.noiseWidth = noiseWidth;
-        this.octaves = octaves;
-        this.persistence = persistence;
-        this.noiseX = noiseOriginX;
-        this.noiseY = noiseOriginY;
+    public PerlinLevelGen(long seed, int noiseOriginX, int noiseOriginY, int mNoiseWidth, int mNoiseHeight, int mOctaves, double mPersistence) {
+        this.mSimplexNoise = new OpenSimplexNoise(seed);
+        this.mNoiseHeight = mNoiseHeight;
+        this.mNoiseWidth = mNoiseWidth;
+        this.mOctaves = mOctaves;
+        this.mPersistence = mPersistence;
+        this.mNoiseX = noiseOriginX;
+        this.mNoiseY = noiseOriginY;
     }
 
     /**
@@ -96,23 +96,23 @@ public class PerlinLevelGen implements LevelGenerator {
     public HeightMap generateLevel(int width, int height, double waterLevel) throws LevelGenerationException {
         if (width <= 0 || height <= 0 || waterLevel < 0)
             throw new LevelGenerationException("Invalid parameters for heightmap generation");
-        if (noiseHeight == 0 || noiseWidth == 0)
+        if (mNoiseHeight == 0 || mNoiseWidth == 0)
             throw new LevelGenerationException("Invalid noise width and height for heightmap generation");
         double[][] noise = new double[width][height];
         HeightMap heightMap = new HeightMap(width, height, true, waterLevel);
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
-                double nx = noiseX + (((x / (double) width)) * noiseWidth), ny = noiseY + (((y / (double) height)) * noiseHeight);
+                double nx = mNoiseX + (((x / (double) width)) * mNoiseWidth), ny = mNoiseY + (((y / (double) height)) * mNoiseHeight);
                 double e = 0;
                 double amplitude = 1.0;
                 double frequency = 1.0;
                 double maxVal = 0;
                 double lacunarity = 2.0;
-                for (int currOctave = 0; currOctave < octaves; currOctave++) {
+                for (int currOctave = 0; currOctave < mOctaves; currOctave++) {
                     double noiseVal = (amplitude * noise(frequency * nx, frequency * ny));
                     e += noiseVal;
                     maxVal += amplitude;
-                    amplitude *= persistence;
+                    amplitude *= mPersistence;
                     frequency *= lacunarity;
                 }
                 e /= maxVal;
@@ -143,7 +143,7 @@ public class PerlinLevelGen implements LevelGenerator {
      * @return Noise value scaled between 0..1
      */
     private double noise(double nx, double ny) {
-        return (simplexNoise.eval(nx, ny) / 2.0) + 0.5;
+        return (mSimplexNoise.eval(nx, ny) / 2.0) + 0.5;
     }
 
     /**

@@ -24,10 +24,10 @@ import com.google.android.gms.location.LocationServices;
 
 public class LocationServiceAndroid implements LocationService, GoogleApiClient.ConnectionCallbacks, LocationListener {
 
-    private GameFragment launcher;
+    private GameFragment mLauncher;
     private GoogleApiClient mGoogleApiClient;
-    private boolean isAvailable, connected = false, enabled;
-    private Location lastLocation;
+    private boolean mIsAvailable, mConnected = false, mEnabled;
+    private Location mLastLocation;
 
     /**
      * Constructor.
@@ -35,90 +35,107 @@ public class LocationServiceAndroid implements LocationService, GoogleApiClient.
      * @param activity Fragment Activity containing our game.
      */
     LocationServiceAndroid(GameFragment activity) {
-        this.launcher = activity;
-        enabled = true;
+        this.mLauncher = activity;
+        mEnabled = true;
         GoogleApiAvailability instance = GoogleApiAvailability.getInstance();
-        int playServicesAvailable = instance.isGooglePlayServicesAvailable(launcher.getContext());
+        int playServicesAvailable = instance.isGooglePlayServicesAvailable(mLauncher.getContext());
         if (playServicesAvailable == ConnectionResult.SUCCESS) { //If we have access to Google Play Services
-            isAvailable = true;
+            mIsAvailable = true;
             this.mGoogleApiClient = new GoogleApiClient.Builder(activity.getContext()) //Create a self managing client
-                    .enableAutoManage(launcher.getActivity(), launcher)
+                    .enableAutoManage(mLauncher.getActivity(), mLauncher)
                     .addConnectionCallbacks(this)
                     .addApi(LocationServices.API)
                     .build();
             connect();
         } else {
-            Dialog errorDialog = instance.getErrorDialog(launcher.getActivity(), playServicesAvailable, 1);
+            Dialog errorDialog = instance.getErrorDialog(mLauncher.getActivity(), playServicesAvailable, 1);
             errorDialog.show();
-            isAvailable = false;
+            mIsAvailable = false;
         }
     }
 
+    /**
+     * Connects to the Google Play Service.
+     */
     @Override
     public void connect() {
         mGoogleApiClient.connect();
-        connected = true;
+        mConnected = true;
     }
 
+    /**
+     * Disconnects from the Google Play Service.
+     */
     @Override
     public void disconnect() {
         mGoogleApiClient.disconnect();
-        connected = false;
+        mConnected = false;
     }
 
     @Override
     public boolean isAvailable() {
-        return isAvailable && enabled;
+        return mIsAvailable && mEnabled;
     }
 
+    /**
+     * Retrieves the devices mLast known latitude and longitude.
+     *
+     * @return A two value array holding the latitude and longitude or null if not location available.
+     */
     @Override
     public double[] getLatLong() {
-        if (!enabled) {
+        if (!mEnabled) {
             return null;
         }
-        if (lastLocation != null)
-            return new double[]{lastLocation.getLatitude(), lastLocation.getLongitude()};
+        if (mLastLocation != null)
+            return new double[]{mLastLocation.getLatitude(), mLastLocation.getLongitude()};
         else {
             //noinspection MissingPermission
-            lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            return lastLocation != null ? new double[]{lastLocation.getLatitude(), lastLocation.getLongitude()} : null;
+            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            return mLastLocation != null ? new double[]{mLastLocation.getLatitude(), mLastLocation.getLongitude()} : null;
         }
 
     }
 
     @Override
     public void disable() {
-        enabled = false;
+        mEnabled = false;
     }
 
     @Override
     public void enable() {
-        enabled = true;
+        mEnabled = true;
     }
 
+    /**
+     * Callback method executed Google Play Service is connected.
+     * Builds a LocationRequest to continually update devices location every minute.
+     *
+     * @param bundle Parameter bundle.
+     */
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         LocationRequest request = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
                 .setInterval(120000) //2 min
                 .setFastestInterval(60000); //1 min
-        if (ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(launcher.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            if (Build.VERSION.SDK_INT > 23 && ActivityCompat.shouldShowRequestPermissionRationale(launcher.getActivity(), launcher.getString(R.string.location_explanation))) {
+        if (ActivityCompat.checkSelfPermission(mLauncher.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(mLauncher.getContext(), Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(mLauncher.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT > 23 && ActivityCompat.shouldShowRequestPermissionRationale(mLauncher.getActivity(), mLauncher.getString(R.string.location_explanation))) {
                 //Check to see if we should explain the request
-            } else if (ActivityCompat.shouldShowRequestPermissionRationale(launcher.getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            } else if (ActivityCompat.shouldShowRequestPermissionRationale(mLauncher.getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION)) {
 
             } else {
                 //Request permissions
-                ActivityCompat.requestPermissions(launcher.getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, launcher.getResources().getInteger(R.integer.LOCATION_PERMISSION_REQUEST));
-                ActivityCompat.requestPermissions(launcher.getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, launcher.getResources().getInteger(R.integer.LOCATION_PERMISSION_REQUEST));
-                ActivityCompat.requestPermissions(launcher.getActivity(), new String[]{Manifest.permission.INTERNET}, launcher.getResources().getInteger(R.integer.INTERNET_PERMISSION_REQUEST));
+                ActivityCompat.requestPermissions(mLauncher.getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, mLauncher.getResources().getInteger(R.integer.LOCATION_PERMISSION_REQUEST));
+                ActivityCompat.requestPermissions(mLauncher.getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, mLauncher.getResources().getInteger(R.integer.LOCATION_PERMISSION_REQUEST));
+                ActivityCompat.requestPermissions(mLauncher.getActivity(), new String[]{Manifest.permission.INTERNET}, mLauncher.getResources().getInteger(R.integer.INTERNET_PERMISSION_REQUEST));
             }
             return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, request, this);
-        lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
     }
 
     @Override
@@ -128,6 +145,6 @@ public class LocationServiceAndroid implements LocationService, GoogleApiClient.
 
     @Override
     public void onLocationChanged(Location location) {
-        lastLocation = location;
+        mLastLocation = location;
     }
 }

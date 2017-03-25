@@ -17,15 +17,15 @@ import com.google.android.gms.common.api.GoogleApiClient;
  */
 
 public class GameFragment extends AndroidFragmentApplication implements GoogleApiClient.OnConnectionFailedListener {
-    LocationService locationService;
+    LocationService mLocationService;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         AndroidApplicationConfiguration config = new AndroidApplicationConfiguration(); //Configure android application settings
         config.useAccelerometer = false;
         config.useGyroscope = false; //Disable to save power. Not needed.
-        locationService = new LocationServiceAndroid(this); //Create Android location service and pass to our interface.
-        return initializeForView(new MyGdxGame(locationService, getResources().getString(R.string.weather_api_url), getResources().getString(R.string.weather_api_key)), config); //Create the main game class.
+        mLocationService = new LocationServiceAndroid(this); //Create Android location service and pass to our interface.
+        return initializeForView(new MyGdxGame(mLocationService, getResources().getString(R.string.weather_api_url), getResources().getString(R.string.weather_api_key)), config); //Create the main game class.
     }
 
     @Override
@@ -38,9 +38,9 @@ public class GameFragment extends AndroidFragmentApplication implements GoogleAp
         switch (requestCode) {
             case R.integer.LOCATION_PERMISSION_REQUEST: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    locationService.enable();
+                    mLocationService.enable();
                 } else {
-                    locationService.disable();
+                    mLocationService.disable();
                 }
             }
         }

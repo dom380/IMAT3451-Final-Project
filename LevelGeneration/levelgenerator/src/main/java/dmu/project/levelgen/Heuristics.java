@@ -8,7 +8,7 @@ import dmu.project.utils.Vector2D;
  */
 
 public class Heuristics {
-    private final static double rootTwo = Math.sqrt(2);
+    private final static double ROOT_TWO = Math.sqrt(2);
 
     /**
      * Calculate the Diagonal  Distance between two positions.
@@ -20,7 +20,7 @@ public class Heuristics {
     public static double diagonalDist(Vector2D pos1, Vector2D pos2) {
         double dX = Math.abs(pos2.getX() - pos1.getX());
         double dY = Math.abs(pos2.getY() - pos1.getY());
-        double F = rootTwo - 1;
+        double F = ROOT_TWO - 1;
         return (dX < dY) ? F * dX + dY : F * dY + dX;
 
     }
@@ -35,7 +35,7 @@ public class Heuristics {
     public static double diagonalDist(int[] pos1, int[] pos2) {
         double dX = Math.abs(pos1[0] - pos2[0]);
         double dY = Math.abs(pos1[1] - pos2[1]);
-        double F = rootTwo - 1;
+        double F = ROOT_TWO - 1;
         return (dX < dY) ? F * dX + dY : F * dY + dX;
     }
 
