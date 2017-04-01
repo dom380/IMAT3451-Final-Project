@@ -119,7 +119,7 @@ public class MainMenuScreen implements Screen {
         });
         mainTable.row();
         mainTable.add(playButton);
-//        mainTable.add(debugButton);
+        mainTable.add(debugButton);
         mainTable.row();
         //Add table to mStage
         mStage.addActor(titleTable);

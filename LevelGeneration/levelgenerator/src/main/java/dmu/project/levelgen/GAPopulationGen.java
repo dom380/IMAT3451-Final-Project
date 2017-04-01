@@ -228,7 +228,7 @@ public class GAPopulationGen implements PopulationGenerator {
             }
             Float fitness = 1.0f;
             if (enemyCount > 0) { //If there are no enemies it's a pretty poor map so set fitness to 0 and move on.
-                fitness -= 0.05f * poorPlacedEnemies;//((float) poorPlacedEnemies / (float) enemyCount) * 2.0f;
+                fitness -= 0.05f * poorPlacedEnemies;
             } else {
                 map.fitness = 0.0f;
                 numOfMaps--;

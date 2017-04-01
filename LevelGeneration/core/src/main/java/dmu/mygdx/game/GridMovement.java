@@ -21,7 +21,7 @@ public class GridMovement {
      * Constructor.
      *
      * @param tileMovable The mEntity to control the movement of.
-     * @param mGrid        The mGrid to move on.
+     * @param mGrid       The mGrid to move on.
      */
     public GridMovement(TileMovable tileMovable, Grid mGrid) {
         mEntity = tileMovable;
@@ -34,42 +34,32 @@ public class GridMovement {
      * @param delta time step.
      */
     public void update(float delta) {
-        boolean isMoving = isMoving(), reachedDest = justReachedDestination();
-        // Stop if at mDestination
-        if (isMoving && reachedDest && mDirection == null) {
+        boolean isMoving = mDestination != null;
+        boolean reachedDest = reachedDest();
+        //Not moving and no input, just return
+        if(mDirection == null && !isMoving){
+            return;
+        }
+        //Reached destination and no new input, so stop
+        if (reachedDest && mDirection == null) {
             stopMoving();
-        }
-        // Stop moving on collision
-        else if (isMoving && reachedDest && mDirection != null && !canMoveDirectionFromTile(mDestination.x, mDestination.y, mDirection)) {
+        } // Stop moving on collision
+        else if (isMoving && reachedDest && !canMoveDirectionFromTile(mDestination.x, mDestination.y, mDirection)) {
             stopMoving();
+        } else if (isMoving && !reachedDest) {
+            setVelocityByTile((int) mDestination.x, (int) mDestination.y);
         }
-        // Dest reached, but control still pressed so continue
-        else if (isMoving && reachedDest && mDirection != null && (canMoveDirectionFromTile(mDestination.x, mDestination.y, mDirection)) && mDirection.epsilonEquals(mLastMove, 0.001f)) {
-            continueMovingFromDestination();
-        }
-        // Dest reached but changing mDirection
-        else if (isMoving && mDirection != null && (canMoveDirectionFromTile(mDestination.x, mDestination.y, mDirection)) && !mDirection.epsilonEquals(mLastMove, 0.001f)) {
+        // Dest reached with input
+        else if (isMoving && reachedDest && mDirection != null && canMoveDirectionFromTile(mDestination.x, mDestination.y, mDirection)) {
             changeDirectionAndContinueMoving(mDirection);
         }
-        // Dest not reached, continue
-        else if (isMoving && !reachedDest) {
-            continueMovingToDestination();
+        //Start moving
+        else if (!isMoving && mDirection != null) {
+            Vector2 currTile = getCurrentTile();
+            if (canMoveDirectionFromTile((int) currTile.x, (int) currTile.y, mDirection)) {
+                startMoving(mDirection);
+            }
         }
-        // Not moving, start moving
-        else if (!isMoving && mDirection != null && (canMoveDirectionFromCurrentTile(mDirection))) {
-            startMoving(mDirection);
-        }
-        mLastTile = mDestination;
-        mLastMove = mDirection;
-    }
-
-    void collision() {
-        if (mLastTile != null)
-            snapToTile((int) mLastTile.x, (int) mLastTile.y);
-        mEntity.mVelocity.set(0f, 0f);
-        mDirection = null;
-        mDestination = null;
-        mLastMove = null;
     }
 
     Vector2 getSpeed() {
@@ -85,6 +75,7 @@ public class GridMovement {
     }
 
     void setDirection(Vector2 direction) {
+        this.mLastMove = this.mDirection;
         this.mDirection = direction != null ? direction.cpy() : null;
     }
 
@@ -112,20 +103,6 @@ public class GridMovement {
         setVelocityByTile((int) mDestination.x, (int) mDestination.y);
     }
 
-
-    private void continueMovingToDestination() {
-        // Move.
-        setVelocityByTile((int) mDestination.x, (int) mDestination.y);
-    }
-
-
-    private void continueMovingFromDestination() {
-        // Get new mDestination.
-        mDestination = getTileAdjacentToTile(mDestination.x, mDestination.y, mLastMove);
-        // Move.
-        setVelocityByTile((int) mDestination.x, (int) mDestination.y);
-    }
-
     private void changeDirectionAndContinueMoving(Vector2 newDirection) {
         // Method only called when at mDestination, so snap to it now.
         snapToTile((int) mDestination.x, (int) mDestination.y);
@@ -149,19 +126,18 @@ public class GridMovement {
         mEntity.mPosition.set(x * TILE_WIDTH, y * TILE_HEIGHT);
     }
 
-    protected boolean justReachedDestination() {
-        if (mDestination == null) return false;
-        float destinationX = mDestination.x * TILE_WIDTH;
-        float destinationY = mDestination.y * TILE_HEIGHT;
-        return (mEntity.mPosition.x >= destinationX && mEntity.mLast.x < destinationX) ||
-                (mEntity.mPosition.x <= destinationX && mEntity.mLast.x > destinationX) ||
-                (mEntity.mPosition.y >= destinationY && mEntity.mLast.y < destinationY) ||
-                (mEntity.mPosition.y <= destinationY && mEntity.mLast.y > destinationY);
-
-    }
 
     public boolean isMoving() {
         return mDestination != null;
+    }
+
+    public boolean reachedDest() {
+        if (mDestination != null) {
+            Vector2 pixelDest = new Vector2(mDestination.x * TILE_WIDTH, mDestination.y * TILE_HEIGHT);
+            return pixelDest.dst(mEntity.getPosition()) < 2.f;
+        } else {
+            return false;
+        }
     }
 
     private boolean canMoveDirectionFromTile(float tileX, float tileY, Vector2 direction) {
@@ -171,11 +147,6 @@ public class GridMovement {
     private boolean canMoveDirectionFromTile(int tileX, int tileY, Vector2 direction) {
         Vector2 newPos = getTileAdjacentToTile(tileX, tileY, direction);
         return mGrid.walkable((int) newPos.x, (int) newPos.y);
-    }
-
-    private boolean canMoveDirectionFromCurrentTile(Vector2 direction) {
-        Vector2 currTile = getCurrentTile();
-        return canMoveDirectionFromTile((int) currTile.x, (int) currTile.y, direction);
     }
 
     private void setVelocityByTile(int tileX, int tileY) {

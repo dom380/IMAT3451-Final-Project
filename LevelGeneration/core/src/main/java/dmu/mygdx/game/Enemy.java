@@ -12,6 +12,7 @@ import java.util.List;
 import dmu.project.levelgen.Heuristics;
 import dmu.project.utils.Grid;
 import dmu.project.utils.Node;
+import dmu.project.utils.PathFinder;
 
 /**
  * Created by Dom on 08/03/2017.
@@ -26,6 +27,7 @@ public class Enemy extends TileMovable {
     private float mAnimTime = 0.0f;
     private boolean mFlip = false;
     private List<Node> mPath = null;
+    private int mPathIndex = 0;
 
     /**
      * Constructor.
@@ -80,30 +82,30 @@ public class Enemy extends TileMovable {
 //            mPath = PathFinder.findPathAStar(new int[]{x, y}, new int[]{playerX, playerY}, mGridMovement.getGrid());
 //        }
 //        if (mPath != null) { //If mPath not null, follow it
-//            if (mGridMovement.isMoving() && mGridMovement.justReachedDestination() && pathIndex < mPath.size()) {
-//                pathIndex++;
-//                if (pathIndex >= mPath.size()) {
-//                    pathIndex = 0;
+//            if (mGridMovement.isMoving() && mGridMovement.reachedDest() && mPathIndex < mPath.size()) {
+//                mPathIndex++;
+//                if (mPathIndex >= mPath.size()) {
+//                    mPathIndex = 0;
 //                    mPath = null;
 //                    mGridMovement.update(delta);
 //                    return;
 //                }
-//                Node nextNode = mPath.get(pathIndex);
-//                int dx = (int) Math.signum(nextNode.mPosition.getX() - x);
-//                int dy = (int) Math.signum(nextNode.mPosition.getY() - y);
+//                Node nextNode = mPath.get(mPathIndex);
+//                int dx = (int) Math.signum(nextNode.position.getX() - x);
+//                int dy = (int) Math.signum(nextNode.position.getY() - y);
 //                mGridMovement.setDirection(mDirection.set(dx, dy));
 //
-//            } else if(pathIndex == 0) {
-//                Node nextNode = mPath.get(pathIndex);
-//                int dx = (int) Math.signum(nextNode.mPosition.getX() - x);
-//                int dy = (int) Math.signum(nextNode.mPosition.getY() - y);
+//            } else if(mPathIndex == 0) {
+//                Node nextNode = mPath.get(mPathIndex);
+//                int dx = (int) Math.signum(nextNode.position.getX() - x);
+//                int dy = (int) Math.signum(nextNode.position.getY() - y);
 //                mGridMovement.setDirection(mDirection.set(dx, dy));
-//                pathIndex++;
+//                mPathIndex++;
 //            }
 //            Node endNode = mPath.get(mPath.size() - 1);
-//            if (Heuristics.manhatDist(playerX, playerY, endNode.mPosition.getX(), endNode.mPosition.getY()) > 5) { // Our mPath is out of date.
+//            if (Heuristics.manhatDist(playerX, playerY, endNode.position.getX(), endNode.position.getY()) > 5) { // Our mPath is out of date.
 //                mPath = null;
-//                pathIndex = 0;
+//                mPathIndex = 0;
 //            }
 //        }
         mGridMovement.update(delta);

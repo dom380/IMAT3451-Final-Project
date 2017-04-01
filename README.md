@@ -1,6 +1,9 @@
 # IMAT3451-Final-Project
 This is the repository for my final year computing project at De Montfort University.  
 The project is a Java based procedural content generation system for mobile games and includes an example game to demonstrate its use.
+
+Android 6.0 (API level 23) and Android SDK Build Tools version 24.0.3 are required to build the application. 
+
 ## 3rd Party Components  
 -   [Open Simplex Noise](https://gist.github.com/KdotJPG/b1270127455a94ac5d19) - Unlicensed 
 -   [LibGDX](https://libgdx.badlogicgames.com/) - [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
@@ -16,3 +19,5 @@ The project is a Java based procedural content generation system for mobile game
 -   Enemy and Player Sprite - Fire Emblem: The Sacred Stones 
 -   Chest, Torch and Tree Sprites - [Lanea Zimmerman](http://opengameart.org/users/sharm) *via [OpenGameArt](http://opengameart.org/content/tiny-16-basic)* - [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/legalcode)
 - Touchpad and Buttons - [Kenney Vleugels](www.kenney.nl) - [CC-0](http://creativecommons.org/publicdomain/zero/1.0/)  
+- Cactus - [Elisha Ramos](https://elisharamos.wordpress.com/) - [GameDev Market Pro License](https://www.gamedevmarket.net/terms-conditions/#pro-licence)
+- Snow Rock - Created by [Michele Bucelli](http://opengameart.org/users/buch), edited by ['Rubberduck'](http://opengameart.org/users/rubberduck) - [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/legalcode)
