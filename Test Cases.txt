@@ -1,0 +1,54 @@
+CameraController2D:
+	- CameraConstrainTest - Attemp to scroll camera outside of map on all 4 edges. - Camera should not be able to move passed map.
+	- CameraConstrainTest_SmallMap - Same as previous test on smaller map - same as previous test but also zoomed in.
+	- CameraConstrainTest_Zoom - Attempt to zoom out of the map - Camera cannot zoom out enough to show edge of map
+	- CameraConstrainTest_Scaling - launch with small size map - Camera should automatically adjust to size of map. Edges shouldn't be shown.
+	
+Controller:
+	- RenderTest - Load game on multiple devices - Control UI should correctly render touchpad and A,B buttons.
+	- Touchpad_Flick - quickly flick the touchpad in random directions. - character should turn to face the closest quater direction and not move.
+	- Touchpad_Hold - hold the touchpad on in random directions - character should move in closest quater direction and change when touchpad changes.
+	- A Button - Pressing the A button should cause player to attack
+	- B button - pressing the B button should do nothing unless item or objective in from of player
+	
+Collisions:
+	- StaticCollisions - Moveables collide with water/obstacles
+	- DynamicCollisions - Enemy and player collide - Player should take damage and be knocked back.
+	
+Enemy:
+	- ChasePlayer - move player within 10 tiles of enemy - enemy should chase until outside 10 tile radius
+	
+Player: 
+	- AnimationTest - correct animation for respective action (Expand this)
+	- Attack - attack with player character - if collides with enemy, enemy should die
+	- TakeDamage - Player should lose HP when hit by enemy
+	- GainHP - Player should gain HP when collecting an item box
+	- GainHP_MaxHP - Nothing should happen when collecting an item box at full HP. 
+	
+MainMenu:
+	- DifficultySlider - move slider - UI should update with value
+	- NoiseWidth/HeightField - should only allow numbers to be entered
+	- GenerateLevelButton - Should start up level gen process with correct values set by UI.
+
+LevelSelectUI:
+	- MainMenuButton - Should return to main menu
+	- NextMapButton - should display next map and update UI
+	- PreviousMapButton - should display the previous map and update UI
+	- NextMapButton_MaxIndex - should wrap around to the first map in the list and update UI
+	- PreviousMapButton_MinIndex - should wrap around to last map in the list and update UI
+	- PlayButtonTest - Should start gameplay of selected map.
+	
+GameUI:
+	- GameUIRender - Should correctly display player HP and objective numbers
+	- GameUIUpdate_LoseHP - Should correctly display new HP value
+	- GameUIUpdate_GainHP - Should correctly display new HP value
+	- GameUIUpdate_CollectObjective - Should correctly display new number of objectives
+	- SwitchToLevelOver_Died - Should correctly display the game over UI.
+	- SwitchToLevelOver_Win - Should correctly display the game over UI.
+	- LevelOverUI_MainMenu - should return to main menu.
+	- LevelOverUI_NextMap - should start next level.
+	
+GameState:
+	- PlayerDeath - Should display correct message. Restart level after short time
+	- LevelComplete - Should display correct message and wait for player input.
+	

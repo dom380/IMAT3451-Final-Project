@@ -134,7 +134,7 @@ public class GridMovement {
     public boolean reachedDest() {
         if (mDestination != null) {
             Vector2 pixelDest = new Vector2(mDestination.x * TILE_WIDTH, mDestination.y * TILE_HEIGHT);
-            return pixelDest.dst(mEntity.getPosition()) < 2.f;
+            return pixelDest.dst(mEntity.getPosition()) < 1.f;
         } else {
             return false;
         }
